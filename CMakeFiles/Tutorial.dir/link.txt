@@ -1,0 +1,1 @@
+/usr/bin/c++   --std=c++11 -O3 -g -DHAVE_EXT_ATOMICITY=1 -DP_NEEDS_GNU_CXX_NAMESPACE=1   -pthread -rdynamic CMakeFiles/Tutorial.dir/home/jake/PhD/Edge_Disjoint/c++/.vscode/test.cpp.o  -o Tutorial 

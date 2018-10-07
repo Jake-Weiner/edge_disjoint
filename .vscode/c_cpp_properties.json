@@ -1,0 +1,17 @@
+{
+    "configurations": [
+        {
+            "name": "Linux",
+            "includePath": [
+                "/home/jake/PhD/Edge_Disjoint/c++/boost_1_67_0/Build/include",
+                "/home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/LAPSO_Req"
+            ],
+            "defines": [],
+            "compilerPath": "/usr/bin/gcc",
+            "cStandard": "c11",
+            "cppStandard": "c++17",
+            "intelliSenseMode": "clang-x64"
+        }
+    ],
+    "version": 4
+}

@@ -1,0 +1,16 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/test.cpp
+stdio.h
+-
+stdlib.h
+-
+math.h
+-
+

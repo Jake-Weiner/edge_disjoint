@@ -1,0 +1,1 @@
+/usr/bin/c++   --std=c++11 -g  -rdynamic CMakeFiles/main.dir/main.cpp.o  -o main  -L/home/jake/PhD/Edge_Disjoint/c++/boost_1_67_0/Build/lib 
