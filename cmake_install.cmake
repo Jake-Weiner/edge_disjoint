@@ -1,4 +1,4 @@
-# Install script for directory: /home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax
+# Install script for directory: /home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
@@ -45,5 +45,5 @@ endif()
 
 string(REPLACE ";" "\n" CMAKE_INSTALL_MANIFEST_CONTENT
        "${CMAKE_INSTALL_MANIFEST_FILES}")
-file(WRITE "/home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/${CMAKE_INSTALL_MANIFEST}"
+file(WRITE "/home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/${CMAKE_INSTALL_MANIFEST}"
      "${CMAKE_INSTALL_MANIFEST_CONTENT}")

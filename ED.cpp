@@ -1,9 +1,3 @@
-/** Degree constrainted minimum spanning tree problem solver using the LaPSO
- *  heuristic code. This file simply implements the lagrangian relaxation
- *  (solving minimum spanning tree problems) and uses the LaPSO framework to
- *  get a DCMST solution. Files are read in the format from an earlier paper.
- */
-
 #include "LaPSO.hpp"
 #include "VolVolume.hpp"
 #include "Random.h"
@@ -23,14 +17,6 @@
 #include <boost/tokenizer.hpp>
 #include <boost/algorithm/string.hpp>
 using namespace LaPSO;
-
-struct Edge {
-    Edge(int _i,int _j,int _idx) : i(_i),j(_j),idx(_idx) {}
-    int i,j;			// from/to node, i < j
-    size_t idx;			// index 0..number of edges
-};
-typedef std::vector<Edge> EdgeVec;
-typedef EdgeVec::const_iterator EdgeIter;
 
 class ReducedCostCmp {
     const LaPSO::DblVec &rc;
@@ -198,89 +184,3 @@ public:
 	return OK;
     }
 };
-
-
-void usage(char **argv)
-{
-    std::cerr << "USAGE: " << argv[0] << " "
-	      << "[--param val] [vol] <filename> <degree>\n"
-	      << "Solve degree constrained minimum spanning tree problem\n"
-	      << "Arguments give file with distances (lower triangular matrix)\n"
-	      << "and the maximum degree of any node in the tree (>= 2)\n"
-	      << "Optionally set parameters (eg --maxIter 100). \n"
-	      << "The optional argument 'vol' or 'v' activates the volume\n"
-	      << "algorithm instead of lagragian particle swarm optimisation"
-	      << std::endl;
-    exit(1);
-}
-int main(int argc,char **argv)
-{
-    if(argc < 3)
-	usage(argv);
-    const int degree = atoi(argv[argc-1]);
-    const char *filename = argv[argc-2];
-    const bool useVol = (argv[argc-3][0] == 'v' || argv[argc-3][0]=='V');
-    if( ! fopen(filename,"r") ){
-	std::cerr << "Cannot open " << filename << " for reading\n";
-	usage(argv);
-    }
-    if( degree <= 1) usage(argv);
-    DCMST dcmst(filename,degree); // set up the 
-    std::cout << "Read " << filename
-	      << " and solving with max degree " << degree << std::endl;
-    std::cout << dcmst.n << " nodes and " << dcmst.edge.size() << " edges\n";
-    LaPSO::Problem solver((int)dcmst.edge.size(),dcmst.n);
-    //-------- set default parameter values
-    solver.param.absGap = 0.999;
-    solver.param.printFreq = 1;	
-    solver.param.printLevel = 1;
-    solver.param.maxIter = 200;
-    // override defaults with command line arguments
-    solver.param.parse(argc-2,argv); // -2 as the last 2 are already done
-    dcmst.maxMSTsolves = solver.param.maxIter; 
-    double maxCost = dcmst.cost.max();
-    solver.best.ub = maxCost * (dcmst.n-1);
-    solver.best.lb = dcmst.cost.min() * (dcmst.n-1);
-    solver.dualUB = 0;
-    Uniform rand;
-    if(solver.param.randomSeed == 0) rand.seedTime();
-    else rand.seed(solver.param.randomSeed);
-    if(useVol){
-	DcmstParticle *p = new DcmstParticle(dcmst.edge,dcmst.n);
-	for(int j=0;j<dcmst.n;++j)
-	    p->dual[j] = -rand(0,maxCost*0.5);
-	VOL_LaPSO_adaptor vol(solver,dcmst,p);
-	vol.prob.parm.lambdainit = 10;
-	vol.prob.parm.greentestinvl = 3;
-	vol.prob.parm.redtestinvl = 5;
-	std::cout << "Using volume algorithm with random initial point\n";
-	vol.solve(true);
-	solver.best = vol.best;
-    }else{
-	for(int i=0;i<solver.param.nParticles;++i){
-	    DcmstParticle *p = new DcmstParticle(dcmst.edge,dcmst.n);
-	    for(int j=0;j<dcmst.n;++j)
-		p->dual[j] = -rand(0.0,maxCost*0.5);
-	    solver.swarm.push_back(p);
-	}
-	std::cout << "set up solver with " << solver.param.nParticles
-		  << " particles\n";
-	solver.solve(dcmst);
-    }
-    std::cout << "Completed in " << solver.wallTime() << " sec, "
-	      << solver.cpuTime() << " CPU sec "
-	      << dcmst.nMSTsolves << " MST calls "
-	      << 100.0*solver.cpuTime()/(solver.param.nCPU*solver.wallTime())
-	      << "% utilisation\n";
-    if(solver.best.isFeasible){
-	std::cout << "best solution = " << solver.best.ub
-		  << " >= " << solver.best.lb << std::endl;
-	std::cout << "F:";
-	for(int i=0;i<dcmst.n-1;++i) printf("%3d",dcmst.mst[i].i);
-	std::cout <<"\nT:";
-	for(int i=0;i<dcmst.n-1;++i) printf("%3d",dcmst.mst[i].j);
-	std::cout << std::endl;
-    }else
-	std::cout << "no feasible solution found\n";
-    return 0;
-}

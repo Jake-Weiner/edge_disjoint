@@ -1,1 +1,0 @@
-/usr/bin/c++   --std=c++11 -O3 -g -DHAVE_EXT_ATOMICITY=1 -DP_NEEDS_GNU_CXX_NAMESPACE=1   -pthread -rdynamic CMakeFiles/Lagrangian_Relax.dir/test.cpp.o  -o Lagrangian_Relax  -L/home/jake/PhD/Edge_Disjoint/c++/boost_1_67_0/Build/lib 
