@@ -330,7 +330,7 @@ namespace LaPSO {
 		double swarmRadius() const; 
     private:
 		int nIter;		///< iteration number
-		qol::CpuTimer timer;
+		CpuTimer timer;
 		double _wallTime;
 		void initialise(UserHooks &hooks);///< set up initial swarm
 		/// update the best particle information

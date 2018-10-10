@@ -111,44 +111,152 @@ depend:
 .PHONY : depend
 
 #=============================================================================
-# Target rules for targets named main
+# Target rules for targets named main_test
 
 # Build rule for target.
-main: cmake_check_build_system
-	$(MAKE) -f CMakeFiles/Makefile2 main
-.PHONY : main
+main_test: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 main_test
+.PHONY : main_test
 
 # fast build rule for target.
-main/fast:
-	$(MAKE) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/build
-.PHONY : main/fast
+main_test/fast:
+	$(MAKE) -f CMakeFiles/main_test.dir/build.make CMakeFiles/main_test.dir/build
+.PHONY : main_test/fast
 
-main.o: main.cpp.o
+CpuTimer.o: CpuTimer.cpp.o
 
-.PHONY : main.o
+.PHONY : CpuTimer.o
 
 # target to build an object file
-main.cpp.o:
-	$(MAKE) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/main.cpp.o
-.PHONY : main.cpp.o
+CpuTimer.cpp.o:
+	$(MAKE) -f CMakeFiles/main_test.dir/build.make CMakeFiles/main_test.dir/CpuTimer.cpp.o
+.PHONY : CpuTimer.cpp.o
 
-main.i: main.cpp.i
+CpuTimer.i: CpuTimer.cpp.i
 
-.PHONY : main.i
+.PHONY : CpuTimer.i
 
 # target to preprocess a source file
-main.cpp.i:
-	$(MAKE) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/main.cpp.i
-.PHONY : main.cpp.i
+CpuTimer.cpp.i:
+	$(MAKE) -f CMakeFiles/main_test.dir/build.make CMakeFiles/main_test.dir/CpuTimer.cpp.i
+.PHONY : CpuTimer.cpp.i
 
-main.s: main.cpp.s
+CpuTimer.s: CpuTimer.cpp.s
 
-.PHONY : main.s
+.PHONY : CpuTimer.s
 
 # target to generate assembly for a file
-main.cpp.s:
-	$(MAKE) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/main.cpp.s
-.PHONY : main.cpp.s
+CpuTimer.cpp.s:
+	$(MAKE) -f CMakeFiles/main_test.dir/build.make CMakeFiles/main_test.dir/CpuTimer.cpp.s
+.PHONY : CpuTimer.cpp.s
+
+ED.o: ED.cpp.o
+
+.PHONY : ED.o
+
+# target to build an object file
+ED.cpp.o:
+	$(MAKE) -f CMakeFiles/main_test.dir/build.make CMakeFiles/main_test.dir/ED.cpp.o
+.PHONY : ED.cpp.o
+
+ED.i: ED.cpp.i
+
+.PHONY : ED.i
+
+# target to preprocess a source file
+ED.cpp.i:
+	$(MAKE) -f CMakeFiles/main_test.dir/build.make CMakeFiles/main_test.dir/ED.cpp.i
+.PHONY : ED.cpp.i
+
+ED.s: ED.cpp.s
+
+.PHONY : ED.s
+
+# target to generate assembly for a file
+ED.cpp.s:
+	$(MAKE) -f CMakeFiles/main_test.dir/build.make CMakeFiles/main_test.dir/ED.cpp.s
+.PHONY : ED.cpp.s
+
+LaPSO.o: LaPSO.cpp.o
+
+.PHONY : LaPSO.o
+
+# target to build an object file
+LaPSO.cpp.o:
+	$(MAKE) -f CMakeFiles/main_test.dir/build.make CMakeFiles/main_test.dir/LaPSO.cpp.o
+.PHONY : LaPSO.cpp.o
+
+LaPSO.i: LaPSO.cpp.i
+
+.PHONY : LaPSO.i
+
+# target to preprocess a source file
+LaPSO.cpp.i:
+	$(MAKE) -f CMakeFiles/main_test.dir/build.make CMakeFiles/main_test.dir/LaPSO.cpp.i
+.PHONY : LaPSO.cpp.i
+
+LaPSO.s: LaPSO.cpp.s
+
+.PHONY : LaPSO.s
+
+# target to generate assembly for a file
+LaPSO.cpp.s:
+	$(MAKE) -f CMakeFiles/main_test.dir/build.make CMakeFiles/main_test.dir/LaPSO.cpp.s
+.PHONY : LaPSO.cpp.s
+
+anyoption.o: anyoption.cpp.o
+
+.PHONY : anyoption.o
+
+# target to build an object file
+anyoption.cpp.o:
+	$(MAKE) -f CMakeFiles/main_test.dir/build.make CMakeFiles/main_test.dir/anyoption.cpp.o
+.PHONY : anyoption.cpp.o
+
+anyoption.i: anyoption.cpp.i
+
+.PHONY : anyoption.i
+
+# target to preprocess a source file
+anyoption.cpp.i:
+	$(MAKE) -f CMakeFiles/main_test.dir/build.make CMakeFiles/main_test.dir/anyoption.cpp.i
+.PHONY : anyoption.cpp.i
+
+anyoption.s: anyoption.cpp.s
+
+.PHONY : anyoption.s
+
+# target to generate assembly for a file
+anyoption.cpp.s:
+	$(MAKE) -f CMakeFiles/main_test.dir/build.make CMakeFiles/main_test.dir/anyoption.cpp.s
+.PHONY : anyoption.cpp.s
+
+main_test.o: main_test.cpp.o
+
+.PHONY : main_test.o
+
+# target to build an object file
+main_test.cpp.o:
+	$(MAKE) -f CMakeFiles/main_test.dir/build.make CMakeFiles/main_test.dir/main_test.cpp.o
+.PHONY : main_test.cpp.o
+
+main_test.i: main_test.cpp.i
+
+.PHONY : main_test.i
+
+# target to preprocess a source file
+main_test.cpp.i:
+	$(MAKE) -f CMakeFiles/main_test.dir/build.make CMakeFiles/main_test.dir/main_test.cpp.i
+.PHONY : main_test.cpp.i
+
+main_test.s: main_test.cpp.s
+
+.PHONY : main_test.s
+
+# target to generate assembly for a file
+main_test.cpp.s:
+	$(MAKE) -f CMakeFiles/main_test.dir/build.make CMakeFiles/main_test.dir/main_test.cpp.s
+.PHONY : main_test.cpp.s
 
 # Help Target
 help:
@@ -158,10 +266,22 @@ help:
 	@echo "... depend"
 	@echo "... rebuild_cache"
 	@echo "... edit_cache"
-	@echo "... main"
-	@echo "... main.o"
-	@echo "... main.i"
-	@echo "... main.s"
+	@echo "... main_test"
+	@echo "... CpuTimer.o"
+	@echo "... CpuTimer.i"
+	@echo "... CpuTimer.s"
+	@echo "... ED.o"
+	@echo "... ED.i"
+	@echo "... ED.s"
+	@echo "... LaPSO.o"
+	@echo "... LaPSO.i"
+	@echo "... LaPSO.s"
+	@echo "... anyoption.o"
+	@echo "... anyoption.i"
+	@echo "... anyoption.s"
+	@echo "... main_test.o"
+	@echo "... main_test.i"
+	@echo "... main_test.s"
 .PHONY : help
 
 
