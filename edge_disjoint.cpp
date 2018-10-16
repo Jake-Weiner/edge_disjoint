@@ -24,11 +24,13 @@
 #include <boost/algorithm/string.hpp>
 using namespace LaPSO;
 
+
 struct Edge {
     Edge(int _i,int _j,int _idx) : i(_i),j(_j),idx(_idx) {}
     int i,j;			// from/to node, i < j
     size_t idx;			// index 0..number of edges
 };
+
 typedef std::vector<Edge> EdgeVec;
 typedef EdgeVec::const_iterator EdgeIter;
 

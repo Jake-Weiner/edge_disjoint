@@ -86,13 +86,13 @@ void populate_graph(string filename){
       edge_index[current_edge] = edge_number;
       edge_number += 1;
       weights.push_back(1);
-      
+      add_edge(current_edge.first,current_edge.second,1,g);
       current_edge = Edge(stoi(SplitVec[1]),stoi(SplitVec[0]));
       edges.push_back(current_edge);
       edge_index[current_edge] = edge_number;
       edge_number += 1;
       weights.push_back(1);
-      
+      add_edge(current_edge.first,current_edge.second,1,g)
     }
   }
 
