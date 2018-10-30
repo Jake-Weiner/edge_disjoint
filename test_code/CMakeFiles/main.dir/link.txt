@@ -1,1 +1,0 @@
-/usr/bin/c++   --std=c++11 -g  -rdynamic CMakeFiles/main.dir/non_dominating.cpp.o  -o main 

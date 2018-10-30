@@ -4,6 +4,7 @@ file(REMOVE_RECURSE
   "CMakeFiles/main_test.dir/LaPSO.cpp.o"
   "CMakeFiles/main_test.dir/CpuTimer.cpp.o"
   "CMakeFiles/main_test.dir/anyoption.cpp.o"
+  "CMakeFiles/main_test.dir/VolVolume.cpp.o"
   "main_test.pdb"
   "main_test"
 )

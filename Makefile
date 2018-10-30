@@ -204,6 +204,33 @@ LaPSO.cpp.s:
 	$(MAKE) -f CMakeFiles/main_test.dir/build.make CMakeFiles/main_test.dir/LaPSO.cpp.s
 .PHONY : LaPSO.cpp.s
 
+VolVolume.o: VolVolume.cpp.o
+
+.PHONY : VolVolume.o
+
+# target to build an object file
+VolVolume.cpp.o:
+	$(MAKE) -f CMakeFiles/main_test.dir/build.make CMakeFiles/main_test.dir/VolVolume.cpp.o
+.PHONY : VolVolume.cpp.o
+
+VolVolume.i: VolVolume.cpp.i
+
+.PHONY : VolVolume.i
+
+# target to preprocess a source file
+VolVolume.cpp.i:
+	$(MAKE) -f CMakeFiles/main_test.dir/build.make CMakeFiles/main_test.dir/VolVolume.cpp.i
+.PHONY : VolVolume.cpp.i
+
+VolVolume.s: VolVolume.cpp.s
+
+.PHONY : VolVolume.s
+
+# target to generate assembly for a file
+VolVolume.cpp.s:
+	$(MAKE) -f CMakeFiles/main_test.dir/build.make CMakeFiles/main_test.dir/VolVolume.cpp.s
+.PHONY : VolVolume.cpp.s
+
 anyoption.o: anyoption.cpp.o
 
 .PHONY : anyoption.o
@@ -276,6 +303,9 @@ help:
 	@echo "... LaPSO.o"
 	@echo "... LaPSO.i"
 	@echo "... LaPSO.s"
+	@echo "... VolVolume.o"
+	@echo "... VolVolume.i"
+	@echo "... VolVolume.s"
 	@echo "... anyoption.o"
 	@echo "... anyoption.i"
 	@echo "... anyoption.s"
