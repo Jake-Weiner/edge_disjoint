@@ -9,7 +9,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/main_test",
-            "args": [""],
+            "args": ["L --maxIter=20"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],

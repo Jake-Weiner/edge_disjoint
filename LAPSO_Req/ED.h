@@ -23,7 +23,7 @@ typedef EdgeVec::const_iterator EdgeIter;
 struct Commodity {
     int origin;
     int dest;
-    vector<Edge> solution_edges;
+    EdgeVec solution_edges;
     float solution_value;
     int comm_idx;
 };
@@ -34,6 +34,7 @@ public:
     LaPSO::DblVec weights;
     Edge_Int_Map EIM;
     EdgeVec graph_edges;
+    int solution_cost; // objective value of solution
     vector<EdgeVec> solution_edges; //edges used in each commodity SP
     ED(string graph_filename, string pairs_filename);
     //void solve_ED(EDParticle &p);

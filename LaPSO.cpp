@@ -106,7 +106,8 @@ namespace LaPSO {
 		psize(nVar), dsize(nConstr),
 		dualLB(dsize,-INF), dualUB(dsize,INF),
 		nIter(-1)
-    { best.ub = INF;best.lb=-INF;best.isFeasible=false;
+    { _wallTime = omp_get_wtime();
+      best.ub = INF;best.lb=-INF;best.isFeasible=false;
       best.perturb.resize(nVar,0.0); best.dual.resize(nConstr,0.0);}
 
 
@@ -342,7 +343,7 @@ namespace LaPSO {
 
     double Problem::wallTime() const
     {
-		return omp_get_wtime() - _wallTime;
+      return omp_get_wtime() - _wallTime;
     }
     // set up an initial swarm
     void Problem::initialise(UserHooks &hooks)
