@@ -38,7 +38,7 @@ void ED::populate_commodities(string filename)
         while (!input.eof()) {
             string line;
             getline(input, line);
-            split(SplitVec, line, is_any_of(" "), token_compress_on);
+            split(SplitVec, line, is_any_of(" \t"), token_compress_on);
             if (SplitVec.size() > 1) {
                 commodities.push_back(Commodity{ stoi(SplitVec[0]), stoi(SplitVec[1]), {}, 0.0, idx });
                 idx++;
@@ -61,7 +61,7 @@ void ED::populate_graph(string filename)
         while (!input.eof()) {
             string line;
             getline(input, line); //read number
-            split(SplitVec, line, is_any_of(" "), token_compress_on); // SplitVec == { "hello abc","ABC","aBc goodbye" }
+            split(SplitVec, line, is_any_of(" \t"), token_compress_on); // SplitVec == { "hello abc","ABC","aBc goodbye" }
             if (line_count == 0) {
                 num_nodes = stoi(SplitVec[0]);
                 g = graph_t(num_nodes);
@@ -146,6 +146,8 @@ Status ED::solveSubproblem(Particle& p_)
 
         // if no feasible sp exists between orig and dest nodes
         if (distances[end] >= 1) {
+            std::cout << "\tCost for " << comm_idx << " (" << (*itr).origin
+                      << "," << (*itr).dest << ") " << distances[end] << std::endl;  
             p.ub += 1;
             total_paths_cost += 1;
             itr->solution_value = 1; // penalty for not including path
@@ -195,23 +197,19 @@ Status ED::solveSubproblem(Particle& p_)
                   << " lb=" << p.lb << " ub=" << p.ub
                   << " max_perturb=" << max_perturb << std::endl
                   << "\trange of dual = " << p.dual.min() << " to " << p.dual.max() << std::endl
-                  << "\trange of viol = " << p.viol.min() << " to " << p.viol.max() << std::endl
-                  << "\trange of perturb = " << p.perturb.min() << " to " << p.perturb.max() << std::endl;
+                  << "\trange of viol = " << p.viol.min() << " to " << p.viol.max() << std::endl;
+	if(! p.perturb.empty() )
+	  std::cout << "\trange of perturb = " << p.perturb.min() << " to " << p.perturb.max() << std::endl;
         std::cout << "\tpath edge counts:";
-    }
-    if (printing == true) {
         for (auto c = p.commodities.begin(); c != p.commodities.end(); ++c)
             std::cout << " " << c->solution_edges.size();
         std::cout << std::endl;
     }
-    if (p.lb > p.max_lb) {
+    if (p.lb > p.max_lb) 
         p.max_lb = p.lb;
-    }
 
-    if (p.isFeasible) {
-        if ((p.commodities.size() - p.ub) > p.max_ub) {
-            p.max_ub = p.commodities.size() - p.ub;
-        }
+    if (p.isFeasible && (p.commodities.size() - p.ub) > p.max_ub) {
+        p.max_ub = p.commodities.size() - p.ub;
     }
 
     return (nEDsolves < maxEDsolves) ? OK : ABORT;
@@ -225,9 +223,11 @@ Status ED::heuristics(Particle& p_)
 {
 
     EDParticle& p(static_cast<EDParticle&>(p_));
-    if (p.isFeasible)
-        return OK; // already feasible
-
+    if (p.isFeasible){
+      if(printing) std::cout << "Heuristic called with feasible solution "
+			     << p.ub << std::endl;      
+      return OK; // already feasible
+    }
     int largest_com_idx = 0;
     int largest_viol = 0;
     int current_viol = 0;
@@ -240,8 +240,7 @@ Status ED::heuristics(Particle& p_)
             p.x[primalIdx(e.first, e.second, it->comm_idx)] += 1;
             viol[edgeIdx(e)] -= 1;
         }
-
-    while ((viol.min() < 0)) {
+    while (viol.min() < 0) {
         if (printing == true)
             cout << "\tviol sum is " << viol.sum() << endl;
         auto result = std::min_element(viol.begin(), viol.end());
@@ -305,12 +304,14 @@ Status ED::heuristics(Particle& p_)
             for (current = end; current != start; current = parents[current]) {
                 p.x[primalIdx(parents[current], current, largest_com_idx)] += 1;
                 // solution is stored in reverse at here
-                p.commodities[largest_com_idx].solution_edges.push_back(Edge(parents[current], current));
+		const Edge e(Edge(parents[current], current));
+                p.commodities[largest_com_idx].solution_edges.push_back(e);
+		viol[edgeIdx(e)] -= 1;
             }
             // reversing each time is not really necessary but nice
             reverse(p.commodities[largest_com_idx].solution_edges.begin(), p.commodities[largest_com_idx].solution_edges.end());
             if (printing == true)
-                cout << "repaired path" << endl;
+                cout << "\t\trepaired path" << endl;
         }
     }
     p.ub = 0;
@@ -335,6 +336,8 @@ Status ED::updateBest(Particle& p_)
         if (p.commodities[c].solution_edges.empty())
             ++solution_cost;
     }
+    if(printing == true)
+      cout<< "################## " << solution_cost  << " ############\n";
     return OK;
 }
 

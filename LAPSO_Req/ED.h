@@ -71,7 +71,8 @@ public:
   const size_t primalIdx(size_t edge ,int c) const {
     return num_edges(g)*c+ edge; }
   const int getCommSize() {return commodities.size();}
-
+  void setPrinting(bool p) {printing=p;}
+  bool getPrinting() const {return printing;}
 
 private:
     bool printing;

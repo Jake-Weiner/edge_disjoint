@@ -56,6 +56,8 @@ int main(int argc, const char** argv)
     solver.param.subgradFmin = 0.0001; // allow very small steps
     // override defaults with command line arguments
     solver.param.parse(argc, argv);
+    printing = solver.param.printLevel > 0;
+    ed.setPrinting(printing);
     ed.maxEDsolves = solver.param.maxIter;
     ed.solution_cost = solver.best.ub = ncomm; // every path excluded
     solver.best.lb = 0; // no path left out
@@ -89,17 +91,17 @@ int main(int argc, const char** argv)
         solver.solve(ed);
     }
 
-    if (printing = true) {
+    //if (printing == true) { // always show the final result
         std::cout << "Best solution missing " << solver.best.ub
                   << " paths, lower bound " << solver.best.lb
                   << std::endl
                   << "CPU time = " << solver.cpuTime()
                   << " elapsed = " << solver.wallTime() << " sec"
                   << std::endl;
-    }
+    //}
     std::ofstream outfile;
 
-    string output_file = "";
+    string output_file = "out.csv";
     if (particle_param == true) {
         output_file = "/home/jake/PhD/Edge_Disjoint/c++/Outputs/particles_param.csv";
         std::cout << "read in P" << endl;
