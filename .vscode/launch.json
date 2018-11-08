@@ -9,7 +9,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/main_test",
-            "args": ["L --maxIter=20"],
+            "args": ["Pe", "/home/jake/PhD/Edge_Disjoint/Cleansed_Data/Pairs/AS-BA.R-Wax.v100e190.rpairs.10.1","/home/jake/PhD/Edge_Disjoint/Cleansed_Data/Graphs/AS-BA.R-Wax.v100e190.bb"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],

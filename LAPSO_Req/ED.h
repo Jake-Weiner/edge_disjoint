@@ -36,7 +36,7 @@ public:
     EdgeVec graph_edges;
     int solution_cost; // objective value of solution
     vector<EdgeVec> solution_edges; //edges used in each commodity SP
-    ED(string graph_filename, string pairs_filename);
+    ED(string graph_filename, string pairs_filename, bool _printing);
     //void solve_ED(EDParticle &p);
     int nEDsolves;		// number of times ED was solved
     int maxEDsolves;		// abort after this many
@@ -70,8 +70,11 @@ public:
     return primalIdx / num_edges(g); }
   const size_t primalIdx(size_t edge ,int c) const {
     return num_edges(g)*c+ edge; }
+  const int getCommSize() {return commodities.size();}
+
 
 private:
+    bool printing;
     vector<Commodity> commodities;
     graph_t g;
     int num_nodes;
