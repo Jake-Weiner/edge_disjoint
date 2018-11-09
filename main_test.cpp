@@ -2,13 +2,15 @@
 #include "LaPSO.hpp"
 #include "Random.h"
 #include "VolVolume.hpp"
+#include "prep_mip.h"
 #include <fstream>
 #include <string>
 
 using namespace LaPSO;
 
 int main(int argc, const char** argv)
-{
+{   
+    
     bool printing = false;
     string graph_file = "";
     string pairs_filename = "";
@@ -132,6 +134,10 @@ int main(int argc, const char** argv)
         std::cerr << "Exception opening/reading/closing output file\n";
     }
 
-      vector<Particle *> population = solver.swarm;
+    //sort particles into non-dominated set
+
+
+
+
     return 0;
 }

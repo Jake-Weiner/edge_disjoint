@@ -285,6 +285,33 @@ main_test.cpp.s:
 	$(MAKE) -f CMakeFiles/main_test.dir/build.make CMakeFiles/main_test.dir/main_test.cpp.s
 .PHONY : main_test.cpp.s
 
+prep_mip.o: prep_mip.cpp.o
+
+.PHONY : prep_mip.o
+
+# target to build an object file
+prep_mip.cpp.o:
+	$(MAKE) -f CMakeFiles/main_test.dir/build.make CMakeFiles/main_test.dir/prep_mip.cpp.o
+.PHONY : prep_mip.cpp.o
+
+prep_mip.i: prep_mip.cpp.i
+
+.PHONY : prep_mip.i
+
+# target to preprocess a source file
+prep_mip.cpp.i:
+	$(MAKE) -f CMakeFiles/main_test.dir/build.make CMakeFiles/main_test.dir/prep_mip.cpp.i
+.PHONY : prep_mip.cpp.i
+
+prep_mip.s: prep_mip.cpp.s
+
+.PHONY : prep_mip.s
+
+# target to generate assembly for a file
+prep_mip.cpp.s:
+	$(MAKE) -f CMakeFiles/main_test.dir/build.make CMakeFiles/main_test.dir/prep_mip.cpp.s
+.PHONY : prep_mip.cpp.s
+
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -312,6 +339,9 @@ help:
 	@echo "... main_test.o"
 	@echo "... main_test.i"
 	@echo "... main_test.s"
+	@echo "... prep_mip.o"
+	@echo "... prep_mip.i"
+	@echo "... prep_mip.s"
 .PHONY : help
 
 
