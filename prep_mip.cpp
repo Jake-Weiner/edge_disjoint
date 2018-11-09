@@ -1,15 +1,15 @@
 #include "prep_mip.h"
 
-
 using namespace std;
 using namespace LaPSO;
 
 typedef pair<int, int> u_point;
 typedef vector<u_point>::iterator points_it;
 
-int sum(DblVec x){
-    int sum=0;
-    for (int i=0; i<x.size(); i++){
+int sum(DblVec x)
+{
+    int sum = 0;
+    for (int i = 0; i < x.size(); i++) {
         sum += x[i];
     }
     return sum;
@@ -25,43 +25,68 @@ bool point_comp(Particle a, Particle b)
         return false;
 }
 
-int main()
+vector<Particle*> sort_non_dom(vector<Particle*> swarm)
 {
-
-    vector<u_point> points;
-
-    points.push_back(u_point(8, 5));
-    points.push_back(u_point(9, 2));
-    points.push_back(u_point(11, 3));
-    points.push_back(u_point(12, 1));
-    points.push_back(u_point(16, 2));
-
-    vector<u_point> dominating_set;
-
-    dominating_set.push_back(points[0]);
-
-    for (points_it pot_point = points.begin(); pot_point != points.end(); ++pot_point) {
+    vector<Particle*> non_dom;
+    non_dom.push_back(swarm[0]);
+    for (auto swarm_it = swarm.begin(); swarm_it != swarm.end(); ++swarm_it) {
         bool add_dom = true;
-        for (points_it dom_point = dominating_set.begin(); dom_point != dominating_set.end(); ++dom_point) {
+        for (auto dom_it = non_dom.begin(); dom_it != non_dom.end(); ++dom_it) {
 
             // if potential point dominates
-            if (point_comp(*pot_point, *dom_point)) {
-                dominating_set.erase(dom_point);
+            if (point_comp(**swarm_it, **dom_it)) {
+                non_dom.erase(dom_it);
                 continue;
             }
 
-            if (point_comp(*dom_point, *pot_point)) {
+            if (point_comp(**dom_it, **swarm_it)) {
                 add_dom = false;
                 break;
             }
         }
         if (add_dom) {
-            dominating_set.push_back(*pot_point);
-        }
-
-        for (points_it dom_point = dominating_set.begin(); dom_point != dominating_set.end(); ++dom_point) {
-            cout << (*dom_point).first << " " << (*dom_point).second << endl;
+            non_dom.push_back(*swarm_it);
         }
     }
-    return 0;
+
+     for (auto dom_it = non_dom.begin(); dom_it != non_dom.end(); ++dom_it){
+         cout << (*dom_it)->lb << sum((*dom_it)->viol) << endl;
+     }
+
+    return non_dom;
 }
+
+
+
+/* test code 
+
+    Particle a = Particle();
+    Particle b = Particle();
+    Particle c = Particle();
+    Particle d = Particle();
+
+    a.lb = 3;
+    b.lb = 4;
+    c.lb = 2;
+    d.lb = 1;
+
+    int temp[4] = {1,0,0,0};
+    a.viol.assign(temp,temp+4);
+    temp[1] = 1;
+    b.viol.assign(temp,temp+4);
+    temp[2] = 1;
+    temp[3] = 1;
+    c.viol.assign(temp,temp+4);
+    temp[3] = 0;
+    d.viol.assign(temp,temp+4);
+
+    vector<Particle *> swarm;
+    swarm.push_back(&a);
+    swarm.push_back(&b);
+    swarm.push_back(&c);
+    swarm.push_back(&d);
+
+
+    vector<Particle *> non_dom_set = sort_non_dom(swarm);
+
+*/

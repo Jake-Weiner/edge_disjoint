@@ -8,4 +8,4 @@ using namespace LaPSO;
 
 //does a dominate b
 bool particle_comp(Particle a,Particle b);
-vector<Particle> sort_non_dom(vector<Particle>);
+vector<Particle *> sort_non_dom(vector<Particle *> swarm);
