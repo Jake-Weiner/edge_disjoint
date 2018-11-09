@@ -70,6 +70,12 @@ void ED::populate_graph(string filename)
             }
             if (SplitVec.size() >= 3) {
                 current_edge = Edge(stoi(SplitVec[0]), stoi(SplitVec[1]));
+		if( EIM.find(current_edge) != EIM.end() ){
+		  std::cout << "WARNING: " << filename << " contains 2 edges between "
+			    << current_edge.first << " & " << current_edge.second
+			    << " - ignored\n"; // this may give us 
+		  continue;
+		}
                 add_edge(current_edge.first, current_edge.second, edge_number, g);
                 graph_edges.push_back(current_edge);
                 EIM[current_edge] = edge_number;
@@ -130,8 +136,8 @@ Status ED::solveSubproblem(Particle& p_)
             weightMap[*ei] = p.rc[primalIdx(ei, comm_idx)];
             minWeight = std::min(minWeight, weightMap[*ei]);
         }
-        if (minWeight < 0.0) { // this should never happen!
-            if (minWeight < -1e-4)
+        if (minWeight < 0.0) { // this may happen due to perturbations
+            if (minWeight < -1e-2)
                 std::cerr << "WARNING: negative edge weight " << minWeight << std::endl;
             for (tie(ei, ei_end) = edges(g); ei != ei_end; ++ei)
                 weightMap[*ei] = std::max(0.0, weightMap[*ei]);
@@ -146,8 +152,9 @@ Status ED::solveSubproblem(Particle& p_)
 
         // if no feasible sp exists between orig and dest nodes
         if (distances[end] >= 1) {
-            std::cout << "\tCost for " << comm_idx << " (" << (*itr).origin
-                      << "," << (*itr).dest << ") " << distances[end] << std::endl;  
+	    if(printing)
+	      std::cout << "\tCost for " << comm_idx << " (" << (*itr).origin
+			<< "," << (*itr).dest << ") " << distances[end] << std::endl;  
             p.ub += 1;
             total_paths_cost += 1;
             itr->solution_value = 1; // penalty for not including path
@@ -233,7 +240,7 @@ Status ED::heuristics(Particle& p_)
     int current_viol = 0;
 
     edge_iterator ei, ei_end;
-    DblVec viol(p.viol.size(), 1.0);
+    IntVec viol(p.viol.size(), 1);
     p.x = 0;
     for (auto it = p.commodities.begin(); it != p.commodities.end(); it++)
         for (const Edge& e : it->solution_edges) {
@@ -253,7 +260,7 @@ Status ED::heuristics(Particle& p_)
         largest_viol = 0;
         //find commodity with the largest violation, that contains this edge
         for (auto it = p.commodities.begin(); it != p.commodities.end(); it++) {
-            if (p.x[primalIdx(largest_viol_idx, it->comm_idx)] != 0) { // the commodity contains this edge
+            if (p.x[primalIdx(largest_viol_idx, it->comm_idx)] > 1.0e-6) { // the commodity contains this edge
                 current_viol = 0;
                 for (size_t i = 0; i < it->solution_edges.size(); i++) // sum up violations this commodity has
                     if (viol[edgeIdx(it->solution_edges[i])] < 0)
@@ -268,9 +275,9 @@ Status ED::heuristics(Particle& p_)
         if (printing == true)
             cout << "\tlargest comm idx " << largest_com_idx << " with " << -largest_viol << endl;
         // remove this path from both x AND from the solution_edges
-        for (tie(ei, ei_end) = edges(g); ei != ei_end; ++ei) {
-            viol[dualIdx(ei)] += p.x[primalIdx(ei, largest_com_idx)];
-            p.x[primalIdx(ei, largest_com_idx)] = 0;
+        for (const Edge& e : p.commodities[largest_com_idx].solution_edges) {
+            p.x[primalIdx(e.first, e.second, largest_com_idx)] -= 1;
+            viol[edgeIdx(e)] += 1;
         }
         p.commodities[largest_com_idx].solution_edges.clear();
 
@@ -280,17 +287,13 @@ Status ED::heuristics(Particle& p_)
         vertex_descriptor current;
 
         const auto& eim = get(edge_index, g); // map edge_descriptor to index
-        vector_property_map<double, __typeof__(eim)> weightMap_heur(num_edges(g), eim);
+	// should be consistent - here we are doing all integer weights
+        vector_property_map<int, __typeof__(eim)> weightMap_heur(num_edges(g), eim);
         std::vector<vertex_descriptor> parents(num_vertices(g));
         IntVec distances_heur(num_vertices(g)); // integer distances
-        int num_edges_g = num_edges(g);
-        for (tie(ei, ei_end) = edges(g); ei != ei_end; ++ei) {
-            if (viol[dualIdx(ei)] == 1) {
-                weightMap_heur[*ei] = 1;
-            } else {
-                weightMap_heur[*ei] = num_edges_g;
-            }
-        }
+        const int num_edges_g = num_edges(g);
+        for (tie(ei, ei_end) = edges(g); ei != ei_end; ++ei) 
+  	    weightMap_heur[*ei] = (viol[dualIdx(ei)] == 1) ? 1 : num_edges_g;
 
         start = vertex(p.commodities[largest_com_idx].origin, g);
         end = vertex(p.commodities[largest_com_idx].dest, g);
