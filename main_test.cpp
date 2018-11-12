@@ -9,8 +9,8 @@
 using namespace LaPSO;
 
 int main(int argc, const char** argv)
-{   
-    
+{
+
     bool printing = false;
     string graph_file = "";
     string pairs_filename = "";
@@ -19,6 +19,8 @@ int main(int argc, const char** argv)
     bool pert_param = false;
     bool globalFact_param = false;
     bool velocity_param = false;
+    bool subgrad_param = false;
+
     for (int i = 1; i < argc; ++i) {
         if (argv[i][0] == '-')
             continue;
@@ -37,6 +39,8 @@ int main(int argc, const char** argv)
             globalFact_param = true;
         else if (string(argv[i]) == "v")
             velocity_param = true;
+        else if (string(argv[i]) == "S")
+            subgrad_param = true;
     }
 
     std::cout << "Running " << (useVol ? "Volume" : "LaPSO") << " for disjoint paths problem with "
@@ -116,11 +120,15 @@ int main(int argc, const char** argv)
         output_file = "/home/jake/PhD/Edge_Disjoint/c++/Outputs/globalFactor_param.csv";
         std::cout << "read in gF" << endl;
         std::cout << "running gF param test with " << solver.param.globalFactor << endl;
-    }
-      else if (velocity_param == true) {
+    } else if (velocity_param == true) {
         output_file = "/home/jake/PhD/Edge_Disjoint/c++/Outputs/velocity_param.csv";
         std::cout << "read in v" << endl;
         std::cout << "running v param test with " << solver.param.velocityFactor << endl;
+    }
+    else if (subgrad_param == true) {
+        output_file = "/home/jake/PhD/Edge_Disjoint/c++/Outputs/subgrad_param.csv";
+        std::cout << "read in S" << endl;
+        std::cout << "running subgrad param test" << endl;
     }
 
     try {
@@ -136,10 +144,10 @@ int main(int argc, const char** argv)
         std::cerr << "Exception opening/reading/closing output file\n";
     }
 
+    string outfile_name = "";
+   // vector<Particle *> non_dom_set = sort_non_dom(solver.swarm);
     //sort particles into non-dominated set
-
-
-
+    ed.write_mip(solver.swarm, solver.best.lb, ed.getCommSize() - solver.best.ub, outfile_name);
 
     return 0;
 }

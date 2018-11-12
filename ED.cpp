@@ -344,7 +344,38 @@ Status ED::updateBest(Particle& p_)
     return OK;
 }
 
-/* Stuff for emacs/xemacs to conform to the "Visual Studio formatting standard"
+void ED::write_mip(vector<Particle*> &non_dom, double lb, double ub, string outfile_name)
+{
+    /*
+    std::ofstream outfile;
+    try {
+        outfile.open(outfile_name, std::ios_base::app);
+    } catch (std::ofstream::failure e) {
+        std::cerr << "Exception opening output file\n";
+        return;
+    }
+
+    outfile << num_edges(g) << endl;
+    outfile << num_vertices(g) << endl;
+    outfile << lb << endl;
+    outfile << ub << endl;
+    */
+    edge_iterator ei, ei_end;
+
+    vertex_descriptor u, v;
+    typedef std::pair<edge_iterator, edge_iterator> EdgePair; 
+    EdgePair ep;
+    //outfile <<
+    for (auto non_dom_it = non_dom.begin(); non_dom_it != non_dom.end(); ++non_dom_it) {
+
+        for (ep = edges(g); ep.first != ep.second; ++ep.first) {
+            if ((*non_dom_it)->viol[dualIdx(ei)] != 1) {
+                cout << source(*ep.first,g) << " " << target(*ep.first,g) << endl;
+            }
+        }
+    }
+}
+    /* Stuff for emacs/xemacs to conform to the "Visual Studio formatting standard"
  * Local Variables:
  * tab-width: 4
  * eval: (c-set-style "stroustrup")

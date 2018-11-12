@@ -1,4 +1,5 @@
 #include "prep_mip.h"
+#include "ED.h"
 
 using namespace std;
 using namespace LaPSO;
@@ -27,6 +28,7 @@ bool point_comp(Particle a, Particle b)
 
 vector<Particle*> sort_non_dom(vector<Particle*> swarm)
 {
+    // need to automatically put in best
     vector<Particle*> non_dom;
     non_dom.push_back(swarm[0]);
     for (auto swarm_it = swarm.begin(); swarm_it != swarm.end(); ++swarm_it) {
@@ -49,16 +51,18 @@ vector<Particle*> sort_non_dom(vector<Particle*> swarm)
         }
     }
 
-     for (auto dom_it = non_dom.begin(); dom_it != non_dom.end(); ++dom_it){
-         cout << (*dom_it)->lb << sum((*dom_it)->viol) << endl;
-     }
+    for (auto dom_it = non_dom.begin(); dom_it != non_dom.end(); ++dom_it) {
+        cout << (*dom_it)->lb << sum((*dom_it)->viol) << endl;
+    }
 
     return non_dom;
 }
 
 
 
-/* test code 
+
+    /* 
+    test code 
 
     Particle a = Particle();
     Particle b = Particle();
@@ -89,4 +93,4 @@ vector<Particle*> sort_non_dom(vector<Particle*> swarm)
 
     vector<Particle *> non_dom_set = sort_non_dom(swarm);
 
-*/
+    */

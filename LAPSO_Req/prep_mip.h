@@ -1,8 +1,9 @@
 #include <iostream>
 #include <list>
 #include <vector>
+#include <string>
 #include "LaPSO.hpp"
-
+#include <fstream>
 using namespace std;
 using namespace LaPSO;
 
