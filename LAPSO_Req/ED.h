@@ -72,6 +72,8 @@ public:
     return num_edges(g)*c+ edge; }
   const int getCommSize() {return commodities.size();}
   void write_mip(vector<Particle*> &non_dom, double lb, double ub, string outfile_name);
+  void setPrinting(bool p) {printing=p;}
+  bool getPrinting() const {return printing;}
 
 private:
     bool printing;
