@@ -3,6 +3,8 @@
 #include "Random.h"
 #include "VolVolume.hpp"
 #include "prep_mip.h"
+#include <boost/graph/adjacency_list.hpp>
+#include <boost/graph/graph_traits.hpp>
 #include <fstream>
 #include <string>
 
@@ -20,6 +22,7 @@ int main(int argc, const char** argv)
     bool globalFact_param = false;
     bool velocity_param = false;
     bool subgrad_param = false;
+    bool mult_update = false;
 
     for (int i = 1; i < argc; ++i) {
         if (argv[i][0] == '-')
@@ -41,6 +44,9 @@ int main(int argc, const char** argv)
             velocity_param = true;
         else if (string(argv[i]) == "S")
             subgrad_param = true;
+        else if (string(argv[i]) == "M")
+            mult_update = true;
+            
     }
 
     std::cout << "Running " << (useVol ? "Volume" : "LaPSO") << " for disjoint paths problem with "
@@ -98,12 +104,12 @@ int main(int argc, const char** argv)
     }
 
     //if (printing == true) { // always show the final result
-        std::cout << "Best solution missing " << solver.best.ub
-                  << " paths, lower bound " << solver.best.lb
-                  << std::endl
-                  << "CPU time = " << solver.cpuTime()
-                  << " elapsed = " << solver.wallTime() << " sec"
-                  << std::endl;
+    std::cout << "Best solution missing " << solver.best.ub
+              << " paths, lower bound " << solver.best.lb
+              << std::endl
+              << "CPU time = " << solver.cpuTime()
+              << " elapsed = " << solver.wallTime() << " sec"
+              << std::endl;
     //}
     std::ofstream outfile;
 
@@ -124,11 +130,14 @@ int main(int argc, const char** argv)
         output_file = "/home/jake/PhD/Edge_Disjoint/c++/Outputs/velocity_param.csv";
         std::cout << "read in v" << endl;
         std::cout << "running v param test with " << solver.param.velocityFactor << endl;
-    }
-    else if (subgrad_param == true) {
+    } else if (subgrad_param == true) {
         output_file = "/home/jake/PhD/Edge_Disjoint/c++/Outputs/subgrad_param.csv";
         std::cout << "read in S" << endl;
         std::cout << "running subgrad param test" << endl;
+    } else if (mult_update == true) {
+        output_file = "/home/jake/PhD/Edge_Disjoint/c++/Outputs/mult_update.csv";
+        std::cout << "read in M" << endl;
+        std::cout << "running mult param test" << endl;
     }
 
     try {
@@ -144,10 +153,29 @@ int main(int argc, const char** argv)
         std::cerr << "Exception opening/reading/closing output file\n";
     }
 
+    /*
+    cout <<solver.best.lb <<endl;
     string outfile_name = "";
-   // vector<Particle *> non_dom_set = sort_non_dom(solver.swarm);
+    
+    edge_iterator ei, ei_end;
+
+    vertex_descriptor u, v;
+    typedef std::pair<edge_iterator, edge_iterator> EdgePair; 
+    EdgePair ep;
+    for(int idx =0;idx < solver.param.nParticles;++idx){
+			Problem::ParticleIter p(solver.swarm,idx);
+            for (ep = edges(ed.getGraph()); ep.first != ep.second; ++ep.first) {
+            if (p->best_lb_viol[ed.dualIdx(ep.first)] != 1) {
+                cout << source(*ep.first,ed.getGraph()) << " " << target(*ep.first,ed.getGraph()) << endl;
+            }
+        }
+    }
+    
+*/
+    // vector<Particle *> non_dom_set = sort_non_dom(solver.swarm);
     //sort particles into non-dominated set
-    ed.write_mip(solver.swarm, solver.best.lb, ed.getCommSize() - solver.best.ub, outfile_name);
+
+    //ed.write_mip(solver.swarm, solver.best.lb, ed.getCommSize() - solver.best.ub, outfile_name);
 
     return 0;
 }

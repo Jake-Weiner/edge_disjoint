@@ -189,6 +189,8 @@ namespace LaPSO {
 		double lb;		///< lower bound
 		DblVec dVel;		///< dual velocity
 		DblVec pVel;		///< perturbation velocity
+		DblVec best_lb_viol;
+		double best_lb = 0;
     };
 
     /// return codes for user functions 

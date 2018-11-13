@@ -127,14 +127,37 @@ Status ED::solveSubproblem(Particle& p_)
     DblVec distances(num_vertices(g)); // floating point distances
 
     p.ub = p.lb = 0;
+
+    const double max_rand = 0;
+    double random_val = 0;
+    double total_random_vals;
+    // randomise order of commodities
     for (vector<Commodity>::iterator itr = p.commodities.begin(); itr < p.commodities.end(); ++itr) {
         const int comm_idx = itr->comm_idx;
         edge_iterator ei, ei_end;
         double minWeight = 1e99;
-        // update the edge weights in the graph -> rc
+        std::map<Edge, double> added_weight;
+
+        // update the edge weights in the graph
         for (tie(ei, ei_end) = edges(g); ei != ei_end; ++ei) {
-            weightMap[*ei] = p.rc[primalIdx(ei, comm_idx)];
+            // if edge is not used, use shortest path using standard costs
+            if (p.x[primalIdx(ei, comm_idx)] == 1){
+                weightMap[*ei] = p.rc[primalIdx(ei, comm_idx)];
+                minWeight = std::min(minWeight, weightMap[*ei]);
+            }
+        
+            // if edges are used, add a random perturbation during the sub-problem solve to bias towards edges not used
+            else{
+            double min_rand = p.dual.min();
+            std::uniform_real_distribution<double> unif(min_rand,max_rand);
+            std::default_random_engine re;
+            random_val = unif(re);
+            weightMap[*ei] = p.rc[primalIdx(ei, comm_idx)] - random_val;
+            added_weight[Edge(source(*ei,g),target(*ei,g))] = random_val;
+            added_weight[Edge(target(*ei,g),source(*ei,g))] = random_val;
+             // - because edge weights are negative of the dual
             minWeight = std::min(minWeight, weightMap[*ei]);
+            }
         }
         if (minWeight < 0.0) { // this may happen due to perturbations
             if (minWeight < -1e-2)
@@ -150,7 +173,18 @@ Status ED::solveSubproblem(Particle& p_)
                 .distance_map(distances.data())
                 .weight_map(weightMap));
 
+        //update distances[end] to account for added_weight
+        //cout << "distances before = " << distances[end] << endl;
+        for (current = end; current != start; current = parents[current]) {
+            if (added_weight.find(Edge(current,parents[current])) != added_weight.end() || added_weight.find(Edge(parents[current],current)) != added_weight.end()){
+                distances[end] += added_weight[Edge(current,parents[current])];
+            }
+        }
+
+        //cout << "distances after = " << distances[end] << endl;
+
         // if no feasible sp exists between orig and dest nodes
+
         if (distances[end] >= 1) {
 	    if(printing)
 	      std::cout << "\tCost for " << comm_idx << " (" << (*itr).origin
@@ -181,6 +215,8 @@ Status ED::solveSubproblem(Particle& p_)
         total_paths_cost += distances[end];
         //commodity.solution_value = distances[commodity.dest];
     }
+
+    
     // edges violated in the ED solution
     // violation = b - Ax = 1 - sum_c x_ic
     p.viol = 1; // sets every violation to 1
@@ -199,6 +235,12 @@ Status ED::solveSubproblem(Particle& p_)
             max_perturb = -1 * p.perturb[i];
     }
     p.lb = (total_paths_cost + p.dual.sum()) - ((num_nodes - 1) * max_perturb);
+    //update particles best local solution
+    if (p.lb > p_.best_lb){
+        p_.best_lb = p.lb;
+        p_.best_lb_viol = p.viol;
+    }
+
     if (printing == true) {
         std::cout << "Subproblem solve " << nEDsolves << "/" << maxEDsolves << ": "
                   << " lb=" << p.lb << " ub=" << p.ub
@@ -211,12 +253,6 @@ Status ED::solveSubproblem(Particle& p_)
         for (auto c = p.commodities.begin(); c != p.commodities.end(); ++c)
             std::cout << " " << c->solution_edges.size();
         std::cout << std::endl;
-    }
-    if (p.lb > p.max_lb) 
-        p.max_lb = p.lb;
-
-    if (p.isFeasible && (p.commodities.size() - p.ub) > p.max_ub) {
-        p.max_ub = p.commodities.size() - p.ub;
     }
 
     return (nEDsolves < maxEDsolves) ? OK : ABORT;
@@ -360,20 +396,7 @@ void ED::write_mip(vector<Particle*> &non_dom, double lb, double ub, string outf
     outfile << lb << endl;
     outfile << ub << endl;
     */
-    edge_iterator ei, ei_end;
-
-    vertex_descriptor u, v;
-    typedef std::pair<edge_iterator, edge_iterator> EdgePair; 
-    EdgePair ep;
-    //outfile <<
-    for (auto non_dom_it = non_dom.begin(); non_dom_it != non_dom.end(); ++non_dom_it) {
-
-        for (ep = edges(g); ep.first != ep.second; ++ep.first) {
-            if ((*non_dom_it)->viol[dualIdx(ei)] != 1) {
-                cout << source(*ep.first,g) << " " << target(*ep.first,g) << endl;
-            }
-        }
-    }
+   
 }
     /* Stuff for emacs/xemacs to conform to the "Visual Studio formatting standard"
  * Local Variables:

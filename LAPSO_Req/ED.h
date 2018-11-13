@@ -93,6 +93,5 @@ public:
     vector<EdgeVec> solution_edges;		/// edges involved in ED solution
     vector<Commodity> commodities;
     int num_nodes;
-    int max_lb = 0;
-    int max_ub = 0;
+
 };
