@@ -9,7 +9,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/main_test",
-            "args": ["--maxIter=5000","--nCPU=4","--nParticles=64", "L", "/home/jake/PhD/Edge_Disjoint/Cleansed_Data/Pairs/AS-BA.R-Wax.v100e190.rpairs.10.1","/home/jake/PhD/Edge_Disjoint/Cleansed_Data/Graphs/AS-BA.R-Wax.v100e190.bb"],
+            "args": ["RC" ,"--maxIter=5000","--nCPU=4","--nParticles=64", "L", "/home/jake/PhD/Edge_Disjoint/Cleansed_Data/Pairs/AS-BA.R-Wax.v100e190.rpairs.10.1","/home/jake/PhD/Edge_Disjoint/Cleansed_Data/Graphs/AS-BA.R-Wax.v100e190.bb"],
             "stopAtEntry": true,
             "cwd": "${workspaceFolder}",
             "environment": [],

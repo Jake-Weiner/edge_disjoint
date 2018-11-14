@@ -84,6 +84,7 @@ namespace LaPSO {
 		/** number of parallel processes to use during solve (best performance
 		 * is number of particles is a multiple of this number) */
 		int nCPU;
+		
     };
 
     /** integer vector with  some extra convenience methods */

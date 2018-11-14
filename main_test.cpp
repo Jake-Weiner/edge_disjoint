@@ -23,6 +23,9 @@ int main(int argc, const char** argv)
     bool velocity_param = false;
     bool subgrad_param = false;
     bool mult_update = false;
+    bool mult_random_update = false;
+    bool randComm = false;
+
 
     for (int i = 1; i < argc; ++i) {
         if (argv[i][0] == '-')
@@ -46,12 +49,15 @@ int main(int argc, const char** argv)
             subgrad_param = true;
         else if (string(argv[i]) == "M")
             mult_update = true;
-            
+        else if (string(argv[i]) == "MR")
+            mult_random_update = true;
+        else if (string(argv[i]) == "RC")
+            randComm = true;    
     }
 
     std::cout << "Running " << (useVol ? "Volume" : "LaPSO") << " for disjoint paths problem with "
               << graph_file << " & " << pairs_filename << std::endl;
-    ED ed(graph_file, pairs_filename, printing);
+    ED ed(graph_file, pairs_filename, printing, randComm);
     const int nnode = num_vertices(ed.getGraph());
     const int nedge = num_edges(ed.getGraph());
     const int ncomm = (int)ed.getComm().size();
@@ -138,7 +144,12 @@ int main(int argc, const char** argv)
         output_file = "/home/jake/PhD/Edge_Disjoint/c++/Outputs/mult_update.csv";
         std::cout << "read in M" << endl;
         std::cout << "running mult param test" << endl;
+    } else if (mult_random_update == true) {
+        output_file = "/home/jake/PhD/Edge_Disjoint/c++/Outputs/mult_update_randomised.csv";
+        std::cout << "read in MR" << endl;
+        std::cout << "running mult_rand param test" << endl;
     }
+
 
     try {
         outfile.open(output_file, std::ios_base::app);

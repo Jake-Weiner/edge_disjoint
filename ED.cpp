@@ -17,7 +17,7 @@
 using namespace boost;
 using namespace std;
 
-ED::ED(string graph_filename, string pairs_filename, bool _printing)
+ED::ED(string graph_filename, string pairs_filename, bool _printing, bool _randComm)
     : nEDsolves(0)
     , maxEDsolves(10)
 {
@@ -25,6 +25,7 @@ ED::ED(string graph_filename, string pairs_filename, bool _printing)
     ED::populate_graph(graph_filename);
     solution_edges.resize(commodities.size());
     printing = _printing;
+    randComm = _randComm;
 }
 
 ED::~ED() {}
@@ -70,12 +71,12 @@ void ED::populate_graph(string filename)
             }
             if (SplitVec.size() >= 3) {
                 current_edge = Edge(stoi(SplitVec[0]), stoi(SplitVec[1]));
-		if( EIM.find(current_edge) != EIM.end() ){
-		  std::cout << "WARNING: " << filename << " contains 2 edges between "
-			    << current_edge.first << " & " << current_edge.second
-			    << " - ignored\n"; // this may give us 
-		  continue;
-		}
+                if (EIM.find(current_edge) != EIM.end()) {
+                    std::cout << "WARNING: " << filename << " contains 2 edges between "
+                              << current_edge.first << " & " << current_edge.second
+                              << " - ignored\n"; // this may give us
+                    continue;
+                }
                 add_edge(current_edge.first, current_edge.second, edge_number, g);
                 graph_edges.push_back(current_edge);
                 EIM[current_edge] = edge_number;
@@ -128,95 +129,193 @@ Status ED::solveSubproblem(Particle& p_)
 
     p.ub = p.lb = 0;
 
-    const double max_rand = 0;
-    double random_val = 0;
-    double total_random_vals;
-    // randomise order of commodities
-    for (vector<Commodity>::iterator itr = p.commodities.begin(); itr < p.commodities.end(); ++itr) {
-        const int comm_idx = itr->comm_idx;
-        edge_iterator ei, ei_end;
-        double minWeight = 1e99;
-        std::map<Edge, double> added_weight;
+    //solve subproblem selecting commodity iteration order randomly
+    if (randComm) {
+        const double max_rand = 0;
+        double random_val = 0;
+        double total_random_vals;
+        // randomise order of commodities
+        vector<int> random_indices;
+        for (int i = 0; i < p.commodities.size(); i++) {
+            random_indices.push_back(i);
+        }
+        random_shuffle(random_indices.begin(), random_indices.end());
+        //for (vector<Commodity>::iterator itr = p.commodities.begin(); itr < p.commodities.end(); ++itr) {
+        for (int i = 0; i < random_indices.size(); i++) {
+            int random_index = random_indices[i];
+            const int comm_idx = p.commodities[random_index].comm_idx;
+            edge_iterator ei, ei_end;
+            double minWeight = 1e99;
+            std::map<Edge, double> added_weight;
 
-        // update the edge weights in the graph
-        for (tie(ei, ei_end) = edges(g); ei != ei_end; ++ei) {
-            // if edge is not used, use shortest path using standard costs
-            if (p.x[primalIdx(ei, comm_idx)] == 1){
-                weightMap[*ei] = p.rc[primalIdx(ei, comm_idx)];
-                minWeight = std::min(minWeight, weightMap[*ei]);
+            // update the edge weights in the graph
+            for (tie(ei, ei_end) = edges(g); ei != ei_end; ++ei) {
+                // if edge is not used, use shortest path using standard costs
+                if (p.x[primalIdx(ei, comm_idx)] == 1) {
+                    weightMap[*ei] = p.rc[primalIdx(ei, comm_idx)];
+                    minWeight = std::min(minWeight, weightMap[*ei]);
+                }
+
+                // if edges are used, add a random perturbation during the sub-problem solve to bias towards edges not used
+                else {
+                    double min_rand = p.dual.min();
+                    std::uniform_real_distribution<double> unif(min_rand, max_rand);
+                    std::default_random_engine re;
+                    random_val = unif(re);
+                    weightMap[*ei] = p.rc[primalIdx(ei, comm_idx)] - random_val;
+                    added_weight[Edge(source(*ei, g), target(*ei, g))] = random_val;
+                    added_weight[Edge(target(*ei, g), source(*ei, g))] = random_val;
+                    // - because edge weights are negative of the dual
+                    minWeight = std::min(minWeight, weightMap[*ei]);
+                }
             }
-        
-            // if edges are used, add a random perturbation during the sub-problem solve to bias towards edges not used
-            else{
-            double min_rand = p.dual.min();
-            std::uniform_real_distribution<double> unif(min_rand,max_rand);
-            std::default_random_engine re;
-            random_val = unif(re);
-            weightMap[*ei] = p.rc[primalIdx(ei, comm_idx)] - random_val;
-            added_weight[Edge(source(*ei,g),target(*ei,g))] = random_val;
-            added_weight[Edge(target(*ei,g),source(*ei,g))] = random_val;
-             // - because edge weights are negative of the dual
-            minWeight = std::min(minWeight, weightMap[*ei]);
+            if (minWeight < 0.0) { // this may happen due to perturbations
+                if (minWeight < -1e-2)
+                    std::cerr << "WARNING: negative edge weight " << minWeight << std::endl;
+                for (tie(ei, ei_end) = edges(g); ei != ei_end; ++ei)
+                    weightMap[*ei] = std::max(0.0, weightMap[*ei]);
             }
-        }
-        if (minWeight < 0.0) { // this may happen due to perturbations
-            if (minWeight < -1e-2)
-                std::cerr << "WARNING: negative edge weight " << minWeight << std::endl;
-            for (tie(ei, ei_end) = edges(g); ei != ei_end; ++ei)
-                weightMap[*ei] = std::max(0.0, weightMap[*ei]);
-        }
-        itr->solution_edges.clear();
-        start = vertex((*itr).origin, g);
-        end = vertex((*itr).dest, g);
-        dijkstra_shortest_paths(g, start,
-            predecessor_map(parents.data())
-                .distance_map(distances.data())
-                .weight_map(weightMap));
+            p.commodities[random_index].solution_edges.clear();
+            start = vertex(p.commodities[random_index].origin, g);
+            end = vertex(p.commodities[random_index].dest, g);
+            dijkstra_shortest_paths(g, start,
+                predecessor_map(parents.data())
+                    .distance_map(distances.data())
+                    .weight_map(weightMap));
 
-        //update distances[end] to account for added_weight
-        //cout << "distances before = " << distances[end] << endl;
-        for (current = end; current != start; current = parents[current]) {
-            if (added_weight.find(Edge(current,parents[current])) != added_weight.end() || added_weight.find(Edge(parents[current],current)) != added_weight.end()){
-                distances[end] += added_weight[Edge(current,parents[current])];
+            //update distances[end] to account for added_weight
+            //cout << "distances before = " << distances[end] << endl;
+            for (current = end; current != start; current = parents[current]) {
+                if (added_weight.find(Edge(current, parents[current])) != added_weight.end() || added_weight.find(Edge(parents[current], current)) != added_weight.end()) {
+                    distances[end] += added_weight[Edge(current, parents[current])];
+                }
             }
-        }
 
-        //cout << "distances after = " << distances[end] << endl;
+            //cout << "distances after = " << distances[end] << endl;
 
-        // if no feasible sp exists between orig and dest nodes
+            // if no feasible sp exists between orig and dest nodes
 
-        if (distances[end] >= 1) {
-	    if(printing)
-	      std::cout << "\tCost for " << comm_idx << " (" << (*itr).origin
-			<< "," << (*itr).dest << ") " << distances[end] << std::endl;  
-            p.ub += 1;
-            total_paths_cost += 1;
-            itr->solution_value = 1; // penalty for not including path
-            continue;
-        }
-        itr->solution_value = 0;
-        // Iterate over path and add to primal solution
-        std::vector<vertex_descriptor>::iterator it;
-        if (printing == true) {
-            std::cout << "\tPath for " << comm_idx << " (" << (*itr).origin
-                      << "," << (*itr).dest << ") " << distances[end] << ": ";
-        }
-        for (current = end; current != start; current = parents[current]) {
+            if (distances[end] >= 1) {
+                if (printing)
+                    std::cout << "\tCost for " << comm_idx << " (" << (p.commodities[random_index]).origin
+                              << "," << (p.commodities[random_index]).dest << ") " << distances[end] << std::endl;
+                p.ub += 1;
+                total_paths_cost += 1;
+                p.commodities[random_index].solution_value = 1; // penalty for not including path
+                continue;
+            }
+            p.commodities[random_index].solution_value = 0;
+            // Iterate over path and add to primal solution
+            std::vector<vertex_descriptor>::iterator it;
+            if (printing == true) {
+                std::cout << "\tPath for " << comm_idx << " (" << p.commodities[random_index].origin
+                          << "," << p.commodities[random_index].dest << ") " << distances[end] << ": ";
+            }
+            for (current = end; current != start; current = parents[current]) {
+                if (printing == true)
+                    std::cout << " " << current;
+                p.x[primalIdx(parents[current], current, comm_idx)] += 1;
+                // solution is stored in reverse at here
+                p.commodities[random_index].solution_edges.push_back(Edge(parents[current], current));
+            }
             if (printing == true)
-                std::cout << " " << current;
-            p.x[primalIdx(parents[current], current, comm_idx)] += 1;
-            // solution is stored in reverse at here
-            itr->solution_edges.push_back(Edge(parents[current], current));
+                std::cout << " " << start << std::endl;
+            // reversing each time is not really necessary but nice
+            reverse(p.commodities[random_index].solution_edges.begin(), p.commodities[random_index].solution_edges.end());
+            total_paths_cost += distances[end];
+            //commodity.solution_value = distances[commodity.dest];
         }
-        if (printing == true)
-            std::cout << " " << start << std::endl;
-        // reversing each time is not really necessary but nice
-        reverse(itr->solution_edges.begin(), itr->solution_edges.end());
-        total_paths_cost += distances[end];
-        //commodity.solution_value = distances[commodity.dest];
+    } 
+    //iterate through commodities in standard order
+    else {
+        for (vector<Commodity>::iterator itr = p.commodities.begin(); itr < p.commodities.end(); ++itr) {
+            const double max_rand = 0;
+            double random_val = 0;
+            double total_random_vals;
+            const int comm_idx = itr->comm_idx;
+            edge_iterator ei, ei_end;
+            double minWeight = 1e99;
+            std::map<Edge, double> added_weight;
+
+            // update the edge weights in the graph
+            for (tie(ei, ei_end) = edges(g); ei != ei_end; ++ei) {
+                // if edge is not used, use shortest path using standard costs
+                if (p.x[primalIdx(ei, comm_idx)] == 1) {
+                    weightMap[*ei] = p.rc[primalIdx(ei, comm_idx)];
+                    minWeight = std::min(minWeight, weightMap[*ei]);
+                }
+
+                // if edges are used, add a random perturbation during the sub-problem solve to bias towards edges not used
+                else {
+                    double min_rand = p.dual.min();
+                    std::uniform_real_distribution<double> unif(min_rand, max_rand);
+                    std::default_random_engine re;
+                    random_val = unif(re);
+                    weightMap[*ei] = p.rc[primalIdx(ei, comm_idx)] - random_val;
+                    added_weight[Edge(source(*ei, g), target(*ei, g))] = random_val;
+                    added_weight[Edge(target(*ei, g), source(*ei, g))] = random_val;
+                    // - because edge weights are negative of the dual
+                    minWeight = std::min(minWeight, weightMap[*ei]);
+                }
+            }
+            if (minWeight < 0.0) { // this may happen due to perturbations
+                if (minWeight < -1e-2)
+                    std::cerr << "WARNING: negative edge weight " << minWeight << std::endl;
+                for (tie(ei, ei_end) = edges(g); ei != ei_end; ++ei)
+                    weightMap[*ei] = std::max(0.0, weightMap[*ei]);
+            }
+            itr->solution_edges.clear();
+            start = vertex(itr->origin, g);
+            end = vertex(itr->dest, g);
+            dijkstra_shortest_paths(g, start,
+                predecessor_map(parents.data())
+                    .distance_map(distances.data())
+                    .weight_map(weightMap));
+
+            //update distances[end] to account for added_weight
+            //cout << "distances before = " << distances[end] << endl;
+            for (current = end; current != start; current = parents[current]) {
+                if (added_weight.find(Edge(current, parents[current])) != added_weight.end() || added_weight.find(Edge(parents[current], current)) != added_weight.end()) {
+                    distances[end] += added_weight[Edge(current, parents[current])];
+                }
+            }
+
+            //cout << "distances after = " << distances[end] << endl;
+
+            // if no feasible sp exists between orig and dest nodes
+
+            if (distances[end] >= 1) {
+                if (printing)
+                    std::cout << "\tCost for " << comm_idx << " (" << itr->origin
+                              << "," << itr->dest << ") " << distances[end] << std::endl;
+                p.ub += 1;
+                total_paths_cost += 1;
+                itr->solution_value = 1; // penalty for not including path
+                continue;
+            }
+            itr->solution_value = 0;
+            // Iterate over path and add to primal solution
+            std::vector<vertex_descriptor>::iterator it;
+            if (printing == true) {
+                std::cout << "\tPath for " << comm_idx << " (" << itr->origin
+                          << "," << itr->dest << ") " << distances[end] << ": ";
+            }
+            for (current = end; current != start; current = parents[current]) {
+                if (printing == true)
+                    std::cout << " " << current;
+                p.x[primalIdx(parents[current], current, comm_idx)] += 1;
+                // solution is stored in reverse at here
+                itr->solution_edges.push_back(Edge(parents[current], current));
+            }
+            if (printing == true)
+                std::cout << " " << start << std::endl;
+            // reversing each time is not really necessary but nice
+            reverse(itr->solution_edges.begin(), itr->solution_edges.end());
+            total_paths_cost += distances[end];
+            //commodity.solution_value = distances[commodity.dest];
+        }
     }
 
-    
     // edges violated in the ED solution
     // violation = b - Ax = 1 - sum_c x_ic
     p.viol = 1; // sets every violation to 1
@@ -236,7 +335,7 @@ Status ED::solveSubproblem(Particle& p_)
     }
     p.lb = (total_paths_cost + p.dual.sum()) - ((num_nodes - 1) * max_perturb);
     //update particles best local solution
-    if (p.lb > p_.best_lb){
+    if (p.lb > p_.best_lb) {
         p_.best_lb = p.lb;
         p_.best_lb_viol = p.viol;
     }
@@ -247,8 +346,8 @@ Status ED::solveSubproblem(Particle& p_)
                   << " max_perturb=" << max_perturb << std::endl
                   << "\trange of dual = " << p.dual.min() << " to " << p.dual.max() << std::endl
                   << "\trange of viol = " << p.viol.min() << " to " << p.viol.max() << std::endl;
-	if(! p.perturb.empty() )
-	  std::cout << "\trange of perturb = " << p.perturb.min() << " to " << p.perturb.max() << std::endl;
+        if (!p.perturb.empty())
+            std::cout << "\trange of perturb = " << p.perturb.min() << " to " << p.perturb.max() << std::endl;
         std::cout << "\tpath edge counts:";
         for (auto c = p.commodities.begin(); c != p.commodities.end(); ++c)
             std::cout << " " << c->solution_edges.size();
@@ -266,10 +365,11 @@ Status ED::heuristics(Particle& p_)
 {
 
     EDParticle& p(static_cast<EDParticle&>(p_));
-    if (p.isFeasible){
-      if(printing) std::cout << "Heuristic called with feasible solution "
-			     << p.ub << std::endl;      
-      return OK; // already feasible
+    if (p.isFeasible) {
+        if (printing)
+            std::cout << "Heuristic called with feasible solution "
+                      << p.ub << std::endl;
+        return OK; // already feasible
     }
     int largest_com_idx = 0;
     int largest_viol = 0;
@@ -323,13 +423,13 @@ Status ED::heuristics(Particle& p_)
         vertex_descriptor current;
 
         const auto& eim = get(edge_index, g); // map edge_descriptor to index
-	// should be consistent - here we are doing all integer weights
+        // should be consistent - here we are doing all integer weights
         vector_property_map<int, __typeof__(eim)> weightMap_heur(num_edges(g), eim);
         std::vector<vertex_descriptor> parents(num_vertices(g));
         IntVec distances_heur(num_vertices(g)); // integer distances
         const int num_edges_g = num_edges(g);
-        for (tie(ei, ei_end) = edges(g); ei != ei_end; ++ei) 
-  	    weightMap_heur[*ei] = (viol[dualIdx(ei)] == 1) ? 1 : num_edges_g;
+        for (tie(ei, ei_end) = edges(g); ei != ei_end; ++ei)
+            weightMap_heur[*ei] = (viol[dualIdx(ei)] == 1) ? 1 : num_edges_g;
 
         start = vertex(p.commodities[largest_com_idx].origin, g);
         end = vertex(p.commodities[largest_com_idx].dest, g);
@@ -343,9 +443,9 @@ Status ED::heuristics(Particle& p_)
             for (current = end; current != start; current = parents[current]) {
                 p.x[primalIdx(parents[current], current, largest_com_idx)] += 1;
                 // solution is stored in reverse at here
-		const Edge e(Edge(parents[current], current));
+                const Edge e(Edge(parents[current], current));
                 p.commodities[largest_com_idx].solution_edges.push_back(e);
-		viol[edgeIdx(e)] -= 1;
+                viol[edgeIdx(e)] -= 1;
             }
             // reversing each time is not really necessary but nice
             reverse(p.commodities[largest_com_idx].solution_edges.begin(), p.commodities[largest_com_idx].solution_edges.end());
@@ -375,12 +475,12 @@ Status ED::updateBest(Particle& p_)
         if (p.commodities[c].solution_edges.empty())
             ++solution_cost;
     }
-    if(printing == true)
-      cout<< "################## " << solution_cost  << " ############\n";
+    if (printing == true)
+        cout << "################## " << solution_cost << " ############\n";
     return OK;
 }
 
-void ED::write_mip(vector<Particle*> &non_dom, double lb, double ub, string outfile_name)
+void ED::write_mip(vector<Particle*>& non_dom, double lb, double ub, string outfile_name)
 {
     /*
     std::ofstream outfile;
@@ -396,9 +496,8 @@ void ED::write_mip(vector<Particle*> &non_dom, double lb, double ub, string outf
     outfile << lb << endl;
     outfile << ub << endl;
     */
-   
 }
-    /* Stuff for emacs/xemacs to conform to the "Visual Studio formatting standard"
+/* Stuff for emacs/xemacs to conform to the "Visual Studio formatting standard"
  * Local Variables:
  * tab-width: 4
  * eval: (c-set-style "stroustrup")
