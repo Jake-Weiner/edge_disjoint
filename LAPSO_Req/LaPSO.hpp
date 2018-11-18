@@ -20,6 +20,10 @@
 #include <numeric>
 #include "CpuTimer.h"
 
+typedef std::pair<int, int> Edge;
+typedef std::vector<Edge> EdgeVec;
+typedef EdgeVec::const_iterator EdgeIter;
+
 namespace LaPSO {
     const double INF = std::numeric_limits<double>::max();
     
@@ -190,8 +194,10 @@ namespace LaPSO {
 		double lb;		///< lower bound
 		DblVec dVel;		///< dual velocity
 		DblVec pVel;		///< perturbation velocity
-		DblVec best_lb_viol;
+		EdgeVec best_lb_sol;
 		double best_lb = 0;
+		IntVec ub_sol;
+
     };
 
     /// return codes for user functions 

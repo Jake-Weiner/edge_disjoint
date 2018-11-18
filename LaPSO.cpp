@@ -388,7 +388,8 @@ namespace LaPSO {
 				best.x = p->x;
 				best.perturb = p->perturb; // perturbation gives good feasible
 				bestP = &(*p);
-			}
+        	}
+		
 			if(p->lb > best.lb){
 				best.lb = p->lb;
 				best.dual = p->dual;

@@ -25,8 +25,7 @@ int main(int argc, const char** argv)
     bool mult_update = false;
     bool mult_random_update = false;
     bool randComm = false;
-
-
+    bool write_out_edges = false;
     for (int i = 1; i < argc; ++i) {
         if (argv[i][0] == '-')
             continue;
@@ -52,7 +51,7 @@ int main(int argc, const char** argv)
         else if (string(argv[i]) == "MR")
             mult_random_update = true;
         else if (string(argv[i]) == "RC")
-            randComm = true;    
+            randComm = true;
     }
 
     std::cout << "Running " << (useVol ? "Volume" : "LaPSO") << " for disjoint paths problem with "
@@ -150,7 +149,6 @@ int main(int argc, const char** argv)
         std::cout << "running mult_rand param test" << endl;
     }
 
-
     try {
         outfile.open(output_file, std::ios_base::app);
         outfile << graph_file << "," << pairs_filename << "," << solver.param.nCPU << "," << solver.param.nParticles << "," << solver.param.absGap << "," << solver.param.maxIter << "," << solver.param.perturbFactor << "," << solver.param.subgradFactor
@@ -167,9 +165,8 @@ int main(int argc, const char** argv)
     /*
     cout <<solver.best.lb <<endl;
     string outfile_name = "";
-    
-    edge_iterator ei, ei_end;
 
+    edge_iterator ei, ei_end;
     vertex_descriptor u, v;
     typedef std::pair<edge_iterator, edge_iterator> EdgePair; 
     EdgePair ep;
@@ -181,12 +178,60 @@ int main(int argc, const char** argv)
             }
         }
     }
-    
-*/
-    // vector<Particle *> non_dom_set = sort_non_dom(solver.swarm);
-    //sort particles into non-dominated set
+    */
 
-    //ed.write_mip(solver.swarm, solver.best.lb, ed.getCommSize() - solver.best.ub, outfile_name);
+    map<Edge, bool> edges_used;
+    int edge_count = 0;
+    //Particle* best = &solver.best;
+    //solver.swarm.push_back(best);
+    for (int idx = 0; idx < solver.param.nParticles; ++idx) {
+        Problem::ParticleIter p(solver.swarm, idx);
+        std::vector<vertex_descriptor>::iterator it;
 
-    return 0;
+        if (p->best_lb_sol.empty()) {
+            cout << "empty" << endl;
+        }
+        for (vector<Edge>::iterator sol_it = p->best_lb_sol.begin(); sol_it != p->best_lb_sol.end(); sol_it++) {
+            if (edges_used.find(*sol_it) != edges_used.end() || edges_used.find(Edge(sol_it->second, sol_it->first)) != edges_used.end()) {
+                continue;
+            } else {
+                edges_used[*sol_it] = true;
+                cout << sol_it->first << " " << sol_it->second << endl;
+                edge_count++;
+            }
+        }
+    }
+
+    if (write_out_edges) {
+        int not_zero = 0;
+        cout << "best edges are" << endl;
+        edge_iterator ei, ei_end;
+        for (tie(ei, ei_end) = edges(ed.getGraph()); ei != ei_end; ++ei) {
+            for (int comm = 0; comm < ed.getCommSize(); comm++) {
+                // contains edge ei
+                if (solver.best.x[ed.primalIdx(ei, comm)] == 1) {
+                    // if edge is already accounted for
+                    if (edges_used.find(Edge(source(*ei, ed.getGraph()), target(*ei, ed.getGraph()))) != edges_used.end()
+                        || edges_used.find(Edge(target(*ei, ed.getGraph()), source(*ei, ed.getGraph()))) != edges_used.end()) {
+                        continue;
+                    } else {
+                        edges_used[Edge(source(*ei, ed.getGraph()), target(*ei, ed.getGraph()))] = true;
+                        edge_count++;
+                        cout << source(*ei, ed.getGraph()) << " " << target(*ei, ed.getGraph()) << endl;
+                    }
+                }
+            }
+        }
+        cout << "non_zero =" << not_zero << endl;
+        cout << "total edges used is " << edge_count << endl;
+    }
 }
+/* 
+            // vector<Particle *> non_dom_set = sort_non_dom(solver.swarm);
+            //sort particles into non-dominated set
+
+            //ed.write_mip(solver.swarm, solver.best.lb, ed.getCommSize() - solver.best.ub, outfile_name);
+
+            return 0;
+    }
+    */
