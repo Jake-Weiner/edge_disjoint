@@ -24,8 +24,12 @@ int main(int argc, const char** argv)
     bool subgrad_param = false;
     bool mult_update = false;
     bool mult_random_update = false;
-    bool randComm = false;
     bool write_out_edges = false;
+    bool randComm = false;
+    bool fudge_factor = false;
+    bool test_rand_fudge = false;
+
+
     for (int i = 1; i < argc; ++i) {
         if (argv[i][0] == '-')
             continue;
@@ -50,13 +54,18 @@ int main(int argc, const char** argv)
             mult_update = true;
         else if (string(argv[i]) == "MR")
             mult_random_update = true;
-        else if (string(argv[i]) == "RC")
+        else if (string(argv[i]) == "rC")
             randComm = true;
+        else if (string(argv[i]) == "fF")
+            fudge_factor = true;
+        else if (string(argv[i]) == "trf"){
+            test_rand_fudge = true;
+        }
     }
 
     std::cout << "Running " << (useVol ? "Volume" : "LaPSO") << " for disjoint paths problem with "
               << graph_file << " & " << pairs_filename << std::endl;
-    ED ed(graph_file, pairs_filename, printing, randComm);
+    ED ed(graph_file, pairs_filename, printing, randComm, fudge_factor);
     const int nnode = num_vertices(ed.getGraph());
     const int nedge = num_edges(ed.getGraph());
     const int ncomm = (int)ed.getComm().size();
@@ -147,6 +156,12 @@ int main(int argc, const char** argv)
         output_file = "/home/jake/PhD/Edge_Disjoint/c++/Outputs/mult_update_randomised.csv";
         std::cout << "read in MR" << endl;
         std::cout << "running mult_rand param test" << endl;
+    } else if (test_rand_fudge == true) {
+        output_file = "/home/jake/PhD/Edge_Disjoint/c++/Outputs/fudge_rand.csv";
+        std::cout << "read in RC and FF" << endl;
+        std::cout << "running RC and FF param test" << endl;
+        std::cout << "fudge factor is " << ed.getfudgeFactor()<< endl;
+        std::cout << "rand comm is " << ed.getrandComm() << endl;
     }
 
     try {
@@ -155,7 +170,7 @@ int main(int argc, const char** argv)
                 << "," << solver.param.subgradFmult << "," << solver.param.subgradFmin << "," << solver.param.velocityFactor
                 << "," << solver.param.globalFactor << ","
                 << solver.cpuTime() << "," << solver.best.lb << ","
-                << ed.getCommSize() - solver.best.ub << endl;
+                << ed.getCommSize() - solver.best.ub << "," << ed.getrandComm() << "," << ed.getfudgeFactor() << endl;
         std::cout << "writing to " << output_file << endl;
         outfile.close();
     } catch (std::ofstream::failure e) {
@@ -180,31 +195,32 @@ int main(int argc, const char** argv)
     }
     */
 
-    map<Edge, bool> edges_used;
-    int edge_count = 0;
-    //Particle* best = &solver.best;
-    //solver.swarm.push_back(best);
-    for (int idx = 0; idx < solver.param.nParticles; ++idx) {
-        Problem::ParticleIter p(solver.swarm, idx);
-        std::vector<vertex_descriptor>::iterator it;
+    string edge_filename = pairs_filename;
+    if (write_out_edges) {
+        map<Edge, bool> edges_used;
+        int edge_count = 0;
+        //Particle* best = &solver.best;
+        //solver.swarm.push_back(best);
+        for (int idx = 0; idx < solver.param.nParticles; ++idx) {
+            Problem::ParticleIter p(solver.swarm, idx);
+            std::vector<vertex_descriptor>::iterator it;
 
-        if (p->best_lb_sol.empty()) {
-            cout << "empty" << endl;
-        }
-        for (vector<Edge>::iterator sol_it = p->best_lb_sol.begin(); sol_it != p->best_lb_sol.end(); sol_it++) {
-            if (edges_used.find(*sol_it) != edges_used.end() || edges_used.find(Edge(sol_it->second, sol_it->first)) != edges_used.end()) {
-                continue;
-            } else {
-                edges_used[*sol_it] = true;
-                cout << sol_it->first << " " << sol_it->second << endl;
-                edge_count++;
+            if (p->best_lb_sol.empty()) {
+                cout << "empty" << endl;
+            }
+            for (vector<Edge>::iterator sol_it = p->best_lb_sol.begin(); sol_it != p->best_lb_sol.end(); sol_it++) {
+                if (edges_used.find(*sol_it) != edges_used.end() || edges_used.find(Edge(sol_it->second, sol_it->first)) != edges_used.end()) {
+                    continue;
+                } else {
+                    edges_used[*sol_it] = true;
+                    cout << sol_it->first << " " << sol_it->second << endl;
+                    edge_count++;
+                }
             }
         }
-    }
 
-    if (write_out_edges) {
         int not_zero = 0;
-        cout << "best edges are" << endl;
+        //cout << "best edges are" << endl;
         edge_iterator ei, ei_end;
         for (tie(ei, ei_end) = edges(ed.getGraph()); ei != ei_end; ++ei) {
             for (int comm = 0; comm < ed.getCommSize(); comm++) {
@@ -222,8 +238,8 @@ int main(int argc, const char** argv)
                 }
             }
         }
-        cout << "non_zero =" << not_zero << endl;
-        cout << "total edges used is " << edge_count << endl;
+        //cout << "non_zero =" << not_zero << endl;
+        //cout << "total edges used is " << edge_count << endl;
     }
 }
 /* 
