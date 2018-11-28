@@ -238,7 +238,7 @@ int main(int argc,char **argv)
     solver.param.printLevel = 1;
     solver.param.maxIter = 200;
     // override defaults with command line arguments
-    solver.param.parse(argc-2,argv); // -2 as the last 2 are already done
+    solver.param.parse(argc -2, argv); // -2 as the last 2 are already done
     dcmst.maxMSTsolves = solver.param.maxIter; 
     double maxCost = dcmst.cost.max();
     solver.best.ub = maxCost * (dcmst.n-1);

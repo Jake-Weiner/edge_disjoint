@@ -56,8 +56,6 @@ int main(int argc, const char** argv)
             mult_random_update = true;
         else if (string(argv[i]) == "rC")
             randComm = true;
-        else if (string(argv[i]) == "fF")
-            fudge_factor = true;
         else if (string(argv[i]) == "trf"){
             test_rand_fudge = true;
         }
@@ -65,9 +63,9 @@ int main(int argc, const char** argv)
 
     std::cout << "Running " << (useVol ? "Volume" : "LaPSO") << " for disjoint paths problem with "
               << graph_file << " & " << pairs_filename << std::endl;
-    ED ed(graph_file, pairs_filename, printing, randComm, fudge_factor);
-    const int nnode = num_vertices(ed.getGraph());
-    const int nedge = num_edges(ed.getGraph());
+    ED ed(graph_file, pairs_filename, printing, randComm);
+    const int nnode = ed.get_nodes();
+    const int nedge = ed.get_edges();
     const int ncomm = (int)ed.getComm().size();
     std::cout << "Read data " << nnode << " nodes, "
               << nedge << " edges, " << ncomm << " ODs\n";
@@ -160,7 +158,6 @@ int main(int argc, const char** argv)
         output_file = "/home/jake/PhD/Edge_Disjoint/c++/Outputs/fudge_rand.csv";
         std::cout << "read in RC and FF" << endl;
         std::cout << "running RC and FF param test" << endl;
-        std::cout << "fudge factor is " << ed.getfudgeFactor()<< endl;
         std::cout << "rand comm is " << ed.getrandComm() << endl;
     }
 
@@ -170,7 +167,7 @@ int main(int argc, const char** argv)
                 << "," << solver.param.subgradFmult << "," << solver.param.subgradFmin << "," << solver.param.velocityFactor
                 << "," << solver.param.globalFactor << ","
                 << solver.cpuTime() << "," << solver.best.lb << ","
-                << ed.getCommSize() - solver.best.ub << "," << ed.getrandComm() << "," << ed.getfudgeFactor() << endl;
+                << ed.getCommSize() - solver.best.ub << "," << ed.getrandComm() << endl;
         std::cout << "writing to " << output_file << endl;
         outfile.close();
     } catch (std::ofstream::failure e) {
@@ -194,7 +191,7 @@ int main(int argc, const char** argv)
         }
     }
     */
-
+    /*
     string edge_filename = pairs_filename;
     if (write_out_edges) {
         map<Edge, bool> edges_used;
@@ -241,6 +238,7 @@ int main(int argc, const char** argv)
         //cout << "non_zero =" << not_zero << endl;
         //cout << "total edges used is " << edge_count << endl;
     }
+    */
 }
 /* 
             // vector<Particle *> non_dom_set = sort_non_dom(solver.swarm);

@@ -190,7 +190,7 @@ namespace LaPSO {
 				double norm=0;
 				for(int i=0;i<dsize;++i) norm += p->viol[i]*p->viol[i];
 				DblVec perturbDir(psize,0.0);
-				perturbationDirection(hooks,*p,perturbDir);
+				//perturbationDirection(hooks,*p,perturbDir);
 				double randAscent = rand[p.idx]() ;  // 0,1 uniform
 				double randGlobal = rand[p.idx]() * param.globalFactor;
 				const double stepSize = rand[p.idx](
@@ -203,25 +203,29 @@ namespace LaPSO {
 					p->dVel[i] = param.velocityFactor * p->dVel[i] +
 								 stepSize * p->viol[i] +
 								 randGlobal * (best.dual[i] - p->dual[i]);
-		
+				
+				/* Jake - 
 				for(int i=0;i<psize;++i)
 					p->pVel[i] = param.velocityFactor * p->pVel[i] +
 								 randAscent * perturbFactor[p.idx]* //param.perturbFactor *
 								 perturbDir[i] +
 								 perturbFactor[p.idx]* randGlobal * (1-2*best.x[i])+
 								 randGlobal * (best.perturb[i]-p->perturb[i])
+				*/
 								 ;
 				//---------- make a step ------------------------------
 				for(int i=0;i<dsize;++i){
 					p->dual[i] += p->dVel[i];
 					p->dual[i] = std::max(dualLB[i],std::min(dualUB[i],p->dual[i]));
 				}
-				p->perturb *= 0.5;
-				p->perturb += p->pVel; // add step in perturbation velocity
+				// Jake
+				//p->perturb *= 0.5;
+				//p->perturb += p->pVel; // add step in perturbation velocity 
 				//---------- solve subproblems -------------------------
 				if( hooks.reducedCost(*p,p->rc) == ABORT){
 					status = ABORT; continue;
 				}
+				/* Jake
 				if( nIter % lbCheckFreq != 0){
 					p->rc += p->perturb; // if we care more about ub than lb
 					if( hooks.solveSubproblem(*p) == ABORT) status = ABORT;
@@ -231,6 +235,7 @@ namespace LaPSO {
 					if( hooks.solveSubproblem(*p) == ABORT) status = ABORT;
 					std::swap(p->perturb,zero);	 // swap back
 				}
+				*/
 				if(status == ABORT) continue;
 				//if( p->isFeasible ){
 				//    // make sure our next step reduces perturbation
@@ -307,12 +312,14 @@ namespace LaPSO {
 						p->perturb = 0.0;
 						p->dVel = 0.0;
 						p->pVel = 0.0;
+						/* Jake
 						for(int i=0;i<psize;++i) // discourage current best
 							if( rand[idx](0,1) <0.1)  // try to get diversity
 								p->pVel[i] = rand[idx](0,1) *perturbFactor[idx]
 											 *maxdual*(2*best.x[i]-1);
+						*/
 						subgradFactor[p.idx] = param.subgradFactor/nReset;
-						perturbFactor[p.idx] *= 1.1;
+						//perturbFactor[p.idx] *= 1.1;
 						if(hooks.reducedCost(*p,p->rc)==ABORT){status=ABORT;}
 						if(hooks.solveSubproblem(*p) == ABORT){status=ABORT;}
 					}

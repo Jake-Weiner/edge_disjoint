@@ -258,6 +258,33 @@ anyoption.cpp.s:
 	$(MAKE) -f CMakeFiles/main_test.dir/build.make CMakeFiles/main_test.dir/anyoption.cpp.s
 .PHONY : anyoption.cpp.s
 
+djikstra.o: djikstra.cpp.o
+
+.PHONY : djikstra.o
+
+# target to build an object file
+djikstra.cpp.o:
+	$(MAKE) -f CMakeFiles/main_test.dir/build.make CMakeFiles/main_test.dir/djikstra.cpp.o
+.PHONY : djikstra.cpp.o
+
+djikstra.i: djikstra.cpp.i
+
+.PHONY : djikstra.i
+
+# target to preprocess a source file
+djikstra.cpp.i:
+	$(MAKE) -f CMakeFiles/main_test.dir/build.make CMakeFiles/main_test.dir/djikstra.cpp.i
+.PHONY : djikstra.cpp.i
+
+djikstra.s: djikstra.cpp.s
+
+.PHONY : djikstra.s
+
+# target to generate assembly for a file
+djikstra.cpp.s:
+	$(MAKE) -f CMakeFiles/main_test.dir/build.make CMakeFiles/main_test.dir/djikstra.cpp.s
+.PHONY : djikstra.cpp.s
+
 main_test.o: main_test.cpp.o
 
 .PHONY : main_test.o
@@ -336,6 +363,9 @@ help:
 	@echo "... anyoption.o"
 	@echo "... anyoption.i"
 	@echo "... anyoption.s"
+	@echo "... djikstra.o"
+	@echo "... djikstra.i"
+	@echo "... djikstra.s"
 	@echo "... main_test.o"
 	@echo "... main_test.i"
 	@echo "... main_test.s"
