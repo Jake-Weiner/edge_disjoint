@@ -26,9 +26,8 @@ int main(int argc, const char** argv)
     bool mult_random_update = false;
     bool write_out_edges = false;
     bool randComm = false;
-    bool fudge_factor = false;
-    bool test_rand_fudge = false;
 
+    bool test_rand_fudge = false;
 
     for (int i = 1; i < argc; ++i) {
         if (argv[i][0] == '-')
@@ -56,8 +55,10 @@ int main(int argc, const char** argv)
             mult_random_update = true;
         else if (string(argv[i]) == "rC")
             randComm = true;
-        else if (string(argv[i]) == "trf"){
+        else if (string(argv[i]) == "trf") {
             test_rand_fudge = true;
+        } else if (string(argv[i]) == "e") {
+            write_out_edges = true;
         }
     }
 
@@ -154,12 +155,10 @@ int main(int argc, const char** argv)
         output_file = "/home/jake/PhD/Edge_Disjoint/c++/Outputs/mult_update_randomised.csv";
         std::cout << "read in MR" << endl;
         std::cout << "running mult_rand param test" << endl;
-    } else if (test_rand_fudge == true) {
-        output_file = "/home/jake/PhD/Edge_Disjoint/c++/Outputs/fudge_rand.csv";
-        std::cout << "read in RC and FF" << endl;
-        std::cout << "running RC and FF param test" << endl;
-        std::cout << "rand comm is " << ed.getrandComm() << endl;
-    }
+    } 
+
+    /*
+    output_file = "/home/jake/PhD/Edge_Disjoint/c++/Outputs/new_djikstras.csv";
 
     try {
         outfile.open(output_file, std::ios_base::app);
@@ -173,37 +172,39 @@ int main(int argc, const char** argv)
     } catch (std::ofstream::failure e) {
         std::cerr << "Exception opening/reading/closing output file\n";
     }
-
-    /*
-    cout <<solver.best.lb <<endl;
-    string outfile_name = "";
-
-    edge_iterator ei, ei_end;
-    vertex_descriptor u, v;
-    typedef std::pair<edge_iterator, edge_iterator> EdgePair; 
-    EdgePair ep;
-    for(int idx =0;idx < solver.param.nParticles;++idx){
-			Problem::ParticleIter p(solver.swarm,idx);
-            for (ep = edges(ed.getGraph()); ep.first != ep.second; ++ep.first) {
-            if (p->best_lb_viol[ed.dualIdx(ep.first)] != 1) {
-                cout << source(*ep.first,ed.getGraph()) << " " << target(*ep.first,ed.getGraph()) << endl;
-            }
-        }
-    }
     */
-    /*
-    string edge_filename = pairs_filename;
+    vector<Particle *> non_dom_set = sort_non_dom(solver.swarm);
+
+    
     if (write_out_edges) {
         map<Edge, bool> edges_used;
         int edge_count = 0;
-        //Particle* best = &solver.best;
-        //solver.swarm.push_back(best);
-        for (int idx = 0; idx < solver.param.nParticles; ++idx) {
-            Problem::ParticleIter p(solver.swarm, idx);
-            std::vector<vertex_descriptor>::iterator it;
+
+        //write best feasible / ub solution for MIP solver
+        for (Edge_Int_Map::iterator it = ed.EIM.begin(); it != ed.EIM.end(); ++it) {
+            for (int comm = 0; comm < ed.getCommSize(); comm++) {
+                // contains edge idx it->second
+                if (solver.best.x[ed.primalIdx(it->second, comm)] == 1) {
+                    // if edge is already accounted for
+                    if (edges_used.find(it->first) != edges_used.end()
+                        || edges_used.find(Edge((it->first).second, (it->first).first)) != edges_used.end()) {
+                        continue;
+                    } else {
+                        edges_used[it->first] = true;
+                        edge_count++;
+                        cout << (it->first).first << " " << (it->first).second << " " << comm << endl;
+                    }
+                }
+            }
+        }
+        //cout << "total edges used is " << edge_count << endl;
+        //iterate through swarm
+        for (int idx = 0; idx < non_dom_set.size(); ++idx) {
+            Problem::ParticleIter p(non_dom_set, idx);
+
 
             if (p->best_lb_sol.empty()) {
-                cout << "empty" << endl;
+                //cout << "empty" << endl;
             }
             for (vector<Edge>::iterator sol_it = p->best_lb_sol.begin(); sol_it != p->best_lb_sol.end(); sol_it++) {
                 if (edges_used.find(*sol_it) != edges_used.end() || edges_used.find(Edge(sol_it->second, sol_it->first)) != edges_used.end()) {
@@ -216,36 +217,30 @@ int main(int argc, const char** argv)
             }
         }
 
-        int not_zero = 0;
         //cout << "best edges are" << endl;
-        edge_iterator ei, ei_end;
-        for (tie(ei, ei_end) = edges(ed.getGraph()); ei != ei_end; ++ei) {
-            for (int comm = 0; comm < ed.getCommSize(); comm++) {
-                // contains edge ei
-                if (solver.best.x[ed.primalIdx(ei, comm)] == 1) {
-                    // if edge is already accounted for
-                    if (edges_used.find(Edge(source(*ei, ed.getGraph()), target(*ei, ed.getGraph()))) != edges_used.end()
-                        || edges_used.find(Edge(target(*ei, ed.getGraph()), source(*ei, ed.getGraph()))) != edges_used.end()) {
-                        continue;
-                    } else {
-                        edges_used[Edge(source(*ei, ed.getGraph()), target(*ei, ed.getGraph()))] = true;
-                        edge_count++;
-                        cout << source(*ei, ed.getGraph()) << " " << target(*ei, ed.getGraph()) << endl;
-                    }
-                }
-            }
-        }
+        // include edges from best feasible solution
+
         //cout << "non_zero =" << not_zero << endl;
         //cout << "total edges used is " << edge_count << endl;
+        /*
+        string edge_filename = "/home/jake/PhD/Edge_Disjoint/c++/Outputs/edge_reduction2.csv";
+        try {
+            outfile.open(edge_filename, std::ios_base::app);
+            outfile << graph_file << "," << ed.get_edges() << "," << edge_count << endl;
+            outfile.close();
+        } catch (std::ofstream::failure e) {
+            std::cerr << "Exception opening/reading/closing output file\n";
+        }
+        */
+        
     }
-    */
-}
-/* 
-            // vector<Particle *> non_dom_set = sort_non_dom(solver.swarm);
-            //sort particles into non-dominated set
+
+ 
+           
+           //sort particles into non-dominated set
 
             //ed.write_mip(solver.swarm, solver.best.lb, ed.getCommSize() - solver.best.ub, outfile_name);
 
-            return 0;
-    }
-    */
+    return 0;
+}
+    

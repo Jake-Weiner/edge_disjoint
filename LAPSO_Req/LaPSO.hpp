@@ -198,6 +198,7 @@ namespace LaPSO {
 		DblVec pVel;		///< perturbation velocity
 		EdgeVec best_lb_sol;
 		double best_lb = 0;
+		int best_lb_viol = 0;
 		IntVec ub_sol;
 
     };

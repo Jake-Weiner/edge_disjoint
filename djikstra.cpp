@@ -34,7 +34,7 @@ double djikstras(Edge_Int_Map& EIM,
     int current_edge_idx;
     double edge_weight;
     int highest_node_idx = node_neighbours.rbegin()->first;
-    for (int i=0; i<highest_node_idx; i++){
+    for (int i=0; i<highest_node_idx+1; i++){
         distances.push_back({INF,0});
     }
     map <int,bool> visited;

@@ -103,12 +103,6 @@ void ED::populate_graph(string filename)
                 line_count++;
                 continue;
             }
-             if (line_count == 1) {
-                num_edges = stoi(SplitVec[0]);
-                //g = graph_t(num_nodes);
-                line_count++;
-                continue;
-            }
 
             if (SplitVec.size() >= 3) {
 
@@ -152,6 +146,7 @@ void ED::populate_graph(string filename)
     // edge_number += 1;
     // weights.push_back(1);
     // }
+    num_edges = graph_edges.size();
 }
 
 Status ED::reducedCost(const Particle& p, DblVec& redCost)
@@ -296,6 +291,11 @@ Status ED::solveSubproblem(Particle& p_)
     //update particles best local solution
     if (p.lb > p_.best_lb) {
         p_.best_lb = p.lb;
+        int sum = 0;
+        for (int i = 0; i < p.viol.size(); i++) {
+            sum += p.viol[i];
+        }
+        p_.best_lb_viol = sum;
         p_.best_lb_sol.clear();
         for (vector<Commodity>::iterator itr = p.commodities.begin(); itr < p.commodities.end(); ++itr) {
             for (EdgeIter E = itr->solution_edges.begin(); E != itr->solution_edges.end(); E++) {
