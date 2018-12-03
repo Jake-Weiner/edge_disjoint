@@ -20,8 +20,8 @@ bool point_comp(Particle a, Particle b)
 {
     
     // if viol is negative, it is worse
-    if ( (a.best_lb > b.best_lb) && (a.best_lb_viol >= b.best_lb_viol)
-        ||(a.best_lb >= b.best_lb) && (a.best_lb_viol > b.best_lb_viol)) {
+    if ( (a.best_lb > b.best_lb) && (a.best_lb_viol <= b.best_lb_viol)
+        ||(a.best_lb >= b.best_lb) && (a.best_lb_viol < b.best_lb_viol)) {
         
         return true;
     }

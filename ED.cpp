@@ -1,5 +1,7 @@
+#include "ED.h"
 #include "Random.h"
 #include "VolVolume.hpp"
+#include "djikstra.h"
 #include <algorithm>
 #include <boost/algorithm/string.hpp>
 #include <boost/tokenizer.hpp>
@@ -7,10 +9,6 @@
 #include <iostream>
 #include <list>
 #include <map>
-#include "ED.h"
-#include "djikstra.h"
-
-
 
 #include <type_traits>
 #include <typeinfo>
@@ -162,7 +160,6 @@ Status ED::reducedCost(const Particle& p, DblVec& redCost)
     return OK;
 }
 
-
 void ED::update_comm_sol(EDParticle& p, double SP, vector<int> parents, double& total_paths_cost, int index,
     int start, int end, bool printing)
 {
@@ -184,13 +181,12 @@ void ED::update_comm_sol(EDParticle& p, double SP, vector<int> parents, double& 
                       << "," << p.commodities[index].dest << ") " << SP << ": ";
         }
 
-
         for (current = end; current != start; current = parents[current]) {
             if (printing == true)
                 std::cout << " " << current;
-            if (parents[current] == -1){
+            if (parents[current] == -1) {
                 cout << "issue with update_comm_sol - parents array incorrect" << endl;
-               // exit; 
+                // exit;
             }
             Edge current_edge = Edge(parents[current], current);
             p.x[primalIdx(EIM[current_edge], p.commodities[index].comm_idx)] += 1;
@@ -236,14 +232,13 @@ Status ED::solveSubproblem(Particle& p_)
         // loop through commodities
         for (int i = 0; i < random_indices.size(); i++) {
             int random_index = random_indices[i];
-            
 
             //solve SP
             p.commodities[random_index].solution_edges.clear();
             start = p.commodities[random_index].origin;
             end = p.commodities[random_index].dest;
-            double SP = djikstras(EIM, node_neighbours, start, end,parents, num_nodes,num_edges, 
-            p.rc, p.x, p.commodities[random_index].comm_idx,commodities.size());
+            double SP = djikstras(EIM, node_neighbours, start, end, parents, num_nodes, num_edges,
+                p.rc, p.x, p.commodities[random_index].comm_idx, commodities.size());
 
             if (SP == -1) {
                 cerr << "error with djikstras" << endl;
@@ -266,8 +261,8 @@ Status ED::solveSubproblem(Particle& p_)
             p.commodities[loop_idx].solution_edges.clear();
             start = p.commodities[loop_idx].origin;
             end = p.commodities[loop_idx].dest;
-            double SP = djikstras(EIM, node_neighbours, start, end,parents, num_nodes,num_edges, 
-            p.rc, p.x, p.commodities[loop_idx].comm_idx,commodities.size());
+            double SP = djikstras(EIM, node_neighbours, start, end, parents, num_nodes, num_edges,
+                p.rc, p.x, p.commodities[loop_idx].comm_idx, commodities.size());
 
             if (SP == -1) {
                 cerr << "error with djikstras" << endl;
@@ -291,11 +286,14 @@ Status ED::solveSubproblem(Particle& p_)
     //update particles best local solution
     if (p.lb > p_.best_lb) {
         p_.best_lb = p.lb;
-        int sum = 0;
+        double sum_viol = 0;
         for (int i = 0; i < p.viol.size(); i++) {
-            sum += p.viol[i];
+            // count every violation
+            if (p.viol[i] < 0) {
+                sum_viol += p.viol[i];
+            }
         }
-        p_.best_lb_viol = sum;
+        p_.best_lb_viol = sum_viol;
         p_.best_lb_sol.clear();
         for (vector<Commodity>::iterator itr = p.commodities.begin(); itr < p.commodities.end(); ++itr) {
             for (EdgeIter E = itr->solution_edges.begin(); E != itr->solution_edges.end(); E++) {
@@ -343,8 +341,8 @@ Status ED::heuristics(Particle& p_)
 
     IntVec viol(p.viol.size(), 1);
     p.x = 0;
-    
-    // iterate over solution edges
+
+    // iterate over solution edges --> locally set viol intvec and make sure p.x is correct
     for (auto it = p.commodities.begin(); it != p.commodities.end(); it++)
         for (const Edge& e : it->solution_edges) {
             p.x[primalIdx(EIM[e], it->comm_idx)] += 1;
@@ -353,6 +351,7 @@ Status ED::heuristics(Particle& p_)
     while (viol.min() < 0) {
         if (printing == true)
             cout << "\tviol sum is " << viol.sum() << endl;
+
         auto result = std::min_element(viol.begin(), viol.end());
         // identify edge_idx with the largest violation
         int largest_viol_idx = distance(viol.begin(), result);
@@ -360,17 +359,20 @@ Status ED::heuristics(Particle& p_)
             cout << "\tmin viol is at index " << largest_viol_idx
                  << " with value " << viol[largest_viol_idx] << endl;
         }
+
         largest_viol = 0;
         //find commodity with the largest violation, that contains this edge
         for (auto it = p.commodities.begin(); it != p.commodities.end(); it++) {
             if (p.x[primalIdx(largest_viol_idx, it->comm_idx)] > 0) { // the commodity contains this edge
                 current_viol = 0;
-                for (size_t i = 0; i < it->solution_edges.size(); i++) // sum up violations this commodity has
-                    if (viol[edgeIdx(it->solution_edges[i])] < 1.0e-6)
+                for (size_t i = 0; i < it->solution_edges.size(); i++) { // sum up violations this commodity has
+                    if (viol[edgeIdx(it->solution_edges[i])] < 1.0e-6) {
                         current_viol += viol[edgeIdx(it->solution_edges[i])];
-                if (current_viol < largest_viol) {
-                    largest_com_idx = it->comm_idx;
-                    largest_viol = current_viol;
+                    }
+                    if (current_viol < largest_viol) {
+                        largest_com_idx = it->comm_idx;
+                        largest_viol = current_viol;
+                    }
                 }
             }
         }
@@ -386,37 +388,34 @@ Status ED::heuristics(Particle& p_)
 
         // try find a new path for this OD-PAIR
 
-
         IntVec distances_heur(num_nodes); // integer distances
         DblVec temp_rc;
         temp_rc.resize(p.rc.size());
 
-        for (int i=0; i<p.rc.size(); i++){
+        for (int i = 0; i < p.rc.size(); i++) {
             temp_rc[i] = (viol[edgeIdx(i)] == 1) ? 1 : num_edges;
         }
 
-
-        vector<int> parents; 
+        vector<int> parents;
         int start = p.commodities[largest_com_idx].origin;
         int end = p.commodities[largest_com_idx].dest;
         int current;
-        double SP = djikstras(EIM, node_neighbours, start, end, parents, num_nodes,num_edges, 
-            temp_rc, p.x, p.commodities[largest_com_idx].comm_idx,commodities.size());
+        double SP = djikstras(EIM, node_neighbours, start, end, parents, num_nodes, num_edges,
+            temp_rc, p.x, p.commodities[largest_com_idx].comm_idx, commodities.size());
         // if no feasible sp exists between orig and dest nodes
 
-        
         if (SP < num_edges) {
 
             // Iterate over path and add to primal solution
             for (current = end; current != start; current = parents[current]) {
-                if (parents[current] == -1){
+                if (parents[current] == -1) {
                     cerr << "issue with repair - parents array incorrect" << endl;
-                    exit; 
+                    exit;
                 }
                 const Edge e(Edge(parents[current], current));
                 p.x[primalIdx(edgeIdx(e), largest_com_idx)] += 1;
                 // solution is stored in reverse at here
-                
+
                 p.commodities[largest_com_idx].solution_edges.push_back(e);
                 viol[edgeIdx(e)] -= 1;
             }
@@ -425,7 +424,6 @@ Status ED::heuristics(Particle& p_)
             if (printing == true)
                 cout << "\t\trepaired path" << endl;
         }
-        
     }
     p.ub = 0;
 
