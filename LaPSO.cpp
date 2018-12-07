@@ -393,6 +393,7 @@ namespace LaPSO {
 				best.ub = p->ub;
 				best.isFeasible = true;
 				best.x = p->x;
+				best.best_ub_sol = p->best_ub_sol;
 				best.perturb = p->perturb; // perturbation gives good feasible
 				bestP = &(*p);
         	}

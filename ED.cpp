@@ -305,6 +305,19 @@ Status ED::solveSubproblem(Particle& p_)
         }
     }
 
+    if (p.isFeasible && (p.ub < p_.best_ub)) {
+        for (vector<Commodity>::iterator itr = p.commodities.begin(); itr < p.commodities.end(); ++itr) {
+            if (p_.best_ub_sol.find(itr->comm_idx) != p_.best_ub_sol.end()) {
+                p_.best_ub_sol[itr->comm_idx].clear();
+            }
+            for (EdgeIter E = itr->solution_edges.begin(); E != itr->solution_edges.end(); E++) {
+                p_.best_ub_sol[itr->comm_idx].push_back(*E);
+            }
+        }
+
+        p_.best_ub = p.ub;
+    }
+
     if (printing == true) {
         std::cout << "Subproblem solve " << nEDsolves << "/" << maxEDsolves << ": "
                   << " lb=" << p.lb << " ub=" << p.ub
@@ -435,6 +448,18 @@ Status ED::heuristics(Particle& p_)
     p.isFeasible = true;
     if (printing == true)
         cout << "Heuristic found solution with " << p.ub << " missing paths\n";
+
+    if (p.isFeasible && (p.ub < p_.best_ub)) {
+        for (vector<Commodity>::iterator itr = p.commodities.begin(); itr < p.commodities.end(); ++itr) {
+            if (p_.best_ub_sol.find(itr->comm_idx) != p_.best_ub_sol.end()) {
+                p_.best_ub_sol[itr->comm_idx].clear();
+            }
+            for (EdgeIter E = itr->solution_edges.begin(); E != itr->solution_edges.end(); E++) {
+                p_.best_ub_sol[itr->comm_idx].push_back(*E);
+            }
+        }
+        p_.best_ub = p.ub;
+    }
     return (nEDsolves < maxEDsolves) ? OK : ABORT;
 }
 Status ED::updateBest(Particle& p_)

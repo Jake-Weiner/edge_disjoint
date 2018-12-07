@@ -19,6 +19,7 @@
 #include <algorithm>
 #include <numeric>
 #include "CpuTimer.h"
+#include <map>
 
 typedef std::pair<int, int> Edge;
 typedef std::vector<Edge> EdgeVec;
@@ -196,8 +197,10 @@ namespace LaPSO {
 		double lb;		///< lower bound
 		DblVec dVel;		///< dual velocity
 		DblVec pVel;		///< perturbation velocity
+		std::map<int,EdgeVec> best_ub_sol;
 		EdgeVec best_lb_sol;
 		double best_lb = 0;
+		double best_ub = INF;
 		int best_lb_viol = 0;
 		IntVec ub_sol;
 

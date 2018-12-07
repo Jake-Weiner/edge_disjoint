@@ -5,11 +5,10 @@
 #include "prep_mip.h"
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/graph_traits.hpp>
+#include <boost/regex.hpp>
 #include <fstream>
 #include <iostream>
 #include <string>
-#include <boost/regex.hpp>
-
 
 using namespace LaPSO;
 
@@ -19,6 +18,11 @@ int main(int argc, const char** argv)
     bool printing = false;
     string graph_file = "";
     string pairs_filename = "";
+    string output_filename = "";
+    string mip_edges_folder = "";
+    string mip_edges_map = "";
+    string edgestats_filename = "";
+    output_filename = "";
     bool useVol = true;
     bool particle_param = false;
     bool pert_param = false;
@@ -41,8 +45,12 @@ int main(int argc, const char** argv)
             graph_file = argv[i];
         else if (arglen > 10 && string(argv[i]).find(".rpairs") != std::string::npos)
             pairs_filename = argv[i];
+        else if (arglen > 3 && string(&argv[i][arglen - 3]) == ".csv")
+            output_filename = argv[i];
         else if (argv[i][0] == 'L')
             useVol = false;
+
+        // Parameter controls
         else if (string(argv[i]) == "P")
             particle_param = true;
         else if (string(argv[i]) == "Pe")
@@ -61,14 +69,23 @@ int main(int argc, const char** argv)
             randComm = true;
         else if (string(argv[i]) == "trf") {
             test_rand_fudge = true;
-        } else if (string(argv[i]) == "wes") {
+        }
+
+        //output files
+        else if (string(argv[i]) == "wes") {
             write_edges_stats = true;
-        }
-        else if (string(argv[i]) == "wme") {
+            if (string(argv[i + 1]).find(".csv") != std::string::npos)
+                edgestats_filename = string(argv[i + 1]);
+        } else if (string(argv[i]) == "wme") {
             write_mip_edges = true;
-        }
-        else if (string(argv[i]) == "w") {
+            if (string(argv[i + 1]).find("Reduced_Graph") != std::string::npos)
+                mip_edges_folder = string(argv[i + 1]);
+            if (string(argv[i + 2]).find("Cleansed_Data") != std::string::npos)
+                mip_edges_map = string(argv[i + 2]);
+        } else if (string(argv[i]) == "wo") {
             write_outputs = true;
+            if (string(argv[i + 1]).find(".csv") != std::string::npos)
+                output_filename = string(argv[i + 1]);
         }
     }
 
@@ -136,130 +153,116 @@ int main(int argc, const char** argv)
     //}
     std::ofstream outfile;
 
-    string output_file = "out.csv";
+    string parameter_output_file = "";
     if (particle_param == true) {
-        output_file = "/home/jake/PhD/Edge_Disjoint/c++/Outputs/particles_param.csv";
+        parameter_output_file = "/home/jake/PhD/Edge_Disjoint/c++/Outputs/particles_param.csv";
         std::cout << "read in P" << endl;
         std::cout << "running particle param test with " << solver.param.nParticles << endl;
     } else if (pert_param == true) {
-        output_file = "/home/jake/PhD/Edge_Disjoint/c++/Outputs/pert_param.csv";
+        parameter_output_file = "/home/jake/PhD/Edge_Disjoint/c++/Outputs/pert_param.csv";
         std::cout << "read in Pe" << endl;
         std::cout << "running pert param test with " << solver.param.perturbFactor << endl;
     } else if (globalFact_param == true) {
-        output_file = "/home/jake/PhD/Edge_Disjoint/c++/Outputs/globalFactor_param.csv";
+        parameter_output_file = "/home/jake/PhD/Edge_Disjoint/c++/Outputs/globalFactor_param.csv";
         std::cout << "read in gF" << endl;
         std::cout << "running gF param test with " << solver.param.globalFactor << endl;
     } else if (velocity_param == true) {
-        output_file = "/home/jake/PhD/Edge_Disjoint/c++/Outputs/velocity_param.csv";
+        parameter_output_file = "/home/jake/PhD/Edge_Disjoint/c++/Outputs/velocity_param.csv";
         std::cout << "read in v" << endl;
         std::cout << "running v param test with " << solver.param.velocityFactor << endl;
     } else if (subgrad_param == true) {
-        output_file = "/home/jake/PhD/Edge_Disjoint/c++/Outputs/subgrad_param.csv";
+        parameter_output_file = "/home/jake/PhD/Edge_Disjoint/c++/Outputs/subgrad_param.csv";
         std::cout << "read in S" << endl;
         std::cout << "running subgrad param test" << endl;
     } else if (mult_update == true) {
-        output_file = "/home/jake/PhD/Edge_Disjoint/c++/Outputs/mult_update.csv";
+        parameter_output_file = "/home/jake/PhD/Edge_Disjoint/c++/Outputs/mult_update.csv";
         std::cout << "read in M" << endl;
         std::cout << "running mult param test" << endl;
     } else if (mult_random_update == true) {
-        output_file = "/home/jake/PhD/Edge_Disjoint/c++/Outputs/mult_update_randomised.csv";
+        parameter_output_file = "/home/jake/PhD/Edge_Disjoint/c++/Outputs/mult_update_randomised.csv";
         std::cout << "read in MR" << endl;
         std::cout << "running mult_rand param test" << endl;
     }
 
     if (write_outputs) {
-        output_file = "/home/jake/PhD/Edge_Disjoint/c++/Outputs/repair_test.csv";
+        if (!parameter_output_file.empty())
+            output_filename = parameter_output_file;
 
         try {
-            outfile.open(output_file, std::ios_base::app);
+            outfile.open(output_filename, std::ios_base::app);
             outfile << graph_file << "," << pairs_filename << "," << solver.param.nCPU << "," << solver.param.nParticles << "," << solver.param.absGap << "," << solver.param.maxIter << "," << solver.param.perturbFactor << "," << solver.param.subgradFactor
                     << "," << solver.param.subgradFmult << "," << solver.param.subgradFmin << "," << solver.param.velocityFactor
                     << "," << solver.param.globalFactor << ","
                     << solver.cpuTime() << "," << solver.best.lb << ","
                     << ed.getCommSize() - solver.best.ub << "," << ed.getrandComm() << endl;
-            std::cout << "writing to " << output_file << endl;
+            std::cout << "writing to " << output_filename << endl;
             outfile.close();
         } catch (std::ofstream::failure e) {
             std::cerr << "Exception opening/reading/closing output file\n";
         }
     }
 
-    vector<Particle*> non_dom_set = sort_non_dom(solver.swarm);
-    
-    
-    size_t pos = graph_file.find("/Graphs"); //find location of word
-    graph_file.erase(0,pos+8); //delete everything before /Graphs
-   
-    string instance = pairs_filename;
-    pos = pairs_filename.find("rpairs.");
-    instance.erase(0,pos+7);
-    ofstream mip_edges_outfile; 
-    if (write_mip_edges){
-        string mip_edges_filename = "/home/jake/PhD/Edge_Disjoint/Cleansed_Data/Reduced_Graph/" + graph_file + "." + instance;
+
+    if (write_mip_edges) {
+        vector<Particle*> non_dom_set = sort_non_dom(solver.swarm);
+        size_t pos = graph_file.find("/Graphs"); //find location of word
+        graph_file.erase(0, pos + 8); //delete everything before /Graphs
+        string instance = pairs_filename;
+        pos = pairs_filename.find("rpairs.");
+        instance.erase(0, pos + 7);
+        int edge_count = 0;
+
+        ofstream mip_edges_outfile;
+        string mip_edges_filename = mip_edges_folder + "/" + graph_file + "." + instance;
         mip_edges_outfile.open(mip_edges_filename);
         ofstream mip_edges_map_outfile;
-        mip_edges_map_outfile.open("/home/jake/PhD/Edge_Disjoint/Cleansed_Data/reduced_edge_map.csv",std::ios_base::app);
+        mip_edges_map_outfile.open(mip_edges_map, std::ios_base::app);
         mip_edges_map_outfile << mip_edges_filename << "," << pairs_filename << endl;
-    }
-    map<Edge, bool> edges_used;
-    int edge_count = 0;
 
-    
-    //write best feasible / ub solution for MIP solver
-    for (Edge_Int_Map::iterator it = ed.EIM.begin(); it != ed.EIM.end(); ++it) {
-        for (int comm = 0; comm < ed.getCommSize(); comm++) {
-            // contains edge idx it->second
-            if (solver.best.x[ed.primalIdx(it->second, comm)] == 1) {
-                // if edge is already accounted for
-                if (edges_used.find(it->first) != edges_used.end()
-                    || edges_used.find(Edge((it->first).second, (it->first).first)) != edges_used.end()) {
+        map<Edge, bool> edges_used;
+
+        //best feasible soln
+        for (map<int, EdgeVec>::iterator it = solver.best.best_ub_sol.begin(); it != solver.best.best_ub_sol.end(); it++) {
+            for (vector<Edge>::iterator edge_it = solver.best.best_ub_sol[it->first].begin();
+                 edge_it != solver.best.best_ub_sol[it->first].end(); edge_it++) {
+                if (edges_used.find(*edge_it) != edges_used.end()
+                    || edges_used.find(Edge(edge_it->second, edge_it->first)) != edges_used.end()) {
                     continue;
                 } else {
-                    edges_used[it->first] = true;
+                    edges_used[*edge_it] = true;
                     edge_count++;
-                    if (write_mip_edges){
-                        mip_edges_outfile << (it->first).first << " " << (it->first).second << " " << comm << endl;
+                    if (write_mip_edges) {
+                        mip_edges_outfile << edge_it->first << " " << edge_it->second << " " << it->first << endl;
                     }
-
                 }
             }
         }
-    }
 
-    //cout << "total edges used is " << edge_count << endl;
-    //write out edges from non_dom set
-    for (int idx = 0; idx < non_dom_set.size(); ++idx) {
-        Problem::ParticleIter p(non_dom_set, idx);
-
-        if (p->best_lb_sol.empty()) {
-            //cout << "empty" << endl;
-        }
-        for (vector<Edge>::iterator sol_it = p->best_lb_sol.begin(); sol_it != p->best_lb_sol.end(); sol_it++) {
-            if (edges_used.find(*sol_it) != edges_used.end() || edges_used.find(Edge(sol_it->second, sol_it->first)) != edges_used.end()) {
-                continue;
-            } else {
-                edges_used[*sol_it] = true;
-                if (write_mip_edges){
-                    mip_edges_outfile << sol_it->first << " " << sol_it->second << endl;
+        //write out edges from non_dom set
+        for (int idx = 0; idx < non_dom_set.size(); ++idx) {
+            Problem::ParticleIter p(non_dom_set, idx);
+            for (vector<Edge>::iterator sol_it = p->best_lb_sol.begin(); sol_it != p->best_lb_sol.end(); sol_it++) {
+                if (edges_used.find(*sol_it) != edges_used.end() || edges_used.find(Edge(sol_it->second, sol_it->first)) != edges_used.end()) {
+                    continue;
+                } else {
+                    edges_used[*sol_it] = true;
+                    if (write_mip_edges) {
+                        mip_edges_outfile << sol_it->first << " " << sol_it->second << endl;
+                    }
+                    edge_count++;
                 }
-                edge_count++;
+            }
+        }
+        if (write_edges_stats) {
+            try {
+                outfile.open(edgestats_filename, std::ios_base::app);
+                outfile << graph_file << "," << ed.get_edges() << "," << edge_count << endl;
+                outfile.close();
+            } catch (std::ofstream::failure e) {
+                std::cerr << "Exception opening/reading/closing output file\n";
             }
         }
     }
-
-    //cout << "total edges used is " << edge_count << endl;
-    if (write_edges_stats) {
-        string edge_filename = "/home/jake/PhD/Edge_Disjoint/c++/Outputs/edge_reduction3.csv";
-        try {
-            outfile.open(edge_filename, std::ios_base::app);
-            outfile << graph_file << "," << ed.get_edges() << "," << edge_count << endl;
-            outfile.close();
-        } catch (std::ofstream::failure e) {
-            std::cerr << "Exception opening/reading/closing output file\n";
-        }
-    }
-
-    //ed.write_mip(solver.swarm, solver.best.lb, ed.getCommSize() - solver.best.ub, outfile_name);
 
     return 0;
 }
