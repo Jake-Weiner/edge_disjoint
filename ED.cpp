@@ -47,7 +47,7 @@ type_name()
 using namespace boost;
 using namespace std;
 
-ED::ED(string graph_filename, string pairs_filename, bool _printing, bool _randComm)
+ED::ED(string graph_filename, string pairs_filename, bool _printing, bool _randComm, bool _djikstras_naive)
     : nEDsolves(0)
     , maxEDsolves(10)
 {
@@ -56,6 +56,7 @@ ED::ED(string graph_filename, string pairs_filename, bool _printing, bool _randC
     solution_edges.resize(commodities.size());
     printing = _printing;
     randComm = _randComm;
+    dN = _djikstras_naive;
 }
 
 ED::~ED() {}
@@ -237,9 +238,15 @@ Status ED::solveSubproblem(Particle& p_)
             p.commodities[random_index].solution_edges.clear();
             start = p.commodities[random_index].origin;
             end = p.commodities[random_index].dest;
-            double SP = djikstras(EIM, node_neighbours, start, end, parents, num_nodes, num_edges,
+            double SP;
+            if (dN){ // djikstras without violation consideration
+                SP = djikstras_naive(EIM, node_neighbours, start, end, parents, num_nodes, num_edges,
                 p.rc, p.x, p.commodities[random_index].comm_idx, commodities.size());
-
+            }
+            else{
+                SP = djikstras(EIM, node_neighbours, start, end, parents, num_nodes, num_edges,
+                p.rc, p.x, p.commodities[random_index].comm_idx, commodities.size());
+            }
             if (SP == -1) {
                 cerr << "error with djikstras" << endl;
                 exit;
@@ -261,8 +268,15 @@ Status ED::solveSubproblem(Particle& p_)
             p.commodities[loop_idx].solution_edges.clear();
             start = p.commodities[loop_idx].origin;
             end = p.commodities[loop_idx].dest;
-            double SP = djikstras(EIM, node_neighbours, start, end, parents, num_nodes, num_edges,
+           double SP;
+            if (dN){ // djikstras without violation consideration
+                SP = djikstras_naive(EIM, node_neighbours, start, end, parents, num_nodes, num_edges,
                 p.rc, p.x, p.commodities[loop_idx].comm_idx, commodities.size());
+            }
+            else{
+                SP = djikstras(EIM, node_neighbours, start, end, parents, num_nodes, num_edges,
+                p.rc, p.x, p.commodities[loop_idx].comm_idx, commodities.size());
+            }
 
             if (SP == -1) {
                 cerr << "error with djikstras" << endl;
@@ -413,7 +427,7 @@ Status ED::heuristics(Particle& p_)
         int start = p.commodities[largest_com_idx].origin;
         int end = p.commodities[largest_com_idx].dest;
         int current;
-        double SP = djikstras(EIM, node_neighbours, start, end, parents, num_nodes, num_edges,
+        double SP = djikstras_naive(EIM, node_neighbours, start, end, parents, num_nodes, num_edges,
             temp_rc, p.x, p.commodities[largest_com_idx].comm_idx, commodities.size());
         // if no feasible sp exists between orig and dest nodes
 

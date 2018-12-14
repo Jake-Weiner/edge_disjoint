@@ -35,7 +35,7 @@ int main(int argc, const char** argv)
     bool randComm = false;
     bool write_outputs = false;
     bool write_mip_edges = false;
-    bool test_rand_fudge = false;
+    bool djikstras_naive = false;
 
     for (int i = 1; i < argc; ++i) {
         if (argv[i][0] == '-')
@@ -67,8 +67,8 @@ int main(int argc, const char** argv)
             mult_random_update = true;
         else if (string(argv[i]) == "rC")
             randComm = true;
-        else if (string(argv[i]) == "trf") {
-            test_rand_fudge = true;
+        else if (string(argv[i]) == "dN") {
+            djikstras_naive = true;
         }
 
         //output files
@@ -80,7 +80,7 @@ int main(int argc, const char** argv)
             write_mip_edges = true;
             if (string(argv[i + 1]).find("Reduced_Graph") != std::string::npos)
                 mip_edges_folder = string(argv[i + 1]);
-            if (string(argv[i + 2]).find("Cleansed_Data") != std::string::npos)
+            if (string(argv[i + 2]).find("maps") != std::string::npos)
                 mip_edges_map = string(argv[i + 2]);
         } else if (string(argv[i]) == "wo") {
             write_outputs = true;
@@ -91,7 +91,7 @@ int main(int argc, const char** argv)
 
     std::cout << "Running " << (useVol ? "Volume" : "LaPSO") << " for disjoint paths problem with "
               << graph_file << " & " << pairs_filename << std::endl;
-    ED ed(graph_file, pairs_filename, printing, randComm);
+    ED ed(graph_file, pairs_filename, printing, randComm, djikstras_naive);
     const int nnode = ed.get_nodes();
     const int nedge = ed.get_edges();
     const int ncomm = (int)ed.getComm().size();
@@ -149,6 +149,8 @@ int main(int argc, const char** argv)
               << std::endl
               << "CPU time = " << solver.cpuTime()
               << " elapsed = " << solver.wallTime() << " sec"
+              << " primal cpu time " << solver.primal_cpu_time
+              << " dual cpu time " << solver.dual_cpu_time 
               << std::endl;
     //}
     std::ofstream outfile;
@@ -194,7 +196,8 @@ int main(int argc, const char** argv)
                     << "," << solver.param.subgradFmult << "," << solver.param.subgradFmin << "," << solver.param.velocityFactor
                     << "," << solver.param.globalFactor << ","
                     << solver.cpuTime() << "," << solver.best.lb << ","
-                    << ed.getCommSize() - solver.best.ub << "," << ed.getrandComm() << endl;
+                    << ed.getCommSize() - solver.best.ub << "," << solver.primal_cpu_time 
+                    << endl;
             std::cout << "writing to " << output_filename << endl;
             outfile.close();
         } catch (std::ofstream::failure e) {
@@ -204,7 +207,7 @@ int main(int argc, const char** argv)
 
 
     if (write_mip_edges) {
-        vector<Particle*> non_dom_set = sort_non_dom(solver.swarm);
+        vector<Particle*> non_dom_set = sort_non_dom(solver.swarm_primal_time);
         size_t pos = graph_file.find("/Graphs"); //find location of word
         graph_file.erase(0, pos + 8); //delete everything before /Graphs
         string instance = pairs_filename;
@@ -217,7 +220,8 @@ int main(int argc, const char** argv)
         mip_edges_outfile.open(mip_edges_filename);
         ofstream mip_edges_map_outfile;
         mip_edges_map_outfile.open(mip_edges_map, std::ios_base::app);
-        mip_edges_map_outfile << mip_edges_filename << "," << pairs_filename << endl;
+        mip_edges_map_outfile << mip_edges_filename << "," << pairs_filename << ","
+        << solver.param.maxCPU - solver.primal_cpu_time << endl;
 
         map<Edge, bool> edges_used;
 
@@ -263,6 +267,7 @@ int main(int argc, const char** argv)
             }
         }
     }
+
 
     return 0;
 }

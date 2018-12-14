@@ -20,6 +20,7 @@
 #include <numeric>
 #include "CpuTimer.h"
 #include <map>
+#include <iostream>
 
 typedef std::pair<int, int> Edge;
 typedef std::vector<Edge> EdgeVec;
@@ -297,6 +298,7 @@ namespace LaPSO {
 		/// particle of the correct size and with dual vectors forming a
 		/// suitably diverse initial distribution of starting points.
 		std::vector<Particle *> swarm;
+		std::vector<Particle *> swarm_primal_time;
 		Particle best;		///< best solution found so far
 		/// ParticleIter is a convenience class to avoid double dereferencing
 		class ParticleIter  {
@@ -313,7 +315,12 @@ namespace LaPSO {
 			Particle &operator *() { return **iter; }
 			Particle *operator ->() { return *iter; }
 		};
-	
+		double primal_cpu_time;
+		double dual_cpu_time;
+
+		double prev_best;
+		int non_improving = 2;
+		double improv_amount = 1.01;
 		Param param;		///< parameters
 	
 		/** The solve method is the main function that carries out the
