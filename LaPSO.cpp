@@ -203,7 +203,8 @@ void Problem::solve(UserHooks& hooks)
 
     for (nIter = 1; nIter < param.maxIter && cpuTime() < param.maxCPU && wallTime() < param.maxWallTime && status == OK && (best.lb + param.absGap <= best.ub) && fabs(best.ub - best.lb / best.ub) > param.relGap;
          ++nIter) {
-    
+             
+       
         // Stopping Criteria
         if (nIter % param.nParticles == 0) {
 
@@ -336,6 +337,9 @@ void Problem::solve(UserHooks& hooks)
                     printf("\t\tpert %g - %g\n",
                         p->perturb.min(), p->perturb.max());
                 }
+            }
+            if (nIter ==1 && param.nParticles == 1) {
+                best_particles.push_back(&(*p)); //initialise best_particles_sols if only 1 particle is used
             }
         }
 
@@ -472,7 +476,12 @@ bool Problem::updateBest(UserHooks& hooks)
             best.best_ub_sol = p->best_ub_sol;
             best.perturb = p->perturb; // perturbation gives good feasible
             bestP = &(*p);
-            swarm_primal_time = swarm;
+            if (param.nParticles == 1){
+                best_particles_primal_time = best_particles;
+            }
+            else{
+                swarm_primal_time = swarm;
+            }
             primal_cpu_time = cpuTime();
         }
 
@@ -482,6 +491,13 @@ bool Problem::updateBest(UserHooks& hooks)
             best.viol = p->viol;
             improved = true;
             dual_cpu_time = cpuTime();
+            
+        }
+        if (p->lb >= best.lb) {
+            Particle p1 = *(p);
+            if (param.nParticles == 1){
+                best_particles.push_back(&(p1));
+            }
         }
     }
 

@@ -16,12 +16,12 @@ int sum(DblVec x)
     return sum;
 }
 //does a dominate b
-bool point_comp(Particle a, Particle b)
+bool point_comp(const Particle* a, const Particle* b)
 {
     
     // if viol is negative, it is worse
-    if ( (a.best_lb > b.best_lb) && (a.best_lb_viol <= b.best_lb_viol)
-        ||(a.best_lb >= b.best_lb) && (a.best_lb_viol < b.best_lb_viol)) {
+    if ( (a->best_lb > b->best_lb) && (a->best_lb_viol <= b->best_lb_viol)
+        ||(a->best_lb >= b->best_lb) && (a->best_lb_viol < b->best_lb_viol)) {
         
         return true;
     }
@@ -46,12 +46,12 @@ vector<Particle*> sort_non_dom(vector<Particle*> swarm)
             //cout << swarm_p->best_lb << " " << dom_p->best_lb << endl;
 
             // if potential point dominates
-            if (point_comp(*swarm_p, *dom_p)) {
+            if (point_comp(&(*swarm_p), &(*dom_p))) {
                 non_dom.erase(dom_p.iter);
                 continue;
             }
 
-            if (point_comp(*dom_p, *swarm_p)) {
+            if (point_comp(&(*dom_p), &(*swarm_p))) {
                 add_dom = false;
                 break;
             }

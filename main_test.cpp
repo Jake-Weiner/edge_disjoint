@@ -207,7 +207,14 @@ int main(int argc, const char** argv)
 
 
     if (write_mip_edges) {
-        vector<Particle*> non_dom_set = sort_non_dom(solver.swarm_primal_time);
+        vector<Particle *> swarm_unsorted;
+        if (solver.param.nParticles ==1){
+            swarm_unsorted = solver.best_particles_primal_time;
+        } 
+        else{
+            swarm_unsorted = solver.swarm_primal_time;
+        }
+        vector<Particle*> non_dom_set = sort_non_dom(swarm_unsorted);
         size_t pos = graph_file.find("/Graphs"); //find location of word
         graph_file.erase(0, pos + 8); //delete everything before /Graphs
         string instance = pairs_filename;
@@ -218,10 +225,16 @@ int main(int argc, const char** argv)
         ofstream mip_edges_outfile;
         string mip_edges_filename = mip_edges_folder + "/" + graph_file + "." + instance;
         mip_edges_outfile.open(mip_edges_filename);
+        // this file is used for the mip solver
+        bool solved_optimality = false;
+        if (solver.best.lb + solver.param.absGap <= solver.best.ub){
+            solved_optimality = true;
+        }
         ofstream mip_edges_map_outfile;
         mip_edges_map_outfile.open(mip_edges_map, std::ios_base::app);
         mip_edges_map_outfile << mip_edges_filename << "," << pairs_filename << ","
-        << solver.param.maxCPU - solver.primal_cpu_time << endl;
+        << solver.param.maxCPU - solver.primal_cpu_time
+        << "," << solved_optimality << endl;
 
         map<Edge, bool> edges_used;
 

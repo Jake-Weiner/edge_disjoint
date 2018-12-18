@@ -299,6 +299,8 @@ namespace LaPSO {
 		/// suitably diverse initial distribution of starting points.
 		std::vector<Particle *> swarm;
 		std::vector<Particle *> swarm_primal_time;
+		std::vector<Particle *> best_particles; // this vector stores best lower bound solutions if only 1 particle is used. Replacement for swarm
+		std::vector<Particle *> best_particles_primal_time; 
 		Particle best;		///< best solution found so far
 		/// ParticleIter is a convenience class to avoid double dereferencing
 		class ParticleIter  {
