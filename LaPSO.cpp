@@ -122,7 +122,9 @@ Problem::Problem(int nVar, int nConstr)
 
 // Main method
 void Problem::solve(UserHooks& hooks)
-{
+{   
+    // commodities size
+    double commodities = best.perturb.size() / best.dual.size();
     vector<double> best_lb;
     best_lb.push_back(0.0);
 	vector<double> best_ub;
@@ -341,6 +343,20 @@ void Problem::solve(UserHooks& hooks)
             if (nIter ==1 && param.nParticles == 1) {
                 best_particles.push_back(&(*p)); //initialise best_particles_sols if only 1 particle is used
             }
+
+            if (param.write_particle){
+                
+                std::ofstream outfile; 
+                outfile.open(param.particle_filename, std::ios_base::app);
+                //writeoutputs here
+                outfile << idx << "," << commodities - p->lb << "," << commodities - p->ub << ","
+                << nIter 
+                << endl;
+                outfile.close();
+
+
+            }
+
         }
 
         if (updateBest(hooks)){
@@ -456,9 +472,15 @@ void Problem::initialise(UserHooks& hooks)
     while (swarm.size() < (size_t)param.nParticles) {
         Particle* p = new Particle(psize, dsize);
         swarm.push_back(p);
-        for (int j = 0; j < dsize; ++j) // generate values up to maxCost
+        for (int j = 0; j < dsize; ++j){ // generate values up to maxCost
+            if (param.zeroInitial == false){
             p->dual[j] = rand(std::max(dualLB[j], -maxCost),
                 std::min(dualUB[j], maxCost));
+            }
+            else{
+                p->dual[j] = 0.0;
+            }
+        }
         p->perturb = 0.0;
         p->dVel = 0.0;
         p->pVel = 0.0;
@@ -483,6 +505,13 @@ bool Problem::updateBest(UserHooks& hooks)
                 swarm_primal_time = swarm;
             }
             primal_cpu_time = cpuTime();
+            if(p->lb > best.lb){
+                lb_primal_cpu_time = p->lb;
+            }
+            else{
+                lb_primal_cpu_time = best.lb;
+            }
+           
         }
 
         if (p->lb > best.lb) {

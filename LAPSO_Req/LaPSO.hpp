@@ -21,6 +21,7 @@
 #include "CpuTimer.h"
 #include <map>
 #include <iostream>
+#include <string>
 
 typedef std::pair<int, int> Edge;
 typedef std::vector<Edge> EdgeVec;
@@ -92,6 +93,9 @@ namespace LaPSO {
 		int nCPU;
 		bool randComm;
 		bool fudge_factor;
+		bool zeroInitial = false;
+		bool write_particle;
+		std::string particle_filename;
 		
     };
 
@@ -301,6 +305,7 @@ namespace LaPSO {
 		std::vector<Particle *> swarm_primal_time;
 		std::vector<Particle *> best_particles; // this vector stores best lower bound solutions if only 1 particle is used. Replacement for swarm
 		std::vector<Particle *> best_particles_primal_time; 
+		
 		Particle best;		///< best solution found so far
 		/// ParticleIter is a convenience class to avoid double dereferencing
 		class ParticleIter  {
@@ -319,6 +324,7 @@ namespace LaPSO {
 		};
 		double primal_cpu_time;
 		double dual_cpu_time;
+		double lb_primal_cpu_time;
 
 		double prev_best;
 		int non_improving = 2;

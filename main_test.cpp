@@ -22,8 +22,9 @@ int main(int argc, const char** argv)
     string mip_edges_folder = "";
     string mip_edges_map = "";
     string edgestats_filename = "";
-    output_filename = "";
-    bool useVol = true;
+ 
+    string particle_filename ="";
+    bool useVol = false;
     bool particle_param = false;
     bool pert_param = false;
     bool globalFact_param = false;
@@ -36,6 +37,8 @@ int main(int argc, const char** argv)
     bool write_outputs = false;
     bool write_mip_edges = false;
     bool djikstras_naive = false;
+    bool _zeroInitial = false;
+    bool write_particle = false;
 
     for (int i = 1; i < argc; ++i) {
         if (argv[i][0] == '-')
@@ -70,6 +73,11 @@ int main(int argc, const char** argv)
         else if (string(argv[i]) == "dN") {
             djikstras_naive = true;
         }
+        else if (string(argv[i]) == "zI") {
+            _zeroInitial = true;
+        }
+       
+        
 
         //output files
         else if (string(argv[i]) == "wes") {
@@ -86,6 +94,11 @@ int main(int argc, const char** argv)
             write_outputs = true;
             if (string(argv[i + 1]).find(".csv") != std::string::npos)
                 output_filename = string(argv[i + 1]);
+        }
+         else if (string(argv[i]) == "wP") {
+            write_particle = true;
+            if (string(argv[i + 1]).find(".csv") != std::string::npos)
+                particle_filename = string(argv[i + 1]);
         }
     }
 
@@ -108,6 +121,9 @@ int main(int argc, const char** argv)
     solver.param.subgradFmin = 0.0001; // allow very small steps
     // override defaults with command line arguments
     solver.param.parse(argc, argv);
+    solver.param.zeroInitial = _zeroInitial;
+    solver.param.write_particle = write_particle;
+    solver.param.particle_filename = particle_filename;
     printing = solver.param.printLevel > 0;
     ed.setPrinting(printing);
     ed.maxEDsolves = solver.param.maxIter;
@@ -195,8 +211,9 @@ int main(int argc, const char** argv)
             outfile << graph_file << "," << pairs_filename << "," << solver.param.nCPU << "," << solver.param.nParticles << "," << solver.param.absGap << "," << solver.param.maxIter << "," << solver.param.perturbFactor << "," << solver.param.subgradFactor
                     << "," << solver.param.subgradFmult << "," << solver.param.subgradFmin << "," << solver.param.velocityFactor
                     << "," << solver.param.globalFactor << ","
-                    << solver.cpuTime() << "," << solver.best.lb << ","
-                    << ed.getCommSize() - solver.best.ub << "," << solver.primal_cpu_time 
+                    << solver.cpuTime() << "," <<ed.getCommSize() - solver.best.lb << ","
+                    << ed.getCommSize() - solver.best.ub << "," << solver.primal_cpu_time << ","
+                    << ed.getCommSize() - solver.lb_primal_cpu_time
                     << endl;
             std::cout << "writing to " << output_filename << endl;
             outfile.close();
