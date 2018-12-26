@@ -57,6 +57,7 @@ public:
 									 SparseVec &feas);
     Status heuristics(Particle &p);
     Status updateBest(Particle &p);
+    void localSearch(Particle& p_);
 
 	const vector<Commodity>& getComm() const {return commodities;}
   // map from edge in graph to index of lagrange vector

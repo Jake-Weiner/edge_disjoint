@@ -239,13 +239,12 @@ Status ED::solveSubproblem(Particle& p_)
             start = p.commodities[random_index].origin;
             end = p.commodities[random_index].dest;
             double SP;
-            if (dN){ // djikstras without violation consideration
+            if (dN) { // djikstras without violation consideration
                 SP = djikstras_naive(EIM, node_neighbours, start, end, parents, num_nodes, num_edges,
-                p.rc, p.x, p.commodities[random_index].comm_idx, commodities.size());
-            }
-            else{
+                    p.rc, p.x, p.commodities[random_index].comm_idx, commodities.size());
+            } else {
                 SP = djikstras(EIM, node_neighbours, start, end, parents, num_nodes, num_edges,
-                p.rc, p.x, p.commodities[random_index].comm_idx, commodities.size());
+                    p.rc, p.x, p.commodities[random_index].comm_idx, commodities.size());
             }
             if (SP == -1) {
                 cerr << "error with djikstras" << endl;
@@ -268,14 +267,13 @@ Status ED::solveSubproblem(Particle& p_)
             p.commodities[loop_idx].solution_edges.clear();
             start = p.commodities[loop_idx].origin;
             end = p.commodities[loop_idx].dest;
-           double SP;
-            if (dN){ // djikstras without violation consideration
+            double SP;
+            if (dN) { // djikstras without violation consideration
                 SP = djikstras_naive(EIM, node_neighbours, start, end, parents, num_nodes, num_edges,
-                p.rc, p.x, p.commodities[loop_idx].comm_idx, commodities.size());
-            }
-            else{
+                    p.rc, p.x, p.commodities[loop_idx].comm_idx, commodities.size());
+            } else {
                 SP = djikstras(EIM, node_neighbours, start, end, parents, num_nodes, num_edges,
-                p.rc, p.x, p.commodities[loop_idx].comm_idx, commodities.size());
+                    p.rc, p.x, p.commodities[loop_idx].comm_idx, commodities.size());
             }
 
             if (SP == -1) {
@@ -294,9 +292,21 @@ Status ED::solveSubproblem(Particle& p_)
     for (size_t i = 0; i < p.x.size(); i++) {
         p.viol[edgeIdx(i)] -= p.x[i]; // sum over all commodites
     }
+
+    double max_perturb = 0.0;
+
+    for (size_t i = 0; i < p.perturb.size(); i++) {
+        if (p.perturb[i] > max_perturb) {
+            max_perturb = p.perturb[i];
+            continue;
+        }
+        if (-1 * p.perturb[i] > max_perturb)
+            max_perturb = -1 * p.perturb[i];
+    }
+
     // is feasible if no edges are violated
     p.isFeasible = (p.viol.min() >= 0);
-    p.lb = (total_paths_cost + p.dual.sum());
+    p.lb = (total_paths_cost + p.dual.sum()) - num_edges * max_perturb;
     //update particles best local solution
     if (p.lb > p_.best_lb) {
         p_.best_lb = p.lb;
@@ -421,6 +431,7 @@ Status ED::heuristics(Particle& p_)
 
         for (int i = 0; i < p.rc.size(); i++) {
             temp_rc[i] = (viol[edgeIdx(i)] == 1) ? 1 : num_edges;
+            //temp_rc[i] = (viol[edgeIdx(i)] == 1) ? p.rc[i] : 1;
         }
 
         vector<int> parents;
@@ -432,6 +443,7 @@ Status ED::heuristics(Particle& p_)
         // if no feasible sp exists between orig and dest nodes
 
         if (SP < num_edges) {
+            //if (SP < 1) {
 
             // Iterate over path and add to primal solution
             for (current = end; current != start; current = parents[current]) {
@@ -490,6 +502,97 @@ Status ED::updateBest(Particle& p_)
     if (printing == true)
         cout << "################## " << solution_cost << " ############\n";
     return OK;
+}
+
+void ED::localSearch(Particle& p_)
+{
+
+    EDParticle& p(static_cast<EDParticle&>(p_));
+
+    if (!p.isFeasible){
+        return;
+    }
+
+    IntVec viol(p.viol.size(), 1);
+
+    
+    // need to double check why this needs to be reset
+    p.x = 0;
+    vector<Commodity> commodities_to_add;
+    for (auto it = p.commodities.begin(); it != p.commodities.end(); it++) {
+        // commodity checks and reset p.x
+        if (it->solution_edges.empty()) {
+            commodities_to_add.push_back(*it);
+        } else {
+            for (const Edge& e : it->solution_edges) {
+                p.x[primalIdx(EIM[e], it->comm_idx)] += 1;
+                viol[edgeIdx(e)] -= 1;
+            }
+        }
+    }
+    //randomise commodity iteration order
+    random_shuffle(commodities_to_add.begin(), commodities_to_add.end());
+
+    //try and add in commodities 1 at a time using previously_unused edges
+    for (auto it = commodities_to_add.begin(); it != commodities_to_add.end(); it++){
+        int comm_idx = it->comm_idx;
+        DblVec temp_rc;
+        temp_rc.resize(p.rc.size());
+        for (int i = 0; i < p.rc.size(); i++) {
+            temp_rc[i] = (viol[edgeIdx(i)] == 1) ? 1 : num_edges;
+        }
+        vector<int> parents;
+        int start = it->origin;
+        int end = it->dest;
+        int current;
+        double SP = djikstras_naive(EIM, node_neighbours, start, end, parents, num_nodes, num_edges,
+            temp_rc, p.x, comm_idx, commodities.size());
+        // if no feasible sp exists between orig and dest nodes
+
+        if (SP < num_edges) {
+            //if (SP < 1) {
+
+            // Iterate over path and add to primal solution
+            for (current = end; current != start; current = parents[current]) {
+                if (parents[current] == -1) {
+                    cerr << "issue with local search - parents array incorrect" << endl;
+                    exit;
+                }
+                const Edge e(Edge(parents[current], current));
+                p.x[primalIdx(edgeIdx(e), comm_idx)] += 1;
+                // solution is stored in reverse at here
+                p.commodities[comm_idx].solution_edges.push_back(e);
+                viol[edgeIdx(e)] -= 1;
+            }
+            // reversing each time is not really necessary but nice
+            reverse(p.commodities[comm_idx].solution_edges.begin(), p.commodities[comm_idx].solution_edges.end());
+        }
+    }
+
+    //make sure solution is feasible
+    if (! (viol.min() < 0)) {
+        return;
+    }
+
+    p.ub = 0;
+
+    //recalculate ub
+    for (auto it = p.commodities.begin(); it != p.commodities.end(); it++) {
+        if (it->solution_edges.empty())
+            p.ub += 1;
+    }
+
+    if (p.ub < p_.best_ub) {
+        for (vector<Commodity>::iterator itr = p.commodities.begin(); itr < p.commodities.end(); ++itr) {
+            if (p_.best_ub_sol.find(itr->comm_idx) != p_.best_ub_sol.end()) {
+                p_.best_ub_sol[itr->comm_idx].clear();
+            }
+            for (EdgeIter E = itr->solution_edges.begin(); E != itr->solution_edges.end(); E++) {
+                p_.best_ub_sol[itr->comm_idx].push_back(*E);
+            }
+        }
+        p_.best_ub = p.ub;
+    }
 }
 
 void ED::write_mip(vector<Particle*>& non_dom, double lb, double ub, string outfile_name)

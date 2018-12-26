@@ -155,7 +155,9 @@ int main(int argc, const char** argv)
             solver.swarm.push_back(p);
         }
         std::cout << "set up solver with " << solver.param.nParticles
-                  << " particles\n";
+                  << " particles" 
+                  << " using veloctiy factor of " << solver.param.velocityFactor << endl;
+
         solver.solve(ed);
     }
 

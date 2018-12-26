@@ -319,11 +319,18 @@ void Problem::solve(UserHooks& hooks)
                 }
             }
             if (param.heurFreq > 0 && nIter % param.heurFreq == 0
-                && !p->isFeasible) // only run heuristic if not alreay feas.
+                && !p->isFeasible){ // only run heuristic if not alreay feas.
                 if (hooks.heuristics(*p) == ABORT) {
                     status = ABORT;
                     continue;
                 }
+                else{
+                    if (p->ub < p->localSearch_thresh){
+                        p->localSearch_thresh = p->ub;
+                        hooks.localSearch(*p);
+                    }
+                }
+            }
             if (param.printLevel > 1 && nIter % param.printFreq == 0) {
                 printf("\tp%02d: LB=%g UB=%g feas=%d minViol=%g\n",
                     p.idx, p->lb, p->ub, p->isFeasible,

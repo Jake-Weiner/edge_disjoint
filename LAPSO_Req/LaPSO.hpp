@@ -208,6 +208,7 @@ namespace LaPSO {
 		double best_ub = INF;
 		int best_lb_viol = 0;
 		IntVec ub_sol;
+		double localSearch_thresh = INF;
 
     };
 
@@ -266,6 +267,10 @@ namespace LaPSO {
 			@param p (IN/OUT) the current dual vector and subproblem solution.
 		*/
 		virtual Status heuristics(Particle &p) {return NONE;}
+
+		virtual void localSearch(Particle &p) {}
+
+
 		
 		/** Allow the user to store information about the best solution or
 		 *  carry out other actions whenever we find a better heuristic solution.
