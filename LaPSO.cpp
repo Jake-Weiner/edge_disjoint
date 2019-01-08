@@ -192,7 +192,7 @@ void Problem::solve(UserHooks& hooks)
         p->dVel = 0;
     }
     best.x.resize(psize, 0);
-    updateBest(hooks);
+    updateBest(hooks, 0);
     if (status == ABORT)
         return;
     DblVec subgradFactor(param.nParticles, param.subgradFactor);
@@ -206,6 +206,18 @@ void Problem::solve(UserHooks& hooks)
     for (nIter = 1; nIter < param.maxIter && cpuTime() < param.maxCPU && wallTime() < param.maxWallTime && status == OK && (best.lb + param.absGap <= best.ub) && fabs(best.ub - best.lb / best.ub) > param.relGap;
          ++nIter) {
              
+        
+        if (param.convergence_test == true){
+            // calculate pair-wise hamming_distance 
+            double swarm_euc = euclideanDistance(swarm) / param.nParticles;
+            std::ofstream outfile; 
+            outfile.open(param.convergence_output, std::ios_base::app);
+            //writeoutputs here
+            outfile << swarm_euc << "," << nIter << "," << dsize << "," 
+            << commodities - best.lb << "," << commodities - best.ub
+            << endl;
+            outfile.close();
+        }
        
         // Stopping Criteria
         if (nIter % param.nParticles == 0) {
@@ -324,8 +336,8 @@ void Problem::solve(UserHooks& hooks)
                     status = ABORT;
                     continue;
                 }
-                else{
-                    if (p->ub < p->localSearch_thresh){
+                else{ 
+                    if ( (p->ub <= p->localSearch_thresh) && param.localSearch ){
                         p->localSearch_thresh = p->ub;
                         hooks.localSearch(*p);
                     }
@@ -351,22 +363,23 @@ void Problem::solve(UserHooks& hooks)
                 best_particles.push_back(&(*p)); //initialise best_particles_sols if only 1 particle is used
             }
 
+            // write out particle info to see how it behaves after each iteration
             if (param.write_particle){
                 
                 std::ofstream outfile; 
                 outfile.open(param.particle_filename, std::ios_base::app);
                 //writeoutputs here
-                outfile << idx << "," << commodities - p->lb << "," << commodities - p->ub << ","
+                outfile << idx << "," 
+                << commodities - p->lb << "," 
+                << commodities - p->ub << "," 
                 << nIter 
                 << endl;
                 outfile.close();
-
-
             }
 
         }
 
-        if (updateBest(hooks)){
+        if (updateBest(hooks,nIter)){
             noImproveIter = 0;
 		}
         else {
@@ -417,7 +430,7 @@ void Problem::solve(UserHooks& hooks)
                 }
                 param.heurFreq = std::max(param.heurFreq / 2, 1);
                 param.subgradFmin *= 0.5;
-                updateBest(hooks);
+                updateBest(hooks, nIter);
                 noImproveIter = 0;
                 maxNoImprove += 1000;
                 if (param.printLevel > 0) {
@@ -437,6 +450,9 @@ void Problem::solve(UserHooks& hooks)
         }
         if (param.printLevel && nIter % param.printFreq == 0)
             printf("%2d: LB=%.2f UB=%.2f\n", nIter, best.lb, best.ub);
+
+
+        
     }
 }
 
@@ -493,7 +509,7 @@ void Problem::initialise(UserHooks& hooks)
         p->pVel = 0.0;
     }
 }
-bool Problem::updateBest(UserHooks& hooks)
+bool Problem::updateBest(UserHooks& hooks, int nIter)
 {
     Particle* bestP = 0;
     bool improved = false;
@@ -512,6 +528,7 @@ bool Problem::updateBest(UserHooks& hooks)
                 swarm_primal_time = swarm;
             }
             primal_cpu_time = cpuTime();
+            best_nIter = nIter;
             if(p->lb > best.lb){
                 lb_primal_cpu_time = p->lb;
             }
@@ -561,6 +578,21 @@ void Problem::perturbationDirection(UserHooks& hooks, const Particle& p,
             }
         }
     }
+}
+
+double Problem::euclideanDistance(vector<Particle*> swarm){
+    double euclidean_dist = 0.0; 
+    for (int idx = 0; idx < param.nParticles; ++idx) {
+        ParticleIter p1(swarm, idx);
+        for (int idx_2 = idx + 1; idx_2 < param.nParticles; ++idx_2){
+            ParticleIter p2(swarm, idx_2);
+            for (int i=0; i<p1->dual.size(); i++){
+                euclidean_dist +=  (p1->dual[i] - p2->dual[i]) * (p1->dual[i] - p2->dual[i]);
+            }
+        }
+    }
+    euclidean_dist = std::sqrt(euclidean_dist);
+    return euclidean_dist;
 }
 
 }; // end namespace

@@ -96,6 +96,9 @@ namespace LaPSO {
 		bool zeroInitial = false;
 		bool write_particle;
 		std::string particle_filename;
+		bool localSearch = false;
+		bool convergence_test = false;
+		std::string convergence_output;
 		
     };
 
@@ -328,6 +331,7 @@ namespace LaPSO {
 			Particle *operator ->() { return *iter; }
 		};
 		double primal_cpu_time;
+		double best_nIter;
 		double dual_cpu_time;
 		double lb_primal_cpu_time;
 
@@ -370,11 +374,12 @@ namespace LaPSO {
 		void initialise(UserHooks &hooks);///< set up initial swarm
 		/// update the best particle information
 		/// returns true if lower or upper bound have improved
-		bool updateBest(UserHooks &hooks);
+		bool updateBest(UserHooks &hooks, int nIter);
 		/** Calculate a direction for the perturbation that is likely
 			to lead to more feasible solutions (using hooks.fixConstraint) */
 		void perturbationDirection(UserHooks &hooks,const Particle &p,
 								   DblVec &pDir) const;
+		double euclideanDistance(std::vector<Particle*> swarm);
     };
 };
 #endif

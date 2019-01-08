@@ -1,0 +1,24 @@
+
+Folder Locations:
+/home/jakew/p2016050003/jakew/edge_disjoint/output/8particles/particle_tracking
+/home/jakew/p2016050003/jakew/edge_disjoint/output/8particles/general_output
+/home/jakew/p2016050003/jakew/edge_disjoint/bash_scripts/8particle_tests/zI_Perturb
+/home/jakew/p2016050003/jakew/edge_disjoint/bash_scripts/generic_scripts/job_scripts
+/home/jakew/p2016050003/jakew/edge_disjoint/bash_scripts/generic_scripts/batch_file_copying
+
+
+copying files to local machine:
+
+scp jakew@monarch-dtn.erc.monash.edu:~/sourcedirectory/afile afile
+
+
+scp main_test jakew@monarch-dtn.erc.monash.edu:/home/jakew/p2016050003/jakew/edge_disjoint/lapso_executables
+
+copying files to m3
+
+scp afile jakew@monarch-dtn.erc.monash.edu:~/destinationdirectory/
+
+
+
+
+

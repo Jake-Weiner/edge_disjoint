@@ -9,6 +9,7 @@ using namespace LaPSO;
 struct node {
     int idx;
     pair<double, int> properties;
+    double epsilon;
    
 };
 
@@ -23,11 +24,11 @@ struct node_naive {
 struct mygreater { // functor for operator>
     constexpr bool operator()(const node& _Left, const node& _Right)
     { // apply operator> to operands
-        return (_Left.properties.first > _Right.properties.first || ((_Left.properties.first == _Right.properties.first) && (_Left.properties.second > _Right.properties.second)));
+        return (_Left.properties.first > (_Right.properties.first + _Right.epsilon) || ((_Left.properties.first == _Right.properties.first) && (_Left.properties.second > _Right.properties.second)));
     }
 };
 
-double djikstras(Edge_Int_Map& EIM,
+double djikstras(double max_perturb, Edge_Int_Map& EIM,
     map<int, map<int, bool>>& node_neighbours, int start, int end,
     vector<int>& parents, int num_nodes, int num_edges,
       DblVec& rc, IntVec& x, int comm_idx, int num_comm)
@@ -46,7 +47,7 @@ double djikstras(Edge_Int_Map& EIM,
     parents.assign(highest_node_idx+1, -1);
     distances[start].first = 0;
 
-    Q.push({start,{0.0,0}});
+    Q.push({start,{0.0,0},max_perturb*num_edges});
     while (!Q.empty()) {
         node current_node = Q.top();
 
@@ -106,7 +107,7 @@ double djikstras(Edge_Int_Map& EIM,
                            distances[neighbour_node].first = distances[current_node.idx].first + edge_weight;
                            distances[neighbour_node].second = distances[current_node.idx].second + edge_used;
                            parents[neighbour_node] = current_node.idx;
-                           Q.push({neighbour_node, {distances[neighbour_node].first,distances[neighbour_node].second}});
+                           Q.push({neighbour_node, {distances[neighbour_node].first,distances[neighbour_node].second}, max_perturb*num_edges});
                            //cout << "node " << neighbour_node << " pushed - dist " << distances[neighbour_node].first
                            //<< " viol - " << distances[neighbour_node].second << endl;
                     }

@@ -22,8 +22,10 @@ int main(int argc, const char** argv)
     string mip_edges_folder = "";
     string mip_edges_map = "";
     string edgestats_filename = "";
- 
     string particle_filename ="";
+    string convergence_filename ="";
+
+
     bool useVol = false;
     bool particle_param = false;
     bool pert_param = false;
@@ -39,7 +41,12 @@ int main(int argc, const char** argv)
     bool djikstras_naive = false;
     bool _zeroInitial = false;
     bool write_particle = false;
+    bool convergence_test = false;
+    bool _localSearch = false;
+    bool print_initial_costs = false;
 
+
+    double set_initial = 0.1;
     for (int i = 1; i < argc; ++i) {
         if (argv[i][0] == '-')
             continue;
@@ -76,6 +83,15 @@ int main(int argc, const char** argv)
         else if (string(argv[i]) == "zI") {
             _zeroInitial = true;
         }
+        else if (string(argv[i]) == "lS") {
+            _localSearch = true;
+        }
+        else if (string(argv[i]) == "sI") {
+            set_initial = atof(argv[i + 1]);
+        }
+
+
+        
        
         
 
@@ -84,22 +100,31 @@ int main(int argc, const char** argv)
             write_edges_stats = true;
             if (string(argv[i + 1]).find(".csv") != std::string::npos)
                 edgestats_filename = string(argv[i + 1]);
-        } else if (string(argv[i]) == "wme") {
+        }  
+        else if (string(argv[i]) == "wme") {
             write_mip_edges = true;
             if (string(argv[i + 1]).find("Reduced_Graph") != std::string::npos)
                 mip_edges_folder = string(argv[i + 1]);
             if (string(argv[i + 2]).find("maps") != std::string::npos)
                 mip_edges_map = string(argv[i + 2]);
-        } else if (string(argv[i]) == "wo") {
+        }   
+        else if (string(argv[i]) == "wo") {
             write_outputs = true;
             if (string(argv[i + 1]).find(".csv") != std::string::npos)
                 output_filename = string(argv[i + 1]);
-        }
-         else if (string(argv[i]) == "wP") {
+        }   
+        else if (string(argv[i]) == "wP") {
             write_particle = true;
             if (string(argv[i + 1]).find(".csv") != std::string::npos)
                 particle_filename = string(argv[i + 1]);
         }
+        else if (string(argv[i]) == "cT") {
+            convergence_test = true;
+            if (string(argv[i + 1]).find(".csv") != std::string::npos)
+                convergence_filename = string(argv[i + 1]);
+        }
+       
+        
     }
 
     std::cout << "Running " << (useVol ? "Volume" : "LaPSO") << " for disjoint paths problem with "
@@ -124,13 +149,17 @@ int main(int argc, const char** argv)
     solver.param.zeroInitial = _zeroInitial;
     solver.param.write_particle = write_particle;
     solver.param.particle_filename = particle_filename;
+    solver.param.localSearch = _localSearch;
+    solver.param.convergence_test = convergence_test;
+    solver.param.convergence_output = convergence_filename;
+
     printing = solver.param.printLevel > 0;
     ed.setPrinting(printing);
     ed.maxEDsolves = solver.param.maxIter;
     ed.solution_cost = solver.best.ub = ncomm; // every path excluded
     solver.best.lb = 0; // no path left out
     solver.dualUB = 0; // all constraints are <= so lagrange multipliers are <= 0
-
+    
     Uniform rand;
     if (solver.param.randomSeed == 0)
         rand.seedTime();
@@ -148,10 +177,22 @@ int main(int argc, const char** argv)
         vol.solve(true);
         solver.best = vol.best;
     } else {
+        double max_initial_dual = 0.0;
+        double initial_dual = 0.0;
         for (int i = 0; i < solver.param.nParticles; ++i) {
             EDParticle* p = new EDParticle(ed.graph_edges, ed.getComm(), nnode, ed.EIM);
             for (int j = 0; j < solver.dsize; ++j)
-                p->dual[j] = -rand(0, 0.1) / nnode; // random initial point
+
+                if (_zeroInitial == false){
+                    initial_dual = -rand(0,set_initial);
+                    p->dual[j] = initial_dual; // random initial point
+                    if (initial_dual < max_initial_dual){
+                        max_initial_dual = initial_dual;
+                    }
+                }
+                else{
+                    p->dual[j] = 0.0;
+                }
             solver.swarm.push_back(p);
         }
         std::cout << "set up solver with " << solver.param.nParticles
@@ -214,8 +255,9 @@ int main(int argc, const char** argv)
                     << "," << solver.param.subgradFmult << "," << solver.param.subgradFmin << "," << solver.param.velocityFactor
                     << "," << solver.param.globalFactor << ","
                     << solver.cpuTime() << "," <<ed.getCommSize() - solver.best.lb << ","
-                    << ed.getCommSize() - solver.best.ub << "," << solver.primal_cpu_time << ","
-                    << ed.getCommSize() - solver.lb_primal_cpu_time
+                    << ed.getCommSize() - solver.best.ub << "," << ed.getCommSize() - solver.lb_primal_cpu_time << ","
+                    << solver.primal_cpu_time << ","
+                    << solver.best_nIter
                     << endl;
             std::cout << "writing to " << output_filename << endl;
             outfile.close();

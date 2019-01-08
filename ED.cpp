@@ -221,6 +221,19 @@ Status ED::solveSubproblem(Particle& p_)
     int current;
     p.ub = p.lb = 0;
 
+
+    double max_perturb = 0.0;
+
+    for (size_t i = 0; i < p.perturb.size(); i++) {
+        if (p.perturb[i] > max_perturb) {
+            max_perturb = p.perturb[i];
+            continue;
+        }
+        if (-1 * p.perturb[i] > max_perturb)
+            max_perturb = -1 * p.perturb[i];
+    }
+
+
     //solve subproblem selecting commodity iteration order randomly
     if (randComm) {
         // randomise order of commodities
@@ -243,7 +256,8 @@ Status ED::solveSubproblem(Particle& p_)
                 SP = djikstras_naive(EIM, node_neighbours, start, end, parents, num_nodes, num_edges,
                     p.rc, p.x, p.commodities[random_index].comm_idx, commodities.size());
             } else {
-                SP = djikstras(EIM, node_neighbours, start, end, parents, num_nodes, num_edges,
+                
+                SP = djikstras(max_perturb, EIM, node_neighbours, start, end, parents, num_nodes, num_edges,
                     p.rc, p.x, p.commodities[random_index].comm_idx, commodities.size());
             }
             if (SP == -1) {
@@ -272,7 +286,7 @@ Status ED::solveSubproblem(Particle& p_)
                 SP = djikstras_naive(EIM, node_neighbours, start, end, parents, num_nodes, num_edges,
                     p.rc, p.x, p.commodities[loop_idx].comm_idx, commodities.size());
             } else {
-                SP = djikstras(EIM, node_neighbours, start, end, parents, num_nodes, num_edges,
+                SP = djikstras(max_perturb,EIM, node_neighbours, start, end, parents, num_nodes, num_edges,
                     p.rc, p.x, p.commodities[loop_idx].comm_idx, commodities.size());
             }
 
@@ -293,17 +307,7 @@ Status ED::solveSubproblem(Particle& p_)
         p.viol[edgeIdx(i)] -= p.x[i]; // sum over all commodites
     }
 
-    double max_perturb = 0.0;
-
-    for (size_t i = 0; i < p.perturb.size(); i++) {
-        if (p.perturb[i] > max_perturb) {
-            max_perturb = p.perturb[i];
-            continue;
-        }
-        if (-1 * p.perturb[i] > max_perturb)
-            max_perturb = -1 * p.perturb[i];
-    }
-
+    
     // is feasible if no edges are violated
     p.isFeasible = (p.viol.min() >= 0);
     p.lb = (total_paths_cost + p.dual.sum()) - num_edges * max_perturb;
@@ -514,7 +518,8 @@ void ED::localSearch(Particle& p_)
     }
 
     IntVec viol(p.viol.size(), 1);
-
+    DblVec temp_rc;
+    temp_rc.resize(p.rc.size());
     
     // need to double check why this needs to be reset
     p.x = 0;
@@ -536,8 +541,7 @@ void ED::localSearch(Particle& p_)
     //try and add in commodities 1 at a time using previously_unused edges
     for (auto it = commodities_to_add.begin(); it != commodities_to_add.end(); it++){
         int comm_idx = it->comm_idx;
-        DblVec temp_rc;
-        temp_rc.resize(p.rc.size());
+        
         for (int i = 0; i < p.rc.size(); i++) {
             temp_rc[i] = (viol[edgeIdx(i)] == 1) ? 1 : num_edges;
         }
@@ -551,7 +555,7 @@ void ED::localSearch(Particle& p_)
 
         if (SP < num_edges) {
             //if (SP < 1) {
-
+            cout <<"added commodity in local_search" << endl;
             // Iterate over path and add to primal solution
             for (current = end; current != start; current = parents[current]) {
                 if (parents[current] == -1) {
@@ -582,6 +586,7 @@ void ED::localSearch(Particle& p_)
             p.ub += 1;
     }
 
+    //update best_ub solution
     if (p.ub < p_.best_ub) {
         for (vector<Commodity>::iterator itr = p.commodities.begin(); itr < p.commodities.end(); ++itr) {
             if (p_.best_ub_sol.find(itr->comm_idx) != p_.best_ub_sol.end()) {
