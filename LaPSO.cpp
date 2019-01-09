@@ -257,29 +257,43 @@ void Problem::solve(UserHooks& hooks)
 #pragma omp parallel for schedule(static, std::max(1, param.nParticles / param.nCPU))
         for (int idx = 0; idx < param.nParticles; ++idx) {
             ParticleIter p(swarm, idx);
+
+             if (param.write_particle){
+                std::ofstream outfile; 
+                outfile.open(param.particle_filename, std::ios_base::app);
+                //writeoutputs here
+                outfile << idx << "," 
+                << commodities - p->lb << "," 
+                << commodities - p->ub << "," 
+                << nIter 
+                << endl;
+                outfile.close();
+            }
             // --------- calculate step size/direction ----------
             double norm = 0;
             for (int i = 0; i < dsize; ++i)
                 norm += p->viol[i] * p->viol[i];
             DblVec perturbDir(psize, 0.0);
             perturbationDirection(hooks, *p, perturbDir);
-            double randAscent = rand[p.idx](); // 0,1 uniform
-            double randGlobal = rand[p.idx]() * param.globalFactor;
+        
             const double stepSize = rand[p.idx](
                                         subgradFactor[p.idx] / 2.0, subgradFactor[p.idx])
                 * (best.ub - bestLB[p.idx]) / norm;
             // 		const double stepSize = randAscent * param.subgradFactor *
             // 					(best.ub-best.lb)  / norm;
             //-------------- update velocity (step) --------------
+            double randGlobal = rand[p.idx]() * param.globalFactor;
+            
             for (int i = 0; i < dsize; ++i)
                 p->dVel[i] = param.velocityFactor * p->dVel[i] + stepSize * p->viol[i] + randGlobal * (best.dual[i] - p->dual[i]);
 
-            for (int i = 0; i < psize; ++i)
+            for (int i = 0; i < psize; ++i){
+                double randAscent = rand[p.idx](); // 0,1 uniform
+                
                 p->pVel[i] = param.velocityFactor * p->pVel[i] + randAscent * perturbFactor[p.idx] * //param.perturbFactor *
                         perturbDir[i]
-                    + perturbFactor[p.idx] * randGlobal * (1 - 2 * best.x[i]) + randGlobal * (best.perturb[i] - p->perturb[i])
-
-                    ;
+                    + perturbFactor[p.idx] * randGlobal * (1 - 2 * best.x[i]) + randGlobal * (best.perturb[i] - p->perturb[i]);
+            }
             //---------- make a step ------------------------------
             for (int i = 0; i < dsize; ++i) {
                 p->dual[i] += p->dVel[i];
@@ -364,18 +378,7 @@ void Problem::solve(UserHooks& hooks)
             }
 
             // write out particle info to see how it behaves after each iteration
-            if (param.write_particle){
-                
-                std::ofstream outfile; 
-                outfile.open(param.particle_filename, std::ios_base::app);
-                //writeoutputs here
-                outfile << idx << "," 
-                << commodities - p->lb << "," 
-                << commodities - p->ub << "," 
-                << nIter 
-                << endl;
-                outfile.close();
-            }
+           
 
         }
 

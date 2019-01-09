@@ -402,19 +402,17 @@ Status ED::heuristics(Particle& p_)
         }
 
         largest_viol = 0;
-        //find commodity with the largest violation, that contains this edge
+        double largest_perturb = -1;
+        
+        //remove with highest perturbation value (this commodity is least likely to use this edge)
         for (auto it = p.commodities.begin(); it != p.commodities.end(); it++) {
-            if (p.x[primalIdx(largest_viol_idx, it->comm_idx)] > 0) { // the commodity contains this edge
-                current_viol = 0;
-                for (size_t i = 0; i < it->solution_edges.size(); i++) { // sum up violations this commodity has
-                    if (viol[edgeIdx(it->solution_edges[i])] < 1.0e-6) {
-                        current_viol += viol[edgeIdx(it->solution_edges[i])];
-                    }
-                    if (current_viol < largest_viol) {
-                        largest_com_idx = it->comm_idx;
-                        largest_viol = current_viol;
-                    }
+            if (p.x[primalIdx(largest_viol_idx, it->comm_idx)] > 1.0e-6) { // the commodity contains this edge
+                
+                if (p.perturb[primalIdx(largest_viol_idx, it->comm_idx)] > largest_perturb){
+                    largest_perturb = p.perturb[primalIdx(largest_viol_idx, it->comm_idx)];
+                    largest_com_idx = it->comm_idx;
                 }
+                
             }
         }
 
@@ -427,14 +425,15 @@ Status ED::heuristics(Particle& p_)
         }
         p.commodities[largest_com_idx].solution_edges.clear();
 
-        // try find a new path for this OD-PAIR
+        // try find a new path for this OD-PAIR, using perturbations
 
         IntVec distances_heur(num_nodes); // integer distances
         DblVec temp_rc;
         temp_rc.resize(p.rc.size());
-
+        double min_perturb = p.perturb.min();
+        
         for (int i = 0; i < p.rc.size(); i++) {
-            temp_rc[i] = (viol[edgeIdx(i)] == 1) ? p.perturb[i] : 1;
+            temp_rc[i] = (viol[edgeIdx(i)] == 1) ? p.perturb[i] + min_perturb + 1e-15 : 1;
             //temp_rc[i] = (viol[edgeIdx(i)] == 1) ? p.rc[i] : 1;
         }
 
@@ -541,9 +540,9 @@ void ED::localSearch(Particle& p_)
     //try and add in commodities 1 at a time using previously_unused edges
     for (auto it = commodities_to_add.begin(); it != commodities_to_add.end(); it++){
         int comm_idx = it->comm_idx;
-        
+        double min_perturb = p.perturb.min();
         for (int i = 0; i < p.rc.size(); i++) {
-            temp_rc[i] = (viol[edgeIdx(i)] == 1) ? p.perturb[i] : 1;
+            temp_rc[i] = (viol[edgeIdx(i)] == 1) ? p.perturb[i] + min_perturb + 1e-15 : 1;
         }
         vector<int> parents;
         int start = it->origin;
