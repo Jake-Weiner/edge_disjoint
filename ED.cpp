@@ -434,7 +434,7 @@ Status ED::heuristics(Particle& p_)
         temp_rc.resize(p.rc.size());
 
         for (int i = 0; i < p.rc.size(); i++) {
-            temp_rc[i] = (viol[edgeIdx(i)] == 1) ? 1 : num_edges;
+            temp_rc[i] = (viol[edgeIdx(i)] == 1) ? p.perturb[i] : 1;
             //temp_rc[i] = (viol[edgeIdx(i)] == 1) ? p.rc[i] : 1;
         }
 
@@ -446,7 +446,7 @@ Status ED::heuristics(Particle& p_)
             temp_rc, p.x, p.commodities[largest_com_idx].comm_idx, commodities.size());
         // if no feasible sp exists between orig and dest nodes
 
-        if (SP < num_edges) {
+        if (SP < 1) {
             //if (SP < 1) {
 
             // Iterate over path and add to primal solution
@@ -543,7 +543,7 @@ void ED::localSearch(Particle& p_)
         int comm_idx = it->comm_idx;
         
         for (int i = 0; i < p.rc.size(); i++) {
-            temp_rc[i] = (viol[edgeIdx(i)] == 1) ? 1 : num_edges;
+            temp_rc[i] = (viol[edgeIdx(i)] == 1) ? p.perturb[i] : 1;
         }
         vector<int> parents;
         int start = it->origin;
@@ -553,7 +553,7 @@ void ED::localSearch(Particle& p_)
             temp_rc, p.x, comm_idx, commodities.size());
         // if no feasible sp exists between orig and dest nodes
 
-        if (SP < num_edges) {
+        if (SP < 1) {
             //if (SP < 1) {
             cout <<"added commodity in local_search" << endl;
             // Iterate over path and add to primal solution
