@@ -47,7 +47,7 @@ type_name()
 using namespace boost;
 using namespace std;
 
-ED::ED(string graph_filename, string pairs_filename, bool _printing, bool _randComm, bool _djikstras_naive)
+ED::ED(string graph_filename, string pairs_filename, bool _printing, bool _randComm, bool _djikstras_naive, string _repair_method)
     : nEDsolves(0)
     , maxEDsolves(10)
 {
@@ -57,6 +57,7 @@ ED::ED(string graph_filename, string pairs_filename, bool _printing, bool _randC
     printing = _printing;
     randComm = _randComm;
     dN = _djikstras_naive;
+    repair_method = _repair_method;
 }
 
 ED::~ED() {}
@@ -254,9 +255,9 @@ Status ED::solveSubproblem(Particle& p_)
             double SP;
             if (dN) { // djikstras without violation consideration
                 SP = djikstras_naive(EIM, node_neighbours, start, end, parents, num_nodes, num_edges,
-                    p.rc, p.x, p.commodities[random_index].comm_idx, commodities.size());
-            } else {
-                
+                    p.rc, p.x, p.commodities[random_index].comm_idx, commodities.size());            } 
+            
+            else {
                 SP = djikstras(max_perturb, EIM, node_neighbours, start, end, parents, num_nodes, num_edges,
                     p.rc, p.x, p.commodities[random_index].comm_idx, commodities.size());
             }
@@ -389,6 +390,7 @@ Status ED::heuristics(Particle& p_)
             p.x[primalIdx(EIM[e], it->comm_idx)] += 1;
             viol[edgeIdx(e)] -= 1;
         }
+        
     while (viol.min() < 0) {
         if (printing == true)
             cout << "\tviol sum is " << viol.sum() << endl;
@@ -433,7 +435,22 @@ Status ED::heuristics(Particle& p_)
         double min_perturb = p.perturb.min();
         
         for (int i = 0; i < p.rc.size(); i++) {
-            temp_rc[i] = (viol[edgeIdx(i)] == 1) ? p.perturb[i] + min_perturb + 1e-15 : 1;
+            if (repair_method.compare("pert_repair_0") == 0){
+                temp_rc[i] = (viol[edgeIdx(i)] == 1) ? p.perturb[i] : 1;
+            }
+            else if (repair_method.compare("pert_repair_min") == 0){
+                temp_rc[i] = (viol[edgeIdx(i)] == 1) ? p.perturb[i] - p.perturb.min() : 1;
+            }
+            else if (repair_method.compare("rc_repair") == 0){
+                temp_rc[i] = (viol[edgeIdx(i)] == 1) ? p.rc[i] : 1;
+            }
+            else if (repair_method.compare("arb_repair") == 0){
+                temp_rc[i] = (viol[edgeIdx(i)] == 1) ? 1 : num_edges;
+            }
+        
+            if (temp_rc[i] < 0){
+                temp_rc[i] = 0;
+            }
             //temp_rc[i] = (viol[edgeIdx(i)] == 1) ? p.rc[i] : 1;
         }
 
@@ -445,7 +462,15 @@ Status ED::heuristics(Particle& p_)
             temp_rc, p.x, p.commodities[largest_com_idx].comm_idx, commodities.size());
         // if no feasible sp exists between orig and dest nodes
 
-        if (SP < 1) {
+        double thresh;
+        if (repair_method.compare("arb_repair") == 0){
+            thresh = num_edges;
+        }
+        else{
+            thresh = 1;
+        }
+
+        if (SP < thresh) {
             //if (SP < 1) {
 
             // Iterate over path and add to primal solution
@@ -542,7 +567,22 @@ void ED::localSearch(Particle& p_)
         int comm_idx = it->comm_idx;
         double min_perturb = p.perturb.min();
         for (int i = 0; i < p.rc.size(); i++) {
-            temp_rc[i] = (viol[edgeIdx(i)] == 1) ? p.perturb[i] + min_perturb + 1e-15 : 1;
+            if (repair_method.compare("pert_repair_0") == 0){
+                temp_rc[i] = (viol[edgeIdx(i)] == 1) ? p.perturb[i] : 1;
+            }
+            else if (repair_method.compare("pert_repair_min") == 0){
+                temp_rc[i] = (viol[edgeIdx(i)] == 1) ? p.perturb[i] - p.perturb.min() : 1;
+            }
+            else if (repair_method.compare("rc_repair") == 0){
+                temp_rc[i] = (viol[edgeIdx(i)] == 1) ? p.rc[i] : 1;
+            }
+            else if (repair_method.compare("arb_repair") == 0){
+                temp_rc[i] = (viol[edgeIdx(i)] == 1) ? 1 : num_edges;
+            }
+        
+            if (temp_rc[i] < 0){
+                temp_rc[i] = 0;
+            }
         }
         vector<int> parents;
         int start = it->origin;
@@ -552,7 +592,14 @@ void ED::localSearch(Particle& p_)
             temp_rc, p.x, comm_idx, commodities.size());
         // if no feasible sp exists between orig and dest nodes
 
-        if (SP < 1) {
+        double thresh;
+        if (repair_method.compare("arb_repair") == 0){
+            thresh = num_edges;
+        }
+        else{
+            thresh = 1;
+        }
+        if (SP < thresh) {
             //if (SP < 1) {
             cout <<"added commodity in local_search" << endl;
             // Iterate over path and add to primal solution

@@ -123,6 +123,10 @@ Problem::Problem(int nVar, int nConstr)
 // Main method
 void Problem::solve(UserHooks& hooks)
 {   
+
+    //initialise lower_bound_tracking
+    lower_bounds_tracking.reserve(param.nParticles);
+    upper_bounds_tracking.reserve(param.nParticles);
     // commodities size
     double commodities = best.perturb.size() / best.dual.size();
     vector<double> best_lb;
@@ -210,13 +214,7 @@ void Problem::solve(UserHooks& hooks)
         if (param.convergence_test == true){
             // calculate pair-wise hamming_distance 
             double swarm_euc = euclideanDistance(swarm) / param.nParticles;
-            std::ofstream outfile; 
-            outfile.open(param.convergence_output, std::ios_base::app);
-            //writeoutputs here
-            outfile << swarm_euc << "," << nIter << "," << dsize << "," 
-            << commodities - best.lb << "," << commodities - best.ub
-            << endl;
-            outfile.close();
+            //convergence_info.push_back(convergence{nIter,swarm_euc,commodities - best.lb, static_cast<int>(commodities) - static_cast<int>(best.ub)});
         }
        
         // Stopping Criteria
@@ -257,17 +255,11 @@ void Problem::solve(UserHooks& hooks)
 #pragma omp parallel for schedule(static, std::max(1, param.nParticles / param.nCPU))
         for (int idx = 0; idx < param.nParticles; ++idx) {
             ParticleIter p(swarm, idx);
-
-             if (param.write_particle){
-                std::ofstream outfile; 
-                outfile.open(param.particle_filename, std::ios_base::app);
-                //writeoutputs here
-                outfile << idx << "," 
-                << commodities - p->lb << "," 
-                << commodities - p->ub << "," 
-                << nIter 
-                << endl;
-                outfile.close();
+            if (nIter != 1){
+                if (param.particle_tracking){
+                    lower_bounds_tracking[idx].push_back(commodities - p->lb);
+                    upper_bounds_tracking[idx].push_back(commodities - p->ub);
+                }
             }
             // --------- calculate step size/direction ----------
             double norm = 0;
@@ -283,13 +275,13 @@ void Problem::solve(UserHooks& hooks)
             // 					(best.ub-best.lb)  / norm;
             //-------------- update velocity (step) --------------
             double randGlobal = rand[p.idx]() * param.globalFactor;
-            
+
             for (int i = 0; i < dsize; ++i)
                 p->dVel[i] = param.velocityFactor * p->dVel[i] + stepSize * p->viol[i] + randGlobal * (best.dual[i] - p->dual[i]);
 
             for (int i = 0; i < psize; ++i){
                 double randAscent = rand[p.idx](); // 0,1 uniform
-                
+                randGlobal = rand[p.idx]() * param.globalFactor;
                 p->pVel[i] = param.velocityFactor * p->pVel[i] + randAscent * perturbFactor[p.idx] * //param.perturbFactor *
                         perturbDir[i]
                     + perturbFactor[p.idx] * randGlobal * (1 - 2 * best.x[i]) + randGlobal * (best.perturb[i] - p->perturb[i]);
@@ -351,7 +343,7 @@ void Problem::solve(UserHooks& hooks)
                     continue;
                 }
                 else{ 
-                    if ( (p->ub <= p->localSearch_thresh) && param.localSearch ){
+                    if ( ((p->ub <= p->localSearch_thresh)|| nIter % param.localSearchFreq == 0) && param.localSearch)  {
                         p->localSearch_thresh = p->ub;
                         hooks.localSearch(*p);
                     }
@@ -584,7 +576,7 @@ void Problem::perturbationDirection(UserHooks& hooks, const Particle& p,
 }
 
 double Problem::euclideanDistance(vector<Particle*> swarm){
-    double euclidean_dist = 0.0; 
+    double euclidean_dist = 0.0;
     for (int idx = 0; idx < param.nParticles; ++idx) {
         ParticleIter p1(swarm, idx);
         for (int idx_2 = idx + 1; idx_2 < param.nParticles; ++idx_2){

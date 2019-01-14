@@ -79,6 +79,8 @@ namespace LaPSO {
 		int printFreq;
 		/** after how many iterations to run the heuristic on each particle */
 		int heurFreq;
+		/** after how many iterations to run the localSearch on each particle */
+		int localSearchFreq;
 		/** how accurately to compare whether violations or the like are zero */
 		double eps;
 		/** terminate when the absolute (not relative) gap between lower and
@@ -94,13 +96,20 @@ namespace LaPSO {
 		bool randComm;
 		bool fudge_factor;
 		bool zeroInitial = false;
-		bool write_particle;
-		std::string particle_filename;
+		bool particle_tracking;
+		std::string particle_tracking_filename;
 		bool localSearch = false;
 		bool convergence_test = false;
 		std::string convergence_output;
 		
     };
+
+	struct convergence {
+		int nIter;
+		double euclid_dist;
+		double best_lb;
+		int best_ub;
+	};
 
     /** integer vector with  some extra convenience methods */
     class IntVec : public std::vector<int> {
@@ -313,6 +322,10 @@ namespace LaPSO {
 		std::vector<Particle *> swarm_primal_time;
 		std::vector<Particle *> best_particles; // this vector stores best lower bound solutions if only 1 particle is used. Replacement for swarm
 		std::vector<Particle *> best_particles_primal_time; 
+		
+		std::vector<std::vector<double>> lower_bounds_tracking;
+		std::vector<std::vector<int>> upper_bounds_tracking;
+		std::vector<convergence> convergence_info;
 		
 		Particle best;		///< best solution found so far
 		/// ParticleIter is a convenience class to avoid double dereferencing

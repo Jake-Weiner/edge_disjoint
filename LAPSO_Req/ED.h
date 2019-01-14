@@ -42,7 +42,7 @@ public:
     EdgeVec graph_edges;
     int solution_cost; // objective value of solution
     vector<EdgeVec> solution_edges; //edges used in each commodity SP
-    ED(string graph_filename, string pairs_filename, bool _printing, bool _randComm, bool _djikstras_naive);
+    ED(string graph_filename, string pairs_filename, bool _printing, bool _randComm, bool _djikstras_naive, string repair_method);
     //void solve_ED(EDParticle &p);
     int nEDsolves;		// number of times ED was solved
     int maxEDsolves;		// abort after this many
@@ -112,6 +112,7 @@ private:
     void populate_graph(string filename);
     void populate_commodities(string filename);
     bool randComm;
+    string repair_method;
     bool dN; // djikstas_naive
     map<int,map<int,bool>> node_neighbours;
 };
