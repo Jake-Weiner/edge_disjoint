@@ -22,10 +22,16 @@ int main(int argc, const char** argv)
     string mip_edges_folder = "";
     string mip_edges_map = "";
     string edgestats_filename = "";
-    string LB_tracking_filename ="";
-    string UB_tracking_filename ="";
+    string dual_euclid_filename ="";
+    string perturb_euclid_filename ="";
+    string best_lb_filename = "" ;
+    string best_ub_filename = "" ;
+    string average_lb_filename = "" ;
+    string average_ub_filename = "" ;
+    string best_bounds_tracking ="";
     string convergence_filename ="";
-    string repair_method ="";
+    string repair_add_edge ="";
+    string repair_edge_removal = "";
 
 
     bool useVol = false;
@@ -91,17 +97,27 @@ int main(int argc, const char** argv)
         else if (string(argv[i]) == "sI") {
             set_initial = atof(argv[i + 1]);
         }
-        else if (string(argv[i]) == "pert_repair_0") {
-            repair_method = "pert_repair_0";
+        else if (string(argv[i]) == "remove_largest_viol") {
+            repair_edge_removal = "largest_viol";
         }
-        else if (string(argv[i]) == "pert_repair_min") {
-            repair_method = "pert_repair_min";
+        else if (string(argv[i]) == "remove_perturb") {
+            repair_edge_removal = "perturb";
         }
-        else if (string(argv[i]) == "rc_repair") {
-            repair_method = "rc_repair";
+        else if (string(argv[i]) == "remove_random") {
+            repair_edge_removal = "random";
         }
-        else if (string(argv[i]) == "arb_repair") {
-            repair_method = "arb_repair";
+
+        else if (string(argv[i]) == "add_pert_0") {
+            repair_add_edge = "pert_repair_0";
+        }
+        else if (string(argv[i]) == "add_pert_min") {
+            repair_add_edge = "pert_repair_min";
+        }
+        else if (string(argv[i]) == "add_rc") {
+            repair_add_edge = "rc_repair";
+        }
+        else if (string(argv[i]) == "add_arb") {
+            repair_add_edge = "arb_repair";
         }
 
         //output files
@@ -122,25 +138,26 @@ int main(int argc, const char** argv)
             if (string(argv[i + 1]).find(".csv") != std::string::npos)
                 output_filename = string(argv[i + 1]);
         }   
-        else if (string(argv[i]) == "wP") {
-            particle_tracking = true;
-            if (string(argv[i + 1]).find(".csv") != std::string::npos)
-                LB_tracking_filename = string(argv[i + 1]);
-            if (string(argv[i + 2]).find(".csv") != std::string::npos)
-                UB_tracking_filename = string(argv[i + 1]);
-        }
         else if (string(argv[i]) == "cT") {
             convergence_test = true;
-            if (string(argv[i + 1]).find(".csv") != std::string::npos)
-                convergence_filename = string(argv[i + 1]);
+            if (string(argv[i+1]).find(".csv") != std::string::npos)
+                dual_euclid_filename = string(argv[i+1]);
+            if (string(argv[i+2]).find(".csv") != std::string::npos)
+                perturb_euclid_filename = string(argv[i+2]);
+            if (string(argv[i+3]).find(".csv") != std::string::npos)
+                best_lb_filename = string(argv[i+3]);
+            if (string(argv[i+4]).find(".csv") != std::string::npos)
+                best_ub_filename = string(argv[i+4]);
+            if (string(argv[i+5]).find(".csv") != std::string::npos)
+                average_lb_filename = string(argv[i+5]);
+            if (string(argv[i+6]).find(".csv") != std::string::npos)
+                average_ub_filename = string(argv[i+6]);
         }
-       
-        
     }
 
     std::cout << "Running " << (useVol ? "Volume" : "LaPSO") << " for disjoint paths problem with "
               << graph_file << " & " << pairs_filename << std::endl;
-    ED ed(graph_file, pairs_filename, printing, randComm, djikstras_naive, repair_method);
+    ED ed(graph_file, pairs_filename, printing, randComm, djikstras_naive, repair_edge_removal,repair_add_edge);
     const int nnode = ed.get_nodes();
     const int nedge = ed.get_edges();
     const int ncomm = (int)ed.getComm().size();
@@ -192,18 +209,14 @@ int main(int argc, const char** argv)
         double initial_dual = 0.0;
         for (int i = 0; i < solver.param.nParticles; ++i) {
             EDParticle* p = new EDParticle(ed.graph_edges, ed.getComm(), nnode, ed.EIM);
-            for (int j = 0; j < solver.dsize; ++j)
-
-                if (_zeroInitial == false){
+            for (int j = 0; j < solver.dsize; ++j){
                     initial_dual = -rand(0,set_initial);
+                    
                     p->dual[j] = initial_dual; // random initial point
                     if (initial_dual < max_initial_dual){
                         max_initial_dual = initial_dual;
                     }
-                }
-                else{
-                    p->dual[j] = 0.0;
-                }
+            }
             solver.swarm.push_back(p);
         }
         std::cout << "set up solver with " << solver.param.nParticles
@@ -354,44 +367,64 @@ int main(int argc, const char** argv)
     }
 
 
-    if (convergence_test){
-        
-        double lb_euclid_dist =0.0;
-        // lower bounds euclid
-        for (int j=0; j<solver.lower_bounds_tracking[1].size(); j++){
-            for (int i=0; i<solver.param.nParticles; i++){
-                for (int i2= i + 1; i2<solver.param.nParticles; i2++){
-                    lb_euclid_dist += pow(((solver.lower_bounds_tracking[i][j]) - (solver.lower_bounds_tracking[i2][j])), 2);
-                }
-            }
-            lb_euclid_dist = sqrt(lb_euclid_dist);
-            outfile << lb_euclid_dist << ","  // this is the particle num
-                << j // iter num
-                << endl;
-            lb_euclid_dist = 0.0;
-        }
+    if (convergence_test){  
 
-
-        double ub_euclid_dist =0.0;
-        // upper bounds euclid
-        for (int j=0; j<solver.upper_bounds_tracking[1].size(); j++){
-            for (int i=0; i<solver.param.nParticles; i++){
-                for (int i2= i + 1; i2<solver.param.nParticles; i2++){
-                    ub_euclid_dist += pow(((solver.upper_bounds_tracking[i][j]) - (solver.upper_bounds_tracking[i2][j])), 2);
-                }
-            }
-            ub_euclid_dist = sqrt(ub_euclid_dist);
-            outfile << ub_euclid_dist << ","  // this is the particle num
-                << j // iter num
-                << endl;
-            ub_euclid_dist = 0.0;
+        // dual euclid
+        std::ofstream outfile; 
+        outfile.open(dual_euclid_filename, std::ios_base::app);
+        for (vector<double>::iterator it = solver.dual_euclid.begin(); it != solver.dual_euclid.end();
+            it++){
+            outfile << distance(solver.dual_euclid.begin(), it) << "," << *(it) << endl;
         }
+        outfile.close();
+
+        // perturb euclid
+        outfile.open(perturb_euclid_filename, std::ios_base::app);
+        for (vector<double>::iterator it = solver.perturb_euclid.begin(); it != solver.perturb_euclid.end();
+            it++){
+            outfile << distance(solver.perturb_euclid.begin(), it) << "," << *(it) << endl;
+        }
+        outfile.close();
+
+        // best lb
+        outfile.open(best_lb_filename, std::ios_base::app);
+        for (vector<double>::iterator it = solver.best_lb_tracking.begin(); it != solver.best_lb_tracking.end();
+            it++){
+            outfile << distance(solver.best_lb_tracking.begin(), it) << "," << *(it) << endl;
+        }
+        outfile.close();
+
+        // best ub
+        outfile.open(best_ub_filename, std::ios_base::app);
+        for (vector<double>::iterator it = solver.best_ub_tracking.begin(); it != solver.best_ub_tracking.end();
+            it++){
+            outfile << distance(solver.best_ub_tracking.begin(), it) << "," << *(it) << endl;
+        }
+        outfile.close();
+
+        // sum lb
+        outfile.open(average_lb_filename, std::ios_base::app);
+        for (vector<double>::iterator it = solver.average_lb_tracking.begin(); it != solver.average_lb_tracking.end();
+            it++){
+            outfile << distance(solver.average_lb_tracking.begin(), it) << "," << *(it) << endl;
+        }
+        outfile.close();
+
+        // sum ub
+        outfile.open(average_ub_filename, std::ios_base::app);
+        for (vector<double>::iterator it = solver.average_ub_tracking.begin(); it != solver.average_ub_tracking.end();
+            it++){
+            outfile << distance(solver.average_ub_tracking.begin(), it) << "," << *(it) << endl;
+        }
+        outfile.close();
+
+       
             
         
 
-                
+    }   
         
-
+        /*
         std::ofstream outfile; 
         outfile.open(LB_tracking_filename, std::ios_base::app);
         for (int i=0; i<solver.param.nParticles; i++){
@@ -416,6 +449,7 @@ int main(int argc, const char** argv)
         }
         outfile.close();
     }
+    */
 
 /*
     if (convergence_test == true){

@@ -322,10 +322,13 @@ namespace LaPSO {
 		std::vector<Particle *> swarm_primal_time;
 		std::vector<Particle *> best_particles; // this vector stores best lower bound solutions if only 1 particle is used. Replacement for swarm
 		std::vector<Particle *> best_particles_primal_time; 
-		
-		std::vector<std::vector<double>> lower_bounds_tracking;
-		std::vector<std::vector<int>> upper_bounds_tracking;
-		std::vector<convergence> convergence_info;
+		std::vector<double> average_lb_tracking;
+		std::vector<double> average_ub_tracking;
+		std::vector<double> best_lb_tracking;
+		std::vector<double> best_ub_tracking;
+		std::vector<double> dual_euclid;
+		std::vector<double> perturb_euclid;
+		std::vector<double> timing_tracking;
 		
 		Particle best;		///< best solution found so far
 		/// ParticleIter is a convenience class to avoid double dereferencing
@@ -392,7 +395,7 @@ namespace LaPSO {
 			to lead to more feasible solutions (using hooks.fixConstraint) */
 		void perturbationDirection(UserHooks &hooks,const Particle &p,
 								   DblVec &pDir) const;
-		double euclideanDistance(std::vector<Particle*> swarm);
+		double euclideanDistance(std::vector<Particle*> swarm, std::string component);
     };
 };
 #endif

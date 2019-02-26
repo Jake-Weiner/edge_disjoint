@@ -124,9 +124,7 @@ Problem::Problem(int nVar, int nConstr)
 void Problem::solve(UserHooks& hooks)
 {   
 
-    //initialise lower_bound_tracking
-    lower_bounds_tracking.reserve(param.nParticles);
-    upper_bounds_tracking.reserve(param.nParticles);
+
     // commodities size
     double commodities = best.perturb.size() / best.dual.size();
     vector<double> best_lb;
@@ -174,10 +172,22 @@ void Problem::solve(UserHooks& hooks)
         if (hooks.reducedCost(*p, p->rc) == ABORT) {
             status = ABORT;
         }
+        /*
+        for (int i = 0; i < dsize; ++i) { // check initial point is vali
+            printf("dual value is %f\n",p->dual[i]);
+
+        }*/
         p->rc += p->perturb;
         if (hooks.solveSubproblem(*p) == ABORT) {
             status = ABORT;
         }
+        /*
+         printf("solved\n");
+        for (int i = 0; i < dsize; ++i) { // check initial point is valid
+ 
+            printf("dual value is %f\n",p->dual[i]);
+        }
+        */
         bestLB[p.idx] = p->lb;
         if (param.printLevel > 1) {
             printf("\tp%02d: LB=%g UB=%g feas=%d viol=%g -- %g\n",
@@ -209,58 +219,32 @@ void Problem::solve(UserHooks& hooks)
 
     for (nIter = 1; nIter < param.maxIter && cpuTime() < param.maxCPU && wallTime() < param.maxWallTime && status == OK && (best.lb + param.absGap <= best.ub) && fabs(best.ub - best.lb / best.ub) > param.relGap;
          ++nIter) {
-             
         
-        if (param.convergence_test == true){
-            // calculate pair-wise hamming_distance 
-            double swarm_euc = euclideanDistance(swarm) / param.nParticles;
-            //convergence_info.push_back(convergence{nIter,swarm_euc,commodities - best.lb, static_cast<int>(commodities) - static_cast<int>(best.ub)});
-        }
-       
-        // Stopping Criteria
-        if (nIter % param.nParticles == 0) {
-
-            /*
-            double prev_best_lb = best_lb.back();
-			double prev_best_ub = best_ub.back();
-            best_lb.pop_back();
-			best_ub.pop_back();
-			if (best.ub == prev_best_ub) {
-                ub_non_improv++;
-                if (ub_non_improv == 2) {
-                    return;
+        printf("iter num = %d\n", nIter);
+        
+            if (param.convergence_test == true){
+                double sum_lb = 0;
+                int sum_ub = 0;
+                for (int idx = 0; idx < param.nParticles; ++idx) {
+                    ParticleIter p(swarm, idx);
+                    sum_lb += p->lb;
+                    sum_ub += p->ub;
                 }
-            } else {
-                ub_non_improv = 0;
+                average_lb_tracking.push_back(((commodities*param.nParticles) - sum_lb) / param.nParticles);
+                average_ub_tracking.push_back(((commodities*param.nParticles) - sum_ub) / param.nParticles);
+                dual_euclid.push_back(euclideanDistance(swarm,"dual"));
+                perturb_euclid.push_back(euclideanDistance(swarm,"perturb"));
+                best_lb_tracking.push_back(commodities - best.lb);
+                best_ub_tracking.push_back(commodities - best.ub);
             }
-            best_ub.push_back(best.ub);
-            
-            if (best.lb / prev_best_lb < improv_thresh) {
-                non_improv++;
-                if (non_improv == 3) {
-                    return;
-                }
-                best_lb.push_back(best.lb);
-            } else {
-                non_improv = 0;
-                best_lb.push_back(best.lb);
-            }
-			*/
-			printf("%d %g\n",nIter, best.lb);
-            printf("%d %g\n",nIter, best.ub);
-        }
+        
 
         if (param.printLevel > 1 && nIter % param.printFreq == 0)
             printf("Iteration %d --------------------\n", nIter);
 #pragma omp parallel for schedule(static, std::max(1, param.nParticles / param.nCPU))
         for (int idx = 0; idx < param.nParticles; ++idx) {
             ParticleIter p(swarm, idx);
-            if (nIter != 1){
-                if (param.particle_tracking){
-                    lower_bounds_tracking[idx].push_back(commodities - p->lb);
-                    upper_bounds_tracking[idx].push_back(commodities - p->ub);
-                }
-            }
+            
             // --------- calculate step size/direction ----------
             double norm = 0;
             for (int i = 0; i < dsize; ++i)
@@ -282,9 +266,10 @@ void Problem::solve(UserHooks& hooks)
             for (int i = 0; i < psize; ++i){
                 double randAscent = rand[p.idx](); // 0,1 uniform
                 randGlobal = rand[p.idx]() * param.globalFactor;
-                p->pVel[i] = param.velocityFactor * p->pVel[i] + randAscent * perturbFactor[p.idx] * //param.perturbFactor *
-                        perturbDir[i]
+                
+                p->pVel[i] = param.velocityFactor * p->pVel[i] + randAscent * perturbFactor[p.idx] * perturbDir[i]
                     + perturbFactor[p.idx] * randGlobal * (1 - 2 * best.x[i]) + randGlobal * (best.perturb[i] - p->perturb[i]);
+
             }
             //---------- make a step ------------------------------
             for (int i = 0; i < dsize; ++i) {
@@ -447,8 +432,23 @@ void Problem::solve(UserHooks& hooks)
             printf("%2d: LB=%.2f UB=%.2f\n", nIter, best.lb, best.ub);
 
 
-        
-    }
+    }      
+    if (param.convergence_test == true){
+                double sum_lb = 0;
+                int sum_ub = 0;
+                for (int idx = 0; idx < param.nParticles; ++idx) {
+                    ParticleIter p(swarm, idx);
+                    sum_lb += p->lb;
+                    sum_ub += p->ub;
+                }
+                average_lb_tracking.push_back(((commodities*param.nParticles) - sum_lb) / param.nParticles);
+                average_ub_tracking.push_back(((commodities*param.nParticles) - sum_ub) / param.nParticles);
+                dual_euclid.push_back(euclideanDistance(swarm,"dual"));
+                perturb_euclid.push_back(euclideanDistance(swarm,"perturb"));
+                best_lb_tracking.push_back(commodities - best.lb);
+                best_ub_tracking.push_back(commodities - best.ub);
+            }
+    
 }
 
 double Problem::swarmRadius() const
@@ -575,18 +575,57 @@ void Problem::perturbationDirection(UserHooks& hooks, const Particle& p,
     }
 }
 
-double Problem::euclideanDistance(vector<Particle*> swarm){
-    double euclidean_dist = 0.0;
-    for (int idx = 0; idx < param.nParticles; ++idx) {
+double Problem::euclideanDistance(vector<Particle*> swarm, std::string component){
+    
+
+    double euclidean_dist = 0.0;    
+    
+    if (component.compare("dual") == 0){
+        for (int idx = 0; idx < param.nParticles; ++idx) {
+            ParticleIter p1(swarm, idx);
+            for (int idx_2 = idx + 1; idx_2 < param.nParticles; ++idx_2){
+                double pair_euclid = 0.0;
+                ParticleIter p2(swarm, idx_2);
+                for (int i=0; i<p1->dual.size(); i++){
+                    pair_euclid +=  (p1->dual[i] - p2->dual[i]) * (p1->dual[i] - p2->dual[i]);
+                    //printf("pair euclid is %f\n",pair_euclid);
+                }
+                euclidean_dist += std::sqrt(pair_euclid);
+            }
+            
+
+        }
+        
+    }
+
+    else if (component.compare("perturb") == 0){
+        for (int idx = 0; idx < param.nParticles; ++idx) {
         ParticleIter p1(swarm, idx);
-        for (int idx_2 = idx + 1; idx_2 < param.nParticles; ++idx_2){
-            ParticleIter p2(swarm, idx_2);
-            for (int i=0; i<p1->dual.size(); i++){
-                euclidean_dist +=  (p1->dual[i] - p2->dual[i]) * (p1->dual[i] - p2->dual[i]);
+            for (int idx_2 = idx + 1; idx_2 < param.nParticles; ++idx_2){
+                double pair_euclid = 0.0;
+                ParticleIter p2(swarm, idx_2);
+                for (int i=0; i<p1->perturb.size(); i++){
+                    pair_euclid +=  (p1->perturb[i] - p2->perturb[i]) * (p1->perturb[i] - p2->perturb[i]);
+                }
+                euclidean_dist += std::sqrt(pair_euclid);
             }
         }
     }
-    euclidean_dist = std::sqrt(euclidean_dist);
+
+    else{
+        printf("error in eucld dist - method not set properly");
+        exit(1);
+    }
+
+    
+
+    if (component.compare("dual") == 0){
+        euclidean_dist = (euclidean_dist / dsize) / ((param.nParticles * (param.nParticles-1)/2));
+    }
+    else if (component.compare("perturb") == 0){
+        euclidean_dist = (euclidean_dist / psize) / ((param.nParticles * (param.nParticles-1)/2));
+    }
+
     return euclidean_dist;
 }
 
