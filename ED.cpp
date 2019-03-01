@@ -47,6 +47,38 @@ type_name()
 using namespace boost;
 using namespace std;
 
+// some ED methods:
+
+void ED::remove_commodity(EDParticle& p, IntVec& viol, int commodity_index)
+{
+    for (const Edge& e : p.commodities[commodity_index].solution_edges) {
+        p.x[primalIdx(edgeIdx(e), p.commodities[commodity_index].comm_idx)] -= 1;
+        viol[edgeIdx(e)] += 1;
+    }
+    p.commodities[commodity_index].solution_edges.clear();
+}
+
+void ED::add_commodity(EDParticle& p, IntVec& viol, vector<int>& parents, int start, int end, int commodity_index)
+{
+    int current;
+    for (current = end; current != start; current = parents[current]) {
+        if (parents[current] == -1) {
+            cerr << "issue with repair - parents array incorrect" << endl;
+            exit;
+        }
+        const Edge e(Edge(parents[current], current));
+        p.x[primalIdx(edgeIdx(e), commodity_index)] += 1;
+        // solution is stored in reverse at here
+
+        p.commodities[commodity_index].solution_edges.push_back(e);
+        viol[edgeIdx(e)] -= 1;
+    }
+    // reversing each time is not really necessary but nice
+    reverse(p.commodities[commodity_index].solution_edges.begin(), p.commodities[commodity_index].solution_edges.end());
+    if (printing == true)
+        cout << "\t\trepaired path" << endl;
+}
+
 ED::ED(string graph_filename, string pairs_filename, bool _printing, bool _randComm, bool _djikstras_naive,
     string _repair_remove_edge, string _repair_add_edge)
     : nEDsolves(0)
@@ -256,7 +288,7 @@ Status ED::solveSubproblem(Particle& p_)
 
             //ensure no negative edge weights
             for (int i = 0; i < p.rc.size(); i++) {
-                if (p.rc[i] < 0){
+                if (p.rc[i] < 0) {
                     p.rc[i] = 0;
                 }
             }
@@ -390,6 +422,13 @@ Status ED::heuristics(Particle& p_)
 
     IntVec viol(p.viol.size(), 1);
     p.x = 0;
+    DblVec temp_rc;
+    temp_rc.resize(p.rc.size());
+    double min_perturb = p.perturb.min();
+
+    if (min_perturb > 0) {
+        min_perturb = 0;
+    }
 
     // iterate over solution edges --> locally set viol intvec and make sure p.x is correct
     for (auto it = p.commodities.begin(); it != p.commodities.end(); it++)
@@ -402,8 +441,10 @@ Status ED::heuristics(Particle& p_)
         if (printing == true)
             cout << "\tviol sum is " << viol.sum() << endl;
 
+        // remove edges randomly
+
         if (repair_remove_edge.compare("random") == 0) {
-            cout <<"using random repair" << endl;
+            cout << "using random repair" << endl;
             vector<int> random_indices;
             for (int i = 0; i < p.commodities.size(); i++) {
                 random_indices.push_back(i);
@@ -424,14 +465,9 @@ Status ED::heuristics(Particle& p_)
                     }
                 }
                 if (remove_path == true) {
-                    for (const Edge& e : p.commodities[random_index].solution_edges) {
-                        p.x[primalIdx(edgeIdx(e), p.commodities[random_index].comm_idx)] -= 1;
-                        viol[edgeIdx(e)] += 1;
-                    }
-                    p.commodities[random_index].solution_edges.clear();
+                    remove_commodity(p, viol, random_index);
 
                     //try and re-add in path
-
                     DblVec temp_rc;
                     temp_rc.resize(p.rc.size());
                     for (int i = 0; i < p.rc.size(); i++) {
@@ -445,28 +481,11 @@ Status ED::heuristics(Particle& p_)
                     double SP = djikstras_naive(EIM, node_neighbours, start, end, parents, num_nodes, num_edges,
                         temp_rc, p.x, p.commodities[random_index].comm_idx, commodities.size());
                     // if no feasible sp exists between orig and dest nodes
-
                     double thresh = num_edges;
                     if (SP < thresh) {
                         //if (SP < 1) {
-
+                        add_commodity(p, viol, parents, start, end, random_index);
                         // Iterate over path and add to primal solution
-                        for (current = end; current != start; current = parents[current]) {
-                            if (parents[current] == -1) {
-                                cerr << "issue with repair - parents array incorrect" << endl;
-                                exit;
-                            }
-                            const Edge e(Edge(parents[current], current));
-                            p.x[primalIdx(edgeIdx(e), random_index)] += 1;
-                            // solution is stored in reverse at here
-
-                            p.commodities[random_index].solution_edges.push_back(e);
-                            viol[edgeIdx(e)] -= 1;
-                        }
-                        // reversing each time is not really necessary but nice
-                        reverse(p.commodities[random_index].solution_edges.begin(), p.commodities[random_index].solution_edges.end());
-                        if (printing == true)
-                            cout << "\t\trepaired path" << endl;
                     }
                 }
             }
@@ -474,7 +493,7 @@ Status ED::heuristics(Particle& p_)
         }
 
         else {
-            
+
             auto largest_edge_violation = std::min_element(viol.begin(), viol.end());
             // identify edge_idx with the largest violation
             int largest_viol_idx = distance(viol.begin(), largest_edge_violation);
@@ -523,22 +542,11 @@ Status ED::heuristics(Particle& p_)
             if (printing == true)
                 cout << "\tlargest comm idx " << largest_com_idx << " with " << -largest_viol << endl;
             // remove this path from both x AND from the solution_edges
-            for (const Edge& e : p.commodities[largest_com_idx].solution_edges) {
-                p.x[primalIdx(edgeIdx(e), largest_com_idx)] -= 1;
-                viol[edgeIdx(e)] += 1;
-            }
-            p.commodities[largest_com_idx].solution_edges.clear();
+
+            remove_commodity(p, viol, largest_com_idx);
 
             // try find a new path for this OD-PAIR, using perturbations
-
             IntVec distances_heur(num_nodes); // integer distances
-            DblVec temp_rc;
-            temp_rc.resize(p.rc.size());
-            double min_perturb = p.perturb.min();
-
-            if (min_perturb > 0) {
-                min_perturb = 0;
-            }
 
             //cout << min_perturb << endl;
 
@@ -580,27 +588,61 @@ Status ED::heuristics(Particle& p_)
 
             if (SP < thresh) {
                 //if (SP < 1) {
-
+                add_commodity(p, viol, parents, start, end, largest_com_idx);
                 // Iterate over path and add to primal solution
-                for (current = end; current != start; current = parents[current]) {
-                    if (parents[current] == -1) {
-                        cerr << "issue with repair - parents array incorrect" << endl;
-                        exit;
-                    }
-                    const Edge e(Edge(parents[current], current));
-                    p.x[primalIdx(edgeIdx(e), largest_com_idx)] += 1;
-                    // solution is stored in reverse at here
-
-                    p.commodities[largest_com_idx].solution_edges.push_back(e);
-                    viol[edgeIdx(e)] -= 1;
-                }
-                // reversing each time is not really necessary but nice
-                reverse(p.commodities[largest_com_idx].solution_edges.begin(), p.commodities[largest_com_idx].solution_edges.end());
-                if (printing == true)
-                    cout << "\t\trepaired path" << endl;
             }
         }
     }
+
+    // try and add in rest of the unconnected commodities
+    vector<Commodity> commodities_to_add;
+    for (auto it = p.commodities.begin(); it != p.commodities.end(); it++) {
+        // commodity checks and reset p.x
+        if (it->solution_edges.empty()) {
+            commodities_to_add.push_back(*it);
+        }
+    }
+    temp_rc = 0;
+    for (auto it = commodities_to_add.begin(); it != commodities_to_add.end(); it++) {
+        int comm_idx = it->comm_idx;
+        double min_perturb = p.perturb.min();
+        for (int i = 0; i < p.rc.size(); i++) {
+            if (repair_add_edge.compare("pert_repair_0") == 0) {
+                temp_rc[i] = (viol[edgeIdx(i)] == 1) ? p.perturb[i] : 1;
+            } else if (repair_add_edge.compare("pert_repair_min") == 0) {
+                temp_rc[i] = (viol[edgeIdx(i)] == 1) ? p.perturb[i] - min_perturb : 1;
+            } else if (repair_add_edge.compare("rc_repair") == 0) {
+                temp_rc[i] = (viol[edgeIdx(i)] == 1) ? p.rc[i] : 1;
+            } else if (repair_add_edge.compare("arb_repair") == 0) {
+                temp_rc[i] = (viol[edgeIdx(i)] == 1) ? 1 : num_edges;
+            }
+
+            if (temp_rc[i] < 0) {
+                temp_rc[i] = 0 + 1e-16;
+            }
+        }
+        vector<int> parents;
+        int start = it->origin;
+        int end = it->dest;
+        int current;
+        double SP = djikstras_naive(EIM, node_neighbours, start, end, parents, num_nodes, num_edges,
+            temp_rc, p.x, comm_idx, commodities.size(), S_cutSet, T_cutSet);
+        // if no feasible sp exists between orig and dest nodes
+
+        double thresh;
+        if (repair_add_edge.compare("arb_repair") == 0) {
+            thresh = num_edges;
+        } else {
+            thresh = 1;
+        }
+        if (SP < thresh) {
+            //if (SP < 1) {
+            //cout << "added commodity in local_search" << endl;
+            // Iterate over path and add to primal solution
+            add_commodity(p, viol, parents, start, end, comm_idx);
+        }
+    }
+
     p.ub = 0;
 
     for (auto it = p.commodities.begin(); it != p.commodities.end(); it++) {
@@ -609,6 +651,8 @@ Status ED::heuristics(Particle& p_)
     }
 
     p.isFeasible = true;
+    p.viol = viol;
+
     if (printing == true)
         cout << "Heuristic found solution with " << p.ub << " missing paths\n";
 
@@ -712,19 +756,7 @@ void ED::localSearch(Particle& p_)
             //if (SP < 1) {
             //cout << "added commodity in local_search" << endl;
             // Iterate over path and add to primal solution
-            for (current = end; current != start; current = parents[current]) {
-                if (parents[current] == -1) {
-                    cerr << "issue with local search - parents array incorrect" << endl;
-                    exit;
-                }
-                const Edge e(Edge(parents[current], current));
-                p.x[primalIdx(edgeIdx(e), comm_idx)] += 1;
-                // solution is stored in reverse at here
-                p.commodities[comm_idx].solution_edges.push_back(e);
-                viol[edgeIdx(e)] -= 1;
-            }
-            // reversing each time is not really necessary but nice
-            reverse(p.commodities[comm_idx].solution_edges.begin(), p.commodities[comm_idx].solution_edges.end());
+            add_commodity(p, viol, parents, start, end, comm_idx);
         }
     }
 
