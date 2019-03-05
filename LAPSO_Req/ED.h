@@ -121,6 +121,7 @@ private:
     void add_commodity(EDParticle& p, IntVec& viol, vector<int>& parents, int start, int end, int commodity_index);
     map<int,bool> S_cutSet;
     map<int,bool> T_cutSet;
+    int cut_set_size = 0;
 };
 
 

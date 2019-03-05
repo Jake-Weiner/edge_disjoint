@@ -478,10 +478,10 @@ Status ED::heuristics(Particle& p_)
                     int start = p.commodities[random_index].origin;
                     int end = p.commodities[random_index].dest;
                     int current;
-                    double SP = djikstras_naive(EIM, node_neighbours, start, end, parents, num_nodes, num_edges,
-                        temp_rc, p.x, p.commodities[random_index].comm_idx, commodities.size());
-                    // if no feasible sp exists between orig and dest nodes
                     double thresh = num_edges;
+                    double SP = djikstras_naive_cutSet(EIM, node_neighbours, start, end, parents, num_nodes, num_edges,
+                        temp_rc, p.x, p.commodities[random_index].comm_idx, commodities.size(),S_cutSet, T_cutSet, thresh);
+                    // if no feasible sp exists between orig and dest nodes
                     if (SP < thresh) {
                         //if (SP < 1) {
                         add_commodity(p, viol, parents, start, end, random_index);
@@ -575,9 +575,6 @@ Status ED::heuristics(Particle& p_)
             int start = p.commodities[largest_com_idx].origin;
             int end = p.commodities[largest_com_idx].dest;
             int current;
-            double SP = djikstras_naive(EIM, node_neighbours, start, end, parents, num_nodes, num_edges,
-                temp_rc, p.x, p.commodities[largest_com_idx].comm_idx, commodities.size());
-            // if no feasible sp exists between orig and dest nodes
 
             double thresh;
             if (repair_add_edge.compare("arb_repair") == 0) {
@@ -586,6 +583,11 @@ Status ED::heuristics(Particle& p_)
                 thresh = 1;
             }
 
+            double SP = djikstras_naive_cutSet(EIM, node_neighbours, start, end, parents, num_nodes, num_edges,
+                temp_rc, p.x, p.commodities[largest_com_idx].comm_idx, commodities.size(),S_cutSet, T_cutSet, thresh);
+            // if no feasible sp exists between orig and dest nodes
+
+         
             if (SP < thresh) {
                 //if (SP < 1) {
                 add_commodity(p, viol, parents, start, end, largest_com_idx);
@@ -621,13 +623,6 @@ Status ED::heuristics(Particle& p_)
                 temp_rc[i] = 0 + 1e-16;
             }
         }
-        vector<int> parents;
-        int start = it->origin;
-        int end = it->dest;
-        int current;
-        double SP = djikstras_naive(EIM, node_neighbours, start, end, parents, num_nodes, num_edges,
-            temp_rc, p.x, comm_idx, commodities.size(), S_cutSet, T_cutSet);
-        // if no feasible sp exists between orig and dest nodes
 
         double thresh;
         if (repair_add_edge.compare("arb_repair") == 0) {
@@ -635,6 +630,15 @@ Status ED::heuristics(Particle& p_)
         } else {
             thresh = 1;
         }
+
+        vector<int> parents;
+        int start = it->origin;
+        int end = it->dest;
+        int current;
+        double SP = djikstras_naive_cutSet(EIM, node_neighbours, start, end, parents, num_nodes, num_edges,
+            temp_rc, p.x, comm_idx, commodities.size(), S_cutSet, T_cutSet, thresh);
+        // if no feasible sp exists between orig and dest nodes
+
         if (SP < thresh) {
             //if (SP < 1) {
             //cout << "added commodity in local_search" << endl;
