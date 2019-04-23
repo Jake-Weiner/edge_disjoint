@@ -29,4 +29,7 @@ double djikstras_naive(Edge_Int_Map& EIM,
     vector<int>& parents, int num_nodes, int num_edges, 
     DblVec& rc, IntVec& x, int comm_idx, int num_comm);
 
-    
+double djikstras_naive_cutSet(Edge_Int_Map& EIM,
+    map<int, map<int, bool>>& node_neighbours, int start, int end,
+    vector<int>& parents, int num_nodes, int num_edges,
+      DblVec& rc, IntVec& x, int comm_idx, int num_comm,map<int,bool>& S_cutSet,map<int,bool>& T_cutSet, float thresh);
