@@ -246,7 +246,8 @@ Status ED::solveSubproblem(Particle& p_)
 
         // loop through commodities
         for (int i = 0; i < random_indices.size(); i++) {
-            int random_index = random_indices[i];
+            //int random_index = random_indices[i];
+            int random_index = i;
 
             //solve SP
             p.commodities[random_index].solution_edges.clear();
@@ -412,7 +413,8 @@ Status ED::heuristics(Particle& p_)
 
             // loop through commodities randomly
             for (int i = 0; i < random_indices.size(); i++) {
-                int random_index = random_indices[i];
+                //int random_index = random_indices[i];
+                int random_index = i;
                 bool remove_path = false;
                 if (!(p.commodities[random_index].solution_edges.empty())) {
                     for (const Edge& e : p.commodities[random_index].solution_edges) {

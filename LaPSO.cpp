@@ -151,8 +151,10 @@ void Problem::solve(UserHooks& hooks)
     for (int idx = 0; idx < param.nParticles; ++idx) {
         ParticleIter p(swarm, idx);
         if (p.idx > 0) { // create random see from previous generator
-            rand[p.idx].seed((uint32_t)rand[p.idx - 1](
+            /*rand[p.idx].seed((uint32_t)rand[p.idx - 1](
                 0, std::numeric_limits<uint32_t>::max()));
+            */
+           rand[p.idx].seed(1);
         }
         for (int i = 0; i < dsize; ++i) { // check initial point is valid
             if (p->dual[i] < dualLB[i]) {
