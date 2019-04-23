@@ -19,6 +19,8 @@ set(CMAKE_CXX_COMPILER_ID "GNU")
 set(CMAKE_CXX_TARGET_INCLUDE_PATH
   "/home/jake/PhD/Edge_Disjoint/c++/boost_1_67_0/Build/include"
   "LAPSO_Req"
+  "/home/jake/PhD/Coding_Libraries/cplex/include"
+  "/home/jake/PhD/Coding_Libraries/concert/include"
   )
 
 # Targets to which this target links.

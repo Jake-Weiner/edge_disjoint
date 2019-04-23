@@ -20,7 +20,7 @@
 #define UNKNOWN_TYPE 		5
 
 #define DEFAULT_MAXOPTS 	20
-#define MAX_LONG_PREFIX_LENGTH 	2
+#define MAX_LONG_PREFIX_LENGTH 	3
 
 #define DEFAULT_MAXUSAGE	3
 #define DEFAULT_MAXHELP         10	

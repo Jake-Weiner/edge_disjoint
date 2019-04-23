@@ -780,3 +780,112 @@ void ED::write_mip(vector<Particle*>& non_dom, double lb, double ub, string outf
  * eval: (c-set-style "stroustrup")
  * End:
 */
+
+vector<int> ED::find_cutset_commodities(EDParticle& p, map<int, bool>& S_cutSet, map<int, bool>& T_cutSet)
+{
+    vector<int> cut_set;
+    for (vector<Commodity>::iterator comm_it = p.commodities.begin(); comm_it < p.commodities.end(); comm_it++) {
+        int commodity_orig = comm_it->origin;
+        int commodity_dest = comm_it->dest;
+        if ((S_cutSet.find(commodity_orig) != S_cutSet.end()) && (T_cutSet.find(commodity_dest) != T_cutSet.end())) {
+            cut_set.push_back(comm_it->comm_idx);
+        }
+        if ((T_cutSet.find(commodity_orig) != T_cutSet.end()) && (S_cutSet.find(commodity_dest) != S_cutSet.end())) {
+            cut_set.push_back(comm_it->comm_idx);
+        }
+    }
+    return cut_set;
+}
+
+int ED::find_cutset_edges(map<int, bool>& S_cutSet, map<int, bool>& T_cutSet)
+{
+
+    int cut_set_edges = 0;
+    for (map<int, bool>::iterator S_cut_it = S_cutSet.begin(); S_cut_it != S_cutSet.end(); S_cut_it++) {
+        for (map<int, bool>::iterator T_cut_it = T_cutSet.begin(); T_cut_it != T_cutSet.end(); T_cut_it++) {
+            if (node_neighbours[S_cut_it->first].find(T_cut_it->first) != node_neighbours[S_cut_it->first].end()) {
+                cut_set_edges += 1;
+            }
+        }
+    }
+
+    return cut_set_edges;
+}
+
+void ED::add_constraints_mip(EDParticle& p, vector<int>& cut_set_commodities, int cut_set_edges)
+{
+
+    IloNum UB = cut_set_edges;
+    IloRange con_current(p.env, 0, UB);
+    IloExpr con_exp(p.env);
+    for (vector<int>::iterator cs_it = cut_set_commodities.begin(); cs_it != cut_set_commodities.end(); cs_it++) {
+        con_exp += p.var[*cs_it];
+    }
+
+    if (cut_set_commodities.size() > cut_set_edges) {
+        IloRange r1(p.env, 0, con_exp, cut_set_edges);
+        p.model.remove(r1);
+        //cout << "constraint is " << r1 << endl;
+        p.model.add(r1);
+    }
+}
+
+vector<int> ED::solve_mip(EDParticle& p)
+{
+
+    vector<int> y;
+    y.resize(p.c.size(), 0);
+    try {
+
+        double cost;
+        IloExpr obj_exp(p.env);
+        for (int i = 0; i < p.c.size(); i++) {
+            if (p.c[i] == 1) {
+                cost = 1.01;
+            }
+            if (p.c[i] < 0) {
+                cost = 0;
+            }
+            obj_exp += (1 - cost) * p.var[i];
+        }
+        IloObjective obj_fn = IloMaximize(p.env, obj_exp);
+        p.model.add(obj_fn);
+
+        IloCplex cplex(p.model);
+
+        //cplex.exportModel("lpex1.lp");
+
+        // Optimize the problem and obtain solution.
+        if (!cplex.solve()) {
+            p.env.error() << "Failed to optimize LP" << endl;
+            throw(-1);
+        }
+
+        IloNumArray vals(p.env);
+        //populate y and return it
+
+        //cout << "Solution status = " << cplex.getStatus() << endl;
+        //cout << "Solution value  = " << cplex.getObjValue() << endl;
+        cplex.getValues(vals, p.var);
+        //cout << "Values        = " << vals << endl;
+
+        cout << "vals size is " << vals.getSize() << endl;
+        for (int i = 0; i < vals.getSize(); i++) {
+            if (vals[i] == 1) {
+                y[i] = 1;
+            }
+            cout << "i = " << i << " vals[i] = " << vals[i] << endl;
+        }
+
+        p.model.remove(obj_fn);
+
+        cout << "number of constraints are " << cplex.getNrows() << endl;
+
+    } catch (IloException& e) {
+        cout << e << endl;
+    } catch (...) {
+        cout << "Unknown exception caught" << endl;
+    }
+
+    return y;
+}

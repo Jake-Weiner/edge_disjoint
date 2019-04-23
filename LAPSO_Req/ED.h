@@ -1,5 +1,5 @@
 #include "LaPSO.hpp"
-
+#include <ilcplex/ilocplex.h>
 #include <string>
 #include <map>
 
@@ -21,16 +21,43 @@ struct Commodity {
     int comm_idx;
 };
 
+struct Commodity_SP {
+    int start;
+    int end;
+    vector<int> parents;
+};
 
 class EDParticle : public LaPSO::Particle {
 public:
     EDParticle(const EdgeVec &edges, const vector<Commodity> &comm, const int n, Edge_Int_Map em) : 
     LaPSO::Particle((int)edges.size() * (int)comm.size(),(int)edges.size())
-    ,graph_edges(edges),commodities(comm),num_nodes(n){}
+    ,graph_edges(edges),commodities(comm),num_nodes(n)
+    {
+      model = IloModel(env);
+        var = IloNumVarArray(env);
+        con = IloRangeArray(env);
+        model.add(con);
+        for (int i = 0; i < comm.size(); i++) {
+            var.add(IloBoolVar(env));
+        }
+        c.resize(commodities.size(),0.0);
+        commodity_shortest_paths.resize(commodities.size());
+
+        cut_set_size = commodities.size();
+    }
     EdgeVec graph_edges;		/// list of edges in graph
     vector<EdgeVec> solution_edges;		/// edges involved in ED solution
     vector<Commodity> commodities;
     int num_nodes;
+    IloEnv env;
+    IloModel model;
+    IloNumVarArray var;
+    IloRangeArray con;
+    int cut_set_size;
+    vector<Commodity_SP> commodity_shortest_paths;
+    vector<float> c; // shortest path costs in MIP
+    vector<vector<int>> cutsets; // include commodities involved in cutset e.g {{0,1,2}, {1,2,4}, {3,6,9} etc...}
+    vector<int> cut_set_sizes;
 
 };
 
@@ -117,6 +144,13 @@ private:
     string repair_remove_edge;
     string repair_add_edge;
     map<int,map<int,bool>> node_neighbours;
+    void remove_commodity(EDParticle& p, IntVec& viol, int commodity_index);
+    void add_commodity(EDParticle& p, IntVec& viol, vector<int>& parents, int start, int end, int commodity_index);
+    vector<int> find_cutset_commodities(EDParticle& p, map<int, bool>& S_cutset, map<int, bool>& T_cutset);
+    int find_cutset_edges(map<int, bool>& S_cutset, map<int, bool>& T_cutset);
+    void add_constraints_mip(EDParticle &p, vector<int>& cut_set_commodities, int cut_set_edges);
+    void initialise_NumVarArray();
+    vector<int> solve_mip(EDParticle &p);
 };
 
 

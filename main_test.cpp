@@ -403,7 +403,7 @@ int main(int argc, const char** argv)
         outfile.close();
 
         // sum lb
-        outfile.open(average_lb_filename, std::ios_base::app);
+        outfile.open(average_lb_filename);
         for (vector<double>::iterator it = solver.average_lb_tracking.begin(); it != solver.average_lb_tracking.end();
             it++){
             outfile << distance(solver.average_lb_tracking.begin(), it) << "," << *(it) << endl;
@@ -411,7 +411,7 @@ int main(int argc, const char** argv)
         outfile.close();
 
         // sum ub
-        outfile.open(average_ub_filename, std::ios_base::app);
+        outfile.open(average_ub_filename);
         for (vector<double>::iterator it = solver.average_ub_tracking.begin(); it != solver.average_ub_tracking.end();
             it++){
             outfile << distance(solver.average_ub_tracking.begin(), it) << "," << *(it) << endl;

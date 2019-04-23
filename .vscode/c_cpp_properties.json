@@ -4,7 +4,9 @@
             "name": "Linux",
             "includePath": [
                 "/home/jake/PhD/Edge_Disjoint/c++/boost_1_67_0/Build/include",
-                "${workspaceFolder}/LAPSO_Req"
+                "${workspaceFolder}/LAPSO_Req",
+                "/home/jake/PhD/Coding_Libraries/cplex/include",
+                "/home/jake/PhD/Coding_Libraries/concert/include"
             ],
             "defines": [],
             "compilerPath": "/usr/bin/gcc",

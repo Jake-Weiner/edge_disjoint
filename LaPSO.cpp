@@ -221,8 +221,7 @@ void Problem::solve(UserHooks& hooks)
 
     for (nIter = 1; nIter < param.maxIter && cpuTime() < param.maxCPU && wallTime() < param.maxWallTime && status == OK && (best.lb + param.absGap <= best.ub) && fabs(best.ub - best.lb / best.ub) > param.relGap;
          ++nIter) {
-        
-        printf("iter num = %d\n", nIter);
+       
         
             if (param.convergence_test == true){
                 double sum_lb = 0;
@@ -232,6 +231,10 @@ void Problem::solve(UserHooks& hooks)
                     sum_lb += p->lb;
                     sum_ub += p->ub;
                 }
+                 
+                printf("iter num = %d\n", nIter);
+                printf("average lb = %f\n", sum_lb/param.nParticles);
+                printf("best lb = %f\n", best.lb);
                 average_lb_tracking.push_back(((commodities*param.nParticles) - sum_lb) / param.nParticles);
                 average_ub_tracking.push_back(((commodities*param.nParticles) - sum_ub) / param.nParticles);
                 dual_euclid.push_back(euclideanDistance(swarm,"dual"));
