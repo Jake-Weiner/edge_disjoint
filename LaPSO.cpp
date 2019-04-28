@@ -124,7 +124,6 @@ Problem::Problem(int nVar, int nConstr)
 void Problem::solve(UserHooks& hooks)
 {   
 
-
     // commodities size
     double commodities = best.perturb.size() / best.dual.size();
     vector<double> best_lb;

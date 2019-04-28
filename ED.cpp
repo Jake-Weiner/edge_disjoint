@@ -165,7 +165,7 @@ Status ED::reducedCost(const Particle& p, DblVec& redCost)
 }
 
 void ED::update_comm_sol(EDParticle& p, double SP, vector<int> parents, double& total_paths_cost, int index,
-    int start, int end, bool printing)
+    int start, int end, bool set, bool printing)
 {
     int current;
     if (SP >= 1) {
@@ -177,31 +177,40 @@ void ED::update_comm_sol(EDParticle& p, double SP, vector<int> parents, double& 
         p.commodities[index].solution_value = 1; // penalty for not including path
 
     } else {
-        p.commodities[index].solution_value = 0;
-        // Iterate over path and add to primal solution
+        if (set == true) {
+            p.commodities[index].solution_value = 0;
+            // Iterate over path and add to primal solution
 
-        if (printing == true) {
-            std::cout << "\tPath for " << p.commodities[index].comm_idx << " (" << p.commodities[index].origin
-                      << "," << p.commodities[index].dest << ") " << SP << ": ";
-        }
-
-        for (current = end; current != start; current = parents[current]) {
-            if (printing == true)
-                std::cout << " " << current;
-            if (parents[current] == -1) {
-                cout << "issue with update_comm_sol - parents array incorrect" << endl;
-                // exit;
+            if (printing == true) {
+                std::cout << "\tPath for " << p.commodities[index].comm_idx << " (" << p.commodities[index].origin
+                          << "," << p.commodities[index].dest << ") " << SP << ": ";
             }
-            Edge current_edge = Edge(parents[current], current);
-            p.x[primalIdx(EIM[current_edge], p.commodities[index].comm_idx)] += 1;
-            // solution is stored in reverse at here
-            p.commodities[index].solution_edges.push_back(current_edge);
+
+            for (current = end; current != start; current = parents[current]) {
+                if (printing == true)
+                    std::cout << " " << current;
+                if (parents[current] == -1) {
+                    cout << "issue with update_comm_sol - parents array incorrect" << endl;
+                    // exit;
+                }
+                Edge current_edge = Edge(parents[current], current);
+                p.x[primalIdx(EIM[current_edge], p.commodities[index].comm_idx)] += 1;
+                // solution is stored in reverse at here
+                p.commodities[index].solution_edges.push_back(current_edge);
+            }
+            if (printing == true)
+                std::cout << " " << start << std::endl;
+            // reversing each time is not really necessary but nice
+            reverse(p.commodities[index].solution_edges.begin(), p.commodities[index].solution_edges.end());
+            total_paths_cost += SP;
+        } else {
+            if (printing)
+                std::cout << "\tCost for " << p.commodities[index].comm_idx << " (" << (p.commodities[index]).origin
+                          << "," << (p.commodities[index]).dest << ") " << SP << std::endl;
+            p.ub += 1;
+            total_paths_cost += SP;
+            p.commodities[index].solution_value = 1; // penalty for not including path
         }
-        if (printing == true)
-            std::cout << " " << start << std::endl;
-        // reversing each time is not really necessary but nice
-        reverse(p.commodities[index].solution_edges.begin(), p.commodities[index].solution_edges.end());
-        total_paths_cost += SP;
     }
 }
 
@@ -222,8 +231,8 @@ Status ED::solveSubproblem(Particle& p_)
     int start;
     int end;
     int current;
-    p.ub = p.lb = 0;
-
+    p.ub = p.commodities.size();
+    p.lb = 0;
     double max_perturb = 0.0;
 
     for (size_t i = 0; i < p.perturb.size(); i++) {
@@ -274,8 +283,16 @@ Status ED::solveSubproblem(Particle& p_)
                 cerr << "error with djikstras" << endl;
                 exit;
             }
+
+            Commodity_SP sp = {
+                start, end, parents
+            };
             //update solution for current commodity
-            update_comm_sol(p, SP, parents, total_paths_cost, random_index, start, end, printing);
+            //shortest path info required to update solutions
+            p.commodity_shortest_paths[p.commodities[random_index].comm_idx] = sp;
+            // p.c is cost of path -- used in MIP solver
+            p.c[p.commodities[random_index].comm_idx] = SP;
+            //update_comm_sol(p, SP, parents, total_paths_cost, random_index, start, end, printing);
         }
     }
 
@@ -305,11 +322,33 @@ Status ED::solveSubproblem(Particle& p_)
                 exit;
             }
             //update solution for current commodity
-            update_comm_sol(p, SP, parents, total_paths_cost, loop_idx, start, end, printing);
+            update_comm_sol(p, SP, parents, total_paths_cost, loop_idx, start, end,true, printing);
             loop_idx++;
         }
     }
 
+    MIP_results MR = solve_mip(p);
+
+    bool set = true;
+    for (int i = 0; i < MR.y.size(); i++) {
+
+        if (MR.y[i] == 1) {
+            vector<int> parents = p.commodity_shortest_paths[i].parents;
+            int start = p.commodity_shortest_paths[i].start;
+            int end = p.commodity_shortest_paths[i].end;
+            double SP = p.c[i];
+            update_comm_sol(p, SP, parents, total_paths_cost, i, start, end,set, printing);
+        }
+            
+        else{
+            update_comm_sol(p, 1.5, parents, total_paths_cost, i, start, end,set, printing);
+        }
+            
+        
+    }
+
+    p.commodity_shortest_paths.clear();
+    p.commodity_shortest_paths.resize(commodities.size());
     // edges violated in the ED solution
     // violation = b - Ax = 1 - sum_c x_ic
     p.viol = 1; // sets every violation to 1
@@ -585,7 +624,7 @@ Status ED::heuristics(Particle& p_)
             }
             double SP = djikstras_naive_cutSet(EIM, node_neighbours, start, end, parents, num_nodes, num_edges,
                 temp_rc, p.x, p.commodities[largest_com_idx].comm_idx, commodities.size(), S_cutSet, T_cutSet, thresh);
-            
+
             if (SP < thresh) {
                 //if (SP < 1) {
 
@@ -608,7 +647,7 @@ Status ED::heuristics(Particle& p_)
                     cout << "\t\trepaired path" << endl;
             }
 
-            else{
+            else {
                 cut_set_commodities = find_cutset_commodities(p, S_cutSet, T_cutSet);
                 cut_set_edges = find_cutset_edges(S_cutSet, T_cutSet);
                 p.cutsets.push_back(cut_set_commodities); // include commodities involved in cutset e.g {{0,1,2}, {1,2,4}, {3,6,9} etc...}
@@ -668,23 +707,23 @@ Status ED::heuristics(Particle& p_)
             temp_rc, p.x, comm_idx, commodities.size(), S_cutSet, T_cutSet, thresh);
 
         if (SP < thresh) {
-            
-                // Iterate over path and add to primal solution
-                for (current = end; current != start; current = parents[current]) {
-                    if (parents[current] == -1) {
-                        cerr << "issue with repair - parents array incorrect" << endl;
-                        exit;
-                    }
-                    const Edge e(Edge(parents[current], current));
-                    p.x[primalIdx(edgeIdx(e), largest_com_idx)] += 1;
-                    // solution is stored in reverse at here
-                    p.commodities[largest_com_idx].solution_edges.push_back(e);
-                    viol[edgeIdx(e)] -= 1;
+
+            // Iterate over path and add to primal solution
+            for (current = end; current != start; current = parents[current]) {
+                if (parents[current] == -1) {
+                    cerr << "issue with repair - parents array incorrect" << endl;
+                    exit;
                 }
-                // reversing each time is not really necessary but nice
-                reverse(p.commodities[largest_com_idx].solution_edges.begin(), p.commodities[largest_com_idx].solution_edges.end());
-                if (printing == true)
-                    cout << "\t\trepaired path" << endl;
+                const Edge e(Edge(parents[current], current));
+                p.x[primalIdx(edgeIdx(e), largest_com_idx)] += 1;
+                // solution is stored in reverse at here
+                p.commodities[largest_com_idx].solution_edges.push_back(e);
+                viol[edgeIdx(e)] -= 1;
+            }
+            // reversing each time is not really necessary but nice
+            reverse(p.commodities[largest_com_idx].solution_edges.begin(), p.commodities[largest_com_idx].solution_edges.end());
+            if (printing == true)
+                cout << "\t\trepaired path" << endl;
 
         } else {
             cut_set_commodities = find_cutset_commodities(p, S_cutSet, T_cutSet);
@@ -930,11 +969,10 @@ void ED::add_constraints_mip(EDParticle& p, vector<int>& cut_set_commodities, in
     }
 }
 
-vector<int> ED::solve_mip(EDParticle& p)
+MIP_results ED::solve_mip(EDParticle& p)
 {
-
-    vector<int> y;
-    y.resize(p.c.size(), 0);
+    MIP_results MR;
+    MR.y.resize(p.c.size(), 0);
     try {
 
         double cost;
@@ -967,14 +1005,13 @@ vector<int> ED::solve_mip(EDParticle& p)
         //cout << "Solution status = " << cplex.getStatus() << endl;
         //cout << "Solution value  = " << cplex.getObjValue() << endl;
         cplex.getValues(vals, p.var);
+        MR.obj_val = cplex.getObjValue();
         //cout << "Values        = " << vals << endl;
 
         cout << "vals size is " << vals.getSize() << endl;
         for (int i = 0; i < vals.getSize(); i++) {
-            if (vals[i] == 1) {
-                y[i] = 1;
-            }
-            cout << "i = " << i << " vals[i] = " << vals[i] << endl;
+            MR.y[i] = vals[i];
+            //cout << "i = " << i << " vals[i] = " << vals[i] << endl;
         }
 
         p.model.remove(obj_fn);
@@ -987,5 +1024,5 @@ vector<int> ED::solve_mip(EDParticle& p)
         cout << "Unknown exception caught" << endl;
     }
 
-    return y;
+    return MR;
 }
