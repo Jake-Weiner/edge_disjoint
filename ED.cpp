@@ -585,6 +585,7 @@ Status ED::heuristics(Particle& p_)
             }
             double SP = djikstras_naive_cutSet(EIM, node_neighbours, start, end, parents, num_nodes, num_edges,
                 temp_rc, p.x, p.commodities[largest_com_idx].comm_idx, commodities.size(), S_cutSet, T_cutSet, thresh);
+            
             if (SP < thresh) {
                 //if (SP < 1) {
 
@@ -605,6 +606,19 @@ Status ED::heuristics(Particle& p_)
                 reverse(p.commodities[largest_com_idx].solution_edges.begin(), p.commodities[largest_com_idx].solution_edges.end());
                 if (printing == true)
                     cout << "\t\trepaired path" << endl;
+            }
+
+            else{
+                cut_set_commodities = find_cutset_commodities(p, S_cutSet, T_cutSet);
+                cut_set_edges = find_cutset_edges(S_cutSet, T_cutSet);
+                p.cutsets.push_back(cut_set_commodities); // include commodities involved in cutset e.g {{0,1,2}, {1,2,4}, {3,6,9} etc...}
+                p.cut_set_sizes.push_back(cut_set_edges); // number of edges connecting the 2 sets S and T
+                add_constraints_mip(p, cut_set_commodities, cut_set_edges);
+                //reset cut_set_edges and cut_set_commodities
+                //reset_vector<int>(cut_set_commodities);
+                cut_set_edges = 0;
+                S_cutSet.clear();
+                T_cutSet.clear();
             }
         }
     }
@@ -664,7 +678,6 @@ Status ED::heuristics(Particle& p_)
                     const Edge e(Edge(parents[current], current));
                     p.x[primalIdx(edgeIdx(e), largest_com_idx)] += 1;
                     // solution is stored in reverse at here
-
                     p.commodities[largest_com_idx].solution_edges.push_back(e);
                     viol[edgeIdx(e)] -= 1;
                 }
