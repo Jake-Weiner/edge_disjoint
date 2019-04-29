@@ -981,8 +981,11 @@ MIP_results ED::solve_mip(EDParticle& p)
             if (p.c[i] == 1) {
                 cost = 1.01;
             }
-            if (p.c[i] < 0) {
+            else if (p.c[i] < 0) {
                 cost = 0;
+            }
+            else{
+                cost = p.c[i];
             }
             obj_exp += (1 - cost) * p.var[i];
         }
