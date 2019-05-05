@@ -225,10 +225,12 @@ void Problem::solve(UserHooks& hooks)
             if (param.convergence_test == true){
                 double sum_lb = 0;
                 int sum_ub = 0;
+                int sum_viol = 0;
                 for (int idx = 0; idx < param.nParticles; ++idx) {
                     ParticleIter p(swarm, idx);
                     sum_lb += p->lb;
                     sum_ub += p->ub;
+                    sum_viol += p->viol_sum;
                 }
                  
                 printf("iter num = %d\n", nIter);
@@ -236,6 +238,7 @@ void Problem::solve(UserHooks& hooks)
                 printf("best lb = %f\n", best.lb);
                 average_lb_tracking.push_back(((commodities*param.nParticles) - sum_lb) / param.nParticles);
                 average_ub_tracking.push_back(((commodities*param.nParticles) - sum_ub) / param.nParticles);
+                average_viol_tracking.push_back(sum_viol / param.nParticles);
                 dual_euclid.push_back(euclideanDistance(swarm,"dual"));
                 perturb_euclid.push_back(euclideanDistance(swarm,"perturb"));
                 best_lb_tracking.push_back(commodities - best.lb);
@@ -440,13 +443,16 @@ void Problem::solve(UserHooks& hooks)
     if (param.convergence_test == true){
                 double sum_lb = 0;
                 int sum_ub = 0;
+                int sum_viol = 0;
                 for (int idx = 0; idx < param.nParticles; ++idx) {
                     ParticleIter p(swarm, idx);
                     sum_lb += p->lb;
                     sum_ub += p->ub;
+                    sum_viol += p->viol_sum;
                 }
                 average_lb_tracking.push_back(((commodities*param.nParticles) - sum_lb) / param.nParticles);
                 average_ub_tracking.push_back(((commodities*param.nParticles) - sum_ub) / param.nParticles);
+                average_viol_tracking.push_back(sum_viol / param.nParticles);
                 dual_euclid.push_back(euclideanDistance(swarm,"dual"));
                 perturb_euclid.push_back(euclideanDistance(swarm,"perturb"));
                 best_lb_tracking.push_back(commodities - best.lb);

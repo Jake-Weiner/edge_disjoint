@@ -22,17 +22,17 @@ int main(int argc, const char** argv)
     string mip_edges_folder = "";
     string mip_edges_map = "";
     string edgestats_filename = "";
-    string dual_euclid_filename ="";
-    string perturb_euclid_filename ="";
-    string best_lb_filename = "" ;
-    string best_ub_filename = "" ;
-    string average_lb_filename = "" ;
-    string average_ub_filename = "" ;
-    string best_bounds_tracking ="";
-    string convergence_filename ="";
-    string repair_add_edge ="";
+    string dual_euclid_filename = "";
+    string perturb_euclid_filename = "";
+    string best_lb_filename = "";
+    string best_ub_filename = "";
+    string average_lb_filename = "";
+    string average_viol_filename = "";
+    string average_ub_filename = "";
+    string best_bounds_tracking = "";
+    string convergence_filename = "";
+    string repair_add_edge = "";
     string repair_edge_removal = "";
-
 
     bool useVol = false;
     bool particle_param = false;
@@ -52,7 +52,6 @@ int main(int argc, const char** argv)
     bool convergence_test = false;
     bool _localSearch = false;
     bool print_initial_costs = false;
-
 
     double set_initial = 0.1;
     for (int i = 1; i < argc; ++i) {
@@ -87,36 +86,27 @@ int main(int argc, const char** argv)
             randComm = true;
         else if (string(argv[i]) == "dN") {
             djikstras_naive = true;
-        }
-        else if (string(argv[i]) == "zI") {
+        } else if (string(argv[i]) == "zI") {
             _zeroInitial = true;
-        }
-        else if (string(argv[i]) == "lS") {
+        } else if (string(argv[i]) == "lS") {
             _localSearch = true;
-        }
-        else if (string(argv[i]) == "sI") {
+        } else if (string(argv[i]) == "sI") {
             set_initial = atof(argv[i + 1]);
-        }
-        else if (string(argv[i]) == "remove_largest_viol") {
+        } else if (string(argv[i]) == "remove_largest_viol") {
             repair_edge_removal = "largest_viol";
-        }
-        else if (string(argv[i]) == "remove_perturb") {
+        } else if (string(argv[i]) == "remove_perturb") {
             repair_edge_removal = "perturb";
-        }
-        else if (string(argv[i]) == "remove_random") {
+        } else if (string(argv[i]) == "remove_random") {
             repair_edge_removal = "random";
         }
 
         else if (string(argv[i]) == "add_pert_0") {
             repair_add_edge = "pert_repair_0";
-        }
-        else if (string(argv[i]) == "add_pert_min") {
+        } else if (string(argv[i]) == "add_pert_min") {
             repair_add_edge = "pert_repair_min";
-        }
-        else if (string(argv[i]) == "add_rc") {
+        } else if (string(argv[i]) == "add_rc") {
             repair_add_edge = "rc_repair";
-        }
-        else if (string(argv[i]) == "add_arb") {
+        } else if (string(argv[i]) == "add_arb") {
             repair_add_edge = "arb_repair";
         }
 
@@ -125,39 +115,38 @@ int main(int argc, const char** argv)
             write_edges_stats = true;
             if (string(argv[i + 1]).find(".csv") != std::string::npos)
                 edgestats_filename = string(argv[i + 1]);
-        }  
-        else if (string(argv[i]) == "wme") {
+        } else if (string(argv[i]) == "wme") {
             write_mip_edges = true;
             if (string(argv[i + 1]).find("Reduced_Graph") != std::string::npos)
                 mip_edges_folder = string(argv[i + 1]);
             if (string(argv[i + 2]).find("maps") != std::string::npos)
                 mip_edges_map = string(argv[i + 2]);
-        }   
-        else if (string(argv[i]) == "wo") {
+        } else if (string(argv[i]) == "wo") {
             write_outputs = true;
             if (string(argv[i + 1]).find(".csv") != std::string::npos)
                 output_filename = string(argv[i + 1]);
-        }   
-        else if (string(argv[i]) == "cT") {
+        } else if (string(argv[i]) == "cT") {
             convergence_test = true;
-            if (string(argv[i+1]).find(".csv") != std::string::npos)
-                dual_euclid_filename = string(argv[i+1]);
-            if (string(argv[i+2]).find(".csv") != std::string::npos)
-                perturb_euclid_filename = string(argv[i+2]);
-            if (string(argv[i+3]).find(".csv") != std::string::npos)
-                best_lb_filename = string(argv[i+3]);
-            if (string(argv[i+4]).find(".csv") != std::string::npos)
-                best_ub_filename = string(argv[i+4]);
-            if (string(argv[i+5]).find(".csv") != std::string::npos)
-                average_lb_filename = string(argv[i+5]);
+            if (string(argv[i + 1]).find(".csv") != std::string::npos)
+                dual_euclid_filename = string(argv[i + 1]);
+            if (string(argv[i + 2]).find(".csv") != std::string::npos)
+                perturb_euclid_filename = string(argv[i + 2]);
+            if (string(argv[i + 3]).find(".csv") != std::string::npos)
+                best_lb_filename = string(argv[i + 3]);
+            if (string(argv[i + 4]).find(".csv") != std::string::npos)
+                best_ub_filename = string(argv[i + 4]);
+            if (string(argv[i + 5]).find(".csv") != std::string::npos)
+                average_lb_filename = string(argv[i + 5]);
             if (string(argv[i+6]).find(".csv") != std::string::npos)
-                average_ub_filename = string(argv[i+6]);
+                average_viol_filename = string(argv[i+6]);
+            if (string(argv[i+7]).find(".csv") != std::string::npos)
+                average_ub_filename = string(argv[i+7]);
         }
     }
 
     std::cout << "Running " << (useVol ? "Volume" : "LaPSO") << " for disjoint paths problem with "
               << graph_file << " & " << pairs_filename << std::endl;
-    ED ed(graph_file, pairs_filename, printing, randComm, djikstras_naive, repair_edge_removal,repair_add_edge);
+    ED ed(graph_file, pairs_filename, printing, randComm, djikstras_naive, repair_edge_removal, repair_add_edge);
     const int nnode = ed.get_nodes();
     const int nedge = ed.get_edges();
     const int ncomm = (int)ed.getComm().size();
@@ -187,7 +176,7 @@ int main(int argc, const char** argv)
     ed.solution_cost = solver.best.ub = ncomm; // every path excluded
     solver.best.lb = 0; // no path left out
     solver.dualUB = 0; // all constraints are <= so lagrange multipliers are <= 0
-    
+
     Uniform rand;
     if (solver.param.randomSeed == 0)
         rand.seedTime();
@@ -209,18 +198,18 @@ int main(int argc, const char** argv)
         double initial_dual = 0.0;
         for (int i = 0; i < solver.param.nParticles; ++i) {
             EDParticle* p = new EDParticle(ed.graph_edges, ed.getComm(), nnode, ed.EIM);
-            for (int j = 0; j < solver.dsize; ++j){
-                    initial_dual = -rand(0,set_initial);
-                    
-                    p->dual[j] = initial_dual; // random initial point
-                    if (initial_dual < max_initial_dual){
-                        max_initial_dual = initial_dual;
-                    }
+            for (int j = 0; j < solver.dsize; ++j) {
+                initial_dual = -rand(0, set_initial);
+
+                p->dual[j] = initial_dual; // random initial point
+                if (initial_dual < max_initial_dual) {
+                    max_initial_dual = initial_dual;
+                }
             }
             solver.swarm.push_back(p);
         }
         std::cout << "set up solver with " << solver.param.nParticles
-                  << " particles" 
+                  << " particles"
                   << " using veloctiy factor of " << solver.param.velocityFactor << endl;
 
         solver.solve(ed);
@@ -233,7 +222,7 @@ int main(int argc, const char** argv)
               << "CPU time = " << solver.cpuTime()
               << " elapsed = " << solver.wallTime() << " sec"
               << " primal cpu time " << solver.primal_cpu_time
-              << " dual cpu time " << solver.dual_cpu_time 
+              << " dual cpu time " << solver.dual_cpu_time
               << std::endl;
     //}
     std::ofstream outfile;
@@ -278,7 +267,7 @@ int main(int argc, const char** argv)
             outfile << graph_file << "," << pairs_filename << "," << solver.param.nCPU << "," << solver.param.nParticles << "," << solver.param.absGap << "," << solver.param.maxIter << "," << solver.param.perturbFactor << "," << solver.param.subgradFactor
                     << "," << solver.param.subgradFmult << "," << solver.param.subgradFmin << "," << solver.param.velocityFactor
                     << "," << solver.param.globalFactor << ","
-                    << solver.cpuTime() << "," <<ed.getCommSize() - solver.best.lb << ","
+                    << solver.cpuTime() << "," << ed.getCommSize() - solver.best.lb << ","
                     << ed.getCommSize() - solver.best.ub << "," << ed.getCommSize() - solver.lb_primal_cpu_time << ","
                     << solver.primal_cpu_time << ","
                     << solver.best_nIter
@@ -290,13 +279,11 @@ int main(int argc, const char** argv)
         }
     }
 
-
     if (write_mip_edges) {
-        vector<Particle *> swarm_unsorted;
-        if (solver.param.nParticles ==1){
+        vector<Particle*> swarm_unsorted;
+        if (solver.param.nParticles == 1) {
             swarm_unsorted = solver.best_particles_primal_time;
-        } 
-        else{
+        } else {
             swarm_unsorted = solver.swarm_primal_time;
         }
         vector<Particle*> non_dom_set = sort_non_dom(swarm_unsorted);
@@ -312,14 +299,14 @@ int main(int argc, const char** argv)
         mip_edges_outfile.open(mip_edges_filename);
         // this file is used for the mip solver
         bool solved_optimality = false;
-        if (solver.best.lb + solver.param.absGap <= solver.best.ub){
+        if (solver.best.lb + solver.param.absGap <= solver.best.ub) {
             solved_optimality = true;
         }
         ofstream mip_edges_map_outfile;
         mip_edges_map_outfile.open(mip_edges_map, std::ios_base::app);
         mip_edges_map_outfile << mip_edges_filename << "," << pairs_filename << ","
-        << solver.param.maxCPU - solver.primal_cpu_time
-        << "," << solved_optimality << endl;
+                              << solver.param.maxCPU - solver.primal_cpu_time
+                              << "," << solved_optimality << endl;
 
         map<Edge, bool> edges_used;
 
@@ -366,14 +353,13 @@ int main(int argc, const char** argv)
         }
     }
 
-
-    if (convergence_test){  
+    if (convergence_test) {
 
         // dual euclid
-        std::ofstream outfile; 
+        std::ofstream outfile;
         outfile.open(dual_euclid_filename, std::ios_base::app);
         for (vector<double>::iterator it = solver.dual_euclid.begin(); it != solver.dual_euclid.end();
-            it++){
+             it++) {
             outfile << distance(solver.dual_euclid.begin(), it) << "," << *(it) << endl;
         }
         outfile.close();
@@ -381,7 +367,7 @@ int main(int argc, const char** argv)
         // perturb euclid
         outfile.open(perturb_euclid_filename, std::ios_base::app);
         for (vector<double>::iterator it = solver.perturb_euclid.begin(); it != solver.perturb_euclid.end();
-            it++){
+             it++) {
             outfile << distance(solver.perturb_euclid.begin(), it) << "," << *(it) << endl;
         }
         outfile.close();
@@ -389,7 +375,7 @@ int main(int argc, const char** argv)
         // best lb
         outfile.open(best_lb_filename, std::ios_base::app);
         for (vector<double>::iterator it = solver.best_lb_tracking.begin(); it != solver.best_lb_tracking.end();
-            it++){
+             it++) {
             outfile << distance(solver.best_lb_tracking.begin(), it) << "," << *(it) << endl;
         }
         outfile.close();
@@ -397,7 +383,7 @@ int main(int argc, const char** argv)
         // best ub
         outfile.open(best_ub_filename, std::ios_base::app);
         for (vector<double>::iterator it = solver.best_ub_tracking.begin(); it != solver.best_ub_tracking.end();
-            it++){
+             it++) {
             outfile << distance(solver.best_ub_tracking.begin(), it) << "," << *(it) << endl;
         }
         outfile.close();
@@ -405,7 +391,15 @@ int main(int argc, const char** argv)
         // sum lb
         outfile.open(average_lb_filename);
         for (vector<double>::iterator it = solver.average_lb_tracking.begin(); it != solver.average_lb_tracking.end();
-            it++){
+             it++) {
+            outfile << distance(solver.average_lb_tracking.begin(), it) << "," << *(it) << endl;
+        }
+        outfile.close();
+
+        //viol tracking
+        outfile.open(average_viol_filename);
+        for (vector<double>::iterator it = solver.average_lb_tracking.begin(); it != solver.average_lb_tracking.end();
+             it++) {
             outfile << distance(solver.average_lb_tracking.begin(), it) << "," << *(it) << endl;
         }
         outfile.close();
@@ -413,18 +407,13 @@ int main(int argc, const char** argv)
         // sum ub
         outfile.open(average_ub_filename);
         for (vector<double>::iterator it = solver.average_ub_tracking.begin(); it != solver.average_ub_tracking.end();
-            it++){
+             it++) {
             outfile << distance(solver.average_ub_tracking.begin(), it) << "," << *(it) << endl;
         }
         outfile.close();
+    }
 
-       
-            
-        
-
-    }   
-        
-        /*
+    /*
         std::ofstream outfile; 
         outfile.open(LB_tracking_filename, std::ios_base::app);
         for (int i=0; i<solver.param.nParticles; i++){
@@ -448,8 +437,7 @@ int main(int argc, const char** argv)
             }
         }
         outfile.close();
-    }
-    */
+    
 
 /*
     if (convergence_test == true){

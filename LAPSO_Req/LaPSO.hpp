@@ -213,6 +213,7 @@ namespace LaPSO {
 		bool isFeasible;	///< is primal solution feasible?
 		double ub;		///< primal cost (upper bound if feasible)
 		double lb;		///< lower bound
+		int viol_sum;
 		DblVec dVel;		///< dual velocity
 		DblVec pVel;		///< perturbation velocity
 		std::map<int,EdgeVec> best_ub_sol;
@@ -325,6 +326,7 @@ namespace LaPSO {
 		std::vector<Particle *> best_particles_primal_time; 
 		std::vector<double> average_lb_tracking;
 		std::vector<double> average_ub_tracking;
+		std::vector<double> average_viol_tracking;
 		std::vector<double> best_lb_tracking;
 		std::vector<double> best_ub_tracking;
 		std::vector<double> dual_euclid;

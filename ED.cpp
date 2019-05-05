@@ -322,7 +322,7 @@ Status ED::solveSubproblem(Particle& p_)
                 exit;
             }
             //update solution for current commodity
-            update_comm_sol(p, SP, parents, total_paths_cost, loop_idx, start, end,true, printing);
+            update_comm_sol(p, SP, parents, total_paths_cost, loop_idx, start, end, true, printing);
             loop_idx++;
         }
     }
@@ -337,14 +337,12 @@ Status ED::solveSubproblem(Particle& p_)
             int start = p.commodity_shortest_paths[i].start;
             int end = p.commodity_shortest_paths[i].end;
             double SP = p.c[i];
-            update_comm_sol(p, SP, parents, total_paths_cost, i, start, end,set, printing);
+            update_comm_sol(p, SP, parents, total_paths_cost, i, start, end, set, printing);
         }
-            
-        else{
-            update_comm_sol(p, 1.5, parents, total_paths_cost, i, start, end,set, printing);
+
+        else {
+            update_comm_sol(p, 1.5, parents, total_paths_cost, i, start, end, set, printing);
         }
-            
-        
     }
 
     p.commodity_shortest_paths.clear();
@@ -435,13 +433,20 @@ Status ED::heuristics(Particle& p_)
     map<int, bool> T_cutSet;
     IntVec viol(p.viol.size(), 1);
     p.x = 0;
-
+    int viol_sum = 0;
     // iterate over solution edges --> locally set viol intvec and make sure p.x is correct
     for (auto it = p.commodities.begin(); it != p.commodities.end(); it++)
         for (const Edge& e : it->solution_edges) {
             p.x[primalIdx(EIM[e], it->comm_idx)] += 1;
             viol[edgeIdx(e)] -= 1;
         }
+
+    for (int i = 0; i < viol.size(); i++) {
+        if (viol[i] < 0) {
+            viol_sum += 1;
+        }
+    }
+    p.viol_sum = viol_sum;
 
     while (viol.min() < 0) {
         if (printing == true)
@@ -980,11 +985,9 @@ MIP_results ED::solve_mip(EDParticle& p)
         for (int i = 0; i < p.c.size(); i++) {
             if (p.c[i] == 1) {
                 cost = 1.01;
-            }
-            else if (p.c[i] < 0) {
+            } else if (p.c[i] < 0) {
                 cost = 0;
-            }
-            else{
+            } else {
                 cost = p.c[i];
             }
             obj_exp += (1 - cost) * p.var[i];
