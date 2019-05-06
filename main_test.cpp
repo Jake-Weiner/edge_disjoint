@@ -28,6 +28,7 @@ int main(int argc, const char** argv)
     string best_ub_filename = "";
     string average_lb_filename = "";
     string average_viol_filename = "";
+    string average_path_saved_filename = "";
     string average_ub_filename = "";
     string best_bounds_tracking = "";
     string convergence_filename = "";
@@ -140,7 +141,9 @@ int main(int argc, const char** argv)
             if (string(argv[i+6]).find(".csv") != std::string::npos)
                 average_viol_filename = string(argv[i+6]);
             if (string(argv[i+7]).find(".csv") != std::string::npos)
-                average_ub_filename = string(argv[i+7]);
+                average_path_saved_filename = string(argv[i+7]);
+            if (string(argv[i+8]).find(".csv") != std::string::npos)
+                average_ub_filename = string(argv[i+8]);
         }
     }
 
@@ -398,11 +401,20 @@ int main(int argc, const char** argv)
 
         //viol tracking
         outfile.open(average_viol_filename);
-        for (vector<double>::iterator it = solver.average_lb_tracking.begin(); it != solver.average_lb_tracking.end();
+        for (vector<double>::iterator it = solver.average_viol_tracking.begin(); it != solver.average_viol_tracking.end();
              it++) {
-            outfile << distance(solver.average_lb_tracking.begin(), it) << "," << *(it) << endl;
+            outfile << distance(solver.average_viol_tracking.begin(), it) << "," << *(it) << endl;
         }
         outfile.close();
+
+        //path_saved tracking
+        outfile.open(average_path_saved_filename);
+        for (vector<double>::iterator it = solver.average_path_saved_tracking.begin(); it != solver.average_path_saved_tracking.end();
+             it++) {
+            outfile << distance(solver.average_path_saved_tracking.begin(), it) << "," << *(it) << endl;
+        }
+        outfile.close();
+
 
         // sum ub
         outfile.open(average_ub_filename);

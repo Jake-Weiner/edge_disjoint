@@ -329,6 +329,7 @@ Status ED::solveSubproblem(Particle& p_)
 
     MIP_results MR = solve_mip(p);
 
+    int path_saved = 0;
     bool set = true;
     for (int i = 0; i < MR.y.size(); i++) {
 
@@ -341,10 +342,14 @@ Status ED::solveSubproblem(Particle& p_)
         }
 
         else {
+            if (p.c[i] < 1){
+                path_saved+=1;
+            }
             update_comm_sol(p, 1.5, parents, total_paths_cost, i, start, end, set, printing);
         }
     }
-
+    p.path_saved = path_saved;
+    
     p.commodity_shortest_paths.clear();
     p.commodity_shortest_paths.resize(commodities.size());
     // edges violated in the ED solution

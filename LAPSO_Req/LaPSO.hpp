@@ -214,6 +214,7 @@ namespace LaPSO {
 		double ub;		///< primal cost (upper bound if feasible)
 		double lb;		///< lower bound
 		int viol_sum;
+		int path_saved;
 		DblVec dVel;		///< dual velocity
 		DblVec pVel;		///< perturbation velocity
 		std::map<int,EdgeVec> best_ub_sol;
@@ -327,6 +328,7 @@ namespace LaPSO {
 		std::vector<double> average_lb_tracking;
 		std::vector<double> average_ub_tracking;
 		std::vector<double> average_viol_tracking;
+		std::vector<double> average_path_saved_tracking;
 		std::vector<double> best_lb_tracking;
 		std::vector<double> best_ub_tracking;
 		std::vector<double> dual_euclid;
