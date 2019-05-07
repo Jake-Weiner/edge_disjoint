@@ -141,10 +141,10 @@ void Problem::solve(UserHooks& hooks)
     DblVec bestLB(param.nParticles);
     IntVec bestIter(param.nParticles, 0);
     std::vector<Uniform> rand(param.nParticles); //
-    if (param.randomSeed != 0)
-        rand[0].seed(param.randomSeed);
-    else
-        rand[0].seedTime();
+    
+    rand[0].seed(1);
+    
+    
     Status status = OK;
 #pragma omp parallel for schedule(static, std::max(1, param.nParticles / param.nCPU))
     for (int idx = 0; idx < param.nParticles; ++idx) {
@@ -497,10 +497,7 @@ void Problem::initialise(UserHooks& hooks)
         -*std::min_element(best.rc.begin(), best.rc.end()));
     swarm.reserve(param.nParticles);
     Uniform rand;
-    if (param.randomSeed == 0)
-        rand.seedTime();
-    else
-        rand.seed(param.randomSeed);
+    rand.seed(1);
     while (swarm.size() < (size_t)param.nParticles) {
         Particle* p = new Particle(psize, dsize);
         swarm.push_back(p);

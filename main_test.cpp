@@ -181,10 +181,7 @@ int main(int argc, const char** argv)
     solver.dualUB = 0; // all constraints are <= so lagrange multipliers are <= 0
 
     Uniform rand;
-    if (solver.param.randomSeed == 0)
-        rand.seedTime();
-    else
-        rand.seed(solver.param.randomSeed);
+    rand.seed(1);
     if (useVol) { //const EdgeVec &edges, const vector<Commodity> &comm, const int n, Edge_Int_Map em)
         EDParticle* p = new EDParticle(ed.graph_edges, ed.getComm(), nnode, ed.EIM);
         for (int j = 0; j < solver.dsize; ++j)
@@ -376,7 +373,7 @@ int main(int argc, const char** argv)
         outfile.close();
 
         // best lb
-        outfile.open(best_lb_filename, std::ios_base::app);
+        outfile.open(best_lb_filename);
         for (vector<double>::iterator it = solver.best_lb_tracking.begin(); it != solver.best_lb_tracking.end();
              it++) {
             outfile << distance(solver.best_lb_tracking.begin(), it) << "," << *(it) << endl;
@@ -384,7 +381,7 @@ int main(int argc, const char** argv)
         outfile.close();
 
         // best ub
-        outfile.open(best_ub_filename, std::ios_base::app);
+        outfile.open(best_ub_filename);
         for (vector<double>::iterator it = solver.best_ub_tracking.begin(); it != solver.best_ub_tracking.end();
              it++) {
             outfile << distance(solver.best_ub_tracking.begin(), it) << "," << *(it) << endl;
