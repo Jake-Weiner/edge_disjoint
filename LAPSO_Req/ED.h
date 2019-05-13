@@ -91,6 +91,7 @@ public:
     Status heuristics(Particle &p);
     Status updateBest(Particle &p);
     void localSearch(Particle& p_);
+    void initialise_global_constraints();
 
 	const vector<Commodity>& getComm() const {return commodities;}
   // map from edge in graph to index of lagrange vector
@@ -146,6 +147,9 @@ private:
     void populate_commodities(string filename);
     bool randComm;
     bool dN; // djikstas_naive
+    IloEnv env;
+    //IloRangeArray global_constraints;
+    vector<pair<vector<int>,int>> global_constraints;
     string repair_remove_edge;
     string repair_add_edge;
     map<int,map<int,bool>> node_neighbours;
@@ -155,6 +159,7 @@ private:
     int find_cutset_edges(map<int, bool>& S_cutset, map<int, bool>& T_cutset);
     void add_constraints_mip(EDParticle &p, vector<int>& cut_set_commodities, int cut_set_edges);
     void initialise_NumVarArray();
+
     MIP_results solve_mip(EDParticle &p);
 };
 

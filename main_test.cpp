@@ -150,6 +150,7 @@ int main(int argc, const char** argv)
     std::cout << "Running " << (useVol ? "Volume" : "LaPSO") << " for disjoint paths problem with "
               << graph_file << " & " << pairs_filename << std::endl;
     ED ed(graph_file, pairs_filename, printing, randComm, djikstras_naive, repair_edge_removal, repair_add_edge);
+    //ed.initialise_global_constraints();
     const int nnode = ed.get_nodes();
     const int nedge = ed.get_edges();
     const int ncomm = (int)ed.getComm().size();
