@@ -27,10 +27,7 @@ struct Commodity_SP {
     vector<int> parents;
 };
 
-struct MIP_results {
-    vector<int> y;
-    double obj_val;
-};
+
 
 class EDParticle : public LaPSO::Particle {
 public:
@@ -82,7 +79,7 @@ public:
     ~ED();
     Status reducedCost(const Particle &p, DblVec &redCost);
     void update_comm_sol(EDParticle& p, double SP, vector<int> parents, double& total_paths_cost, int random_index,
-    int start, int end,bool set, bool printing);
+    int start, int end, bool printing);
     Status solveSubproblem(Particle& p);
     //void randomiseMethod(EDParticle &p);
     Status fixConstraint(const int constraint,
@@ -160,8 +157,7 @@ private:
     int find_cutset_edges(map<int, bool>& S_cutset, map<int, bool>& T_cutset);
     void add_constraints_mip(EDParticle &p, vector<int>& cut_set_commodities, int cut_set_edges);
     void initialise_NumVarArray();
-
-    MIP_results solve_mip(EDParticle &p);
+    vector<int> solve_mip(EDParticle &p);
 };
 
 
