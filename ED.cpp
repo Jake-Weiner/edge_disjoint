@@ -745,8 +745,8 @@ Status ED::heuristics(Particle& p_)
             p.cut_set_sizes.push_back(cut_set_edges);
 
             // add this information to the MIP structures
-            if (cut_set_commodities.size() > cut_set_edges){
-            add_constraints_mip(p, cut_set_commodities, cut_set_edges);
+            if (cut_set_commodities.size() > cut_set_edges) {
+                add_constraints_mip(p, cut_set_commodities, cut_set_edges);
             }
 
             //reset cut_set_edges and cut_set_commodities
@@ -974,6 +974,7 @@ void ED::initialise_global_constraints(){
 
 void ED::add_constraints_mip(EDParticle& p, vector<int>& cut_set_commodities, int cut_set_edges)
 {
+
     IloExpr con_exp(p.env);
 
     vector<int> constraint_vars;
@@ -984,20 +985,18 @@ void ED::add_constraints_mip(EDParticle& p, vector<int>& cut_set_commodities, in
 
     // add in constraint
 
-    pair<vector<int>, int> constraint{ constraint_vars, cut_set_edges};
-    if (constraint_map.find(constraint)== constraint_map.end()){
+    pair<vector<int>, int> constraint{ constraint_vars, cut_set_edges };
+    if (constraint_map.find(constraint) == constraint_map.end()) {
         global_constraints.push_back(constraint);
         constraint_map[constraint] = true;
-    }
-    else{
+    } else {
         return;
     }
-    
 
-    IloRange r1(p.env, 0, con_exp, cut_set_edges);
-    p.model.remove(r1);
-    p.model.add(r1);
-
+    //IloRange r1(p.env, 0, con_exp, cut_set_edges);
+    //p.model.remove(r1);
+   // p.model.add(r1);
+    /*
     int number_of_constraints = global_constraints.size();
     cout << number_of_constraints << endl;
     int num_constaints_to_add;
@@ -1014,9 +1013,10 @@ void ED::add_constraints_mip(EDParticle& p, vector<int>& cut_set_commodities, in
         }
         IloRange r1(p.env, 0, con_exp_temp, global_constraints[i].second);
         p.model.remove(r1);
-        //cout << "constraint is " << r1 << endl;
-        p.model.add(r1);
+     
+       p.model.add(r1);
     }
+    */
 }
 
 MIP_results ED::solve_mip(EDParticle& p)
@@ -1024,7 +1024,25 @@ MIP_results ED::solve_mip(EDParticle& p)
     MIP_results MR;
     MR.y.resize(p.c.size(), 0);
     try {
+        IloExpr con_exp(p.env);
+        IloRangeArray constraints_to_add(p.env);
+        IloExpr con_exp_temp(p.env);
+        for (map<pair<vector<int>, int>, bool>::iterator it = constraint_map.begin(); it != constraint_map.end(); it++) {
+            IloExpr con_exp(p.env);
+            if (it->second == false){
+                continue;
+            }
+            //constraint pair <variables, |Cutset Edges|>
+            pair<vector<int>, int> constraint_pair = it->first;
 
+            for (vector<int>::iterator cs_it = constraint_pair.first.begin(); cs_it != constraint_pair.first.end(); cs_it++) {
+                con_exp += p.var[*cs_it];
+            }
+            IloRange r1(p.env, 0, con_exp, constraint_pair.second);
+            constraints_to_add.add(r1);
+        }
+
+        p.model.add(constraints_to_add);
         double cost;
         IloExpr obj_exp(p.env);
         for (int i = 0; i < p.c.size(); i++) {
@@ -1066,8 +1084,9 @@ MIP_results ED::solve_mip(EDParticle& p)
         }
 
         p.model.remove(obj_fn);
-
         cout << "number of constraints are " << cplex.getNrows() << endl;
+        p.model.remove(constraints_to_add);
+       
 
     } catch (IloException& e) {
         cout << e << endl;
