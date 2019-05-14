@@ -984,8 +984,15 @@ void ED::add_constraints_mip(EDParticle& p, vector<int>& cut_set_commodities, in
 
     // add in constraint
 
-    pair<vector<int>, int> constraint{ constraint_vars, cut_set_edges };
-    global_constraints.push_back(constraint);
+    pair<vector<int>, int> constraint{ constraint_vars, cut_set_edges};
+    if (constraint_map.find(constraint)== constraint_map.end()){
+        global_constraints.push_back(constraint);
+        constraint_map[constraint] = true;
+    }
+    else{
+        return;
+    }
+    
 
     IloRange r1(p.env, 0, con_exp, cut_set_edges);
     p.model.remove(r1);
