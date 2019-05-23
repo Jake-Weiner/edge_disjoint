@@ -30,6 +30,7 @@ int main(int argc, const char** argv)
     string average_viol_filename = "";
     string average_path_saved_filename = "";
     string average_ub_filename = "";
+    string dual_0_filename = "";
     string best_bounds_tracking = "";
     string convergence_filename = "";
     string repair_add_edge = "";
@@ -144,6 +145,9 @@ int main(int argc, const char** argv)
                 average_path_saved_filename = string(argv[i+7]);
             if (string(argv[i+8]).find(".csv") != std::string::npos)
                 average_ub_filename = string(argv[i+8]);
+            if (string(argv[i+9]).find(".csv") != std::string::npos)
+                dual_0_filename = string(argv[i+9]);
+            
         }
     }
 
@@ -419,6 +423,14 @@ int main(int argc, const char** argv)
         for (vector<double>::iterator it = solver.average_ub_tracking.begin(); it != solver.average_ub_tracking.end();
              it++) {
             outfile << distance(solver.average_ub_tracking.begin(), it) << "," << *(it) << endl;
+        }
+        outfile.close();
+
+         // sum ub
+        outfile.open(dual_0_filename);
+        for (vector<double>::iterator it = solver.dual_0_tracking.begin(); it != solver.dual_0_tracking.end();
+             it++) {
+            outfile << distance(solver.dual_0_tracking.begin(), it) << "," << *(it) << endl;
         }
         outfile.close();
     }

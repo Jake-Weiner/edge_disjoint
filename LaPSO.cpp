@@ -462,26 +462,11 @@ void Problem::solve(UserHooks& hooks)
         }
 
         sum_lb = 0;
-        sum_ub = 0;
-        sum_viol = 0;
-        path_saved = 0;
-
         for (int idx = 0; idx < param.nParticles; ++idx) {
             ParticleIter p(swarm, idx);
             sum_lb += p->lb;
-            sum_ub += p->ub;
-            sum_viol += p->viol_sum;
-            path_saved += p->path_saved;
         }
-
-        average_lb_tracking.push_back( sum_lb / param.nParticles);
-        average_viol_tracking.push_back(sum_viol / param.nParticles);
-        average_path_saved_tracking.push_back(path_saved / param.nParticles);
-        average_ub_tracking.push_back(sum_ub / param.nParticles);
-        dual_euclid.push_back(euclideanDistance(swarm, "dual"));
-        perturb_euclid.push_back(euclideanDistance(swarm, "perturb"));
-        best_lb_tracking.push_back(commodities - best.lb);
-        best_ub_tracking.push_back(commodities - best.ub);
+        dual_0_tracking.push_back( sum_lb / param.nParticles);
     }
 
     
