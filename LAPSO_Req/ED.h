@@ -147,7 +147,7 @@ private:
     IloEnv env;
     //IloRangeArray global_constraints;
     vector<pair<vector<int>,int>> global_constraints;
-    map< pair<vector<int>,int>,bool> constraint_map;
+    map<vector<int>,int> constraint_map;
     string repair_remove_edge;
     string repair_add_edge;
     map<int,map<int,bool>> node_neighbours;

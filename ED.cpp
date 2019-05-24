@@ -329,8 +329,7 @@ Status ED::solveSubproblem(Particle& p_)
             int end = p.commodity_shortest_paths[i].end;
             double SP = p.c[i];
             update_comm_sol(p, SP, parents, total_paths_cost, i, start, end, printing);
-        }
-        else {
+        } else {
             if (p.c[i] < 1) {
                 path_saved += 1;
             }
@@ -340,7 +339,7 @@ Status ED::solveSubproblem(Particle& p_)
     p.path_saved = path_saved;
     p.commodity_shortest_paths.clear();
     p.commodity_shortest_paths.resize(commodities.size());
-    
+
     // edges violated in the ED solution
     p.viol = 1; // sets every violation to 1
     for (size_t i = 0; i < p.x.size(); i++) {
@@ -963,48 +962,18 @@ void ED::initialise_global_constraints(){
 void ED::add_constraints_mip(EDParticle& p, vector<int>& cut_set_commodities, int cut_set_edges)
 {
 
-    IloExpr con_exp(p.env);
-
     vector<int> constraint_vars;
     for (vector<int>::iterator cs_it = cut_set_commodities.begin(); cs_it != cut_set_commodities.end(); cs_it++) {
-        con_exp += p.var[*cs_it];
         constraint_vars.push_back(*cs_it);
     }
 
-    // add in constraint
-
-    pair<vector<int>, int> constraint{ constraint_vars, cut_set_edges };
-    if (constraint_map.find(constraint) == constraint_map.end()) {
-        global_constraints.push_back(constraint);
-        constraint_map[constraint] = true;
+    if (constraint_map.find(constraint_vars) == constraint_map.end()) {
+        constraint_map[constraint_vars] = cut_set_edges;
     } else {
-        return;
-    }
-
-    //IloRange r1(p.env, 0, con_exp, cut_set_edges);
-    //p.model.remove(r1);
-    // p.model.add(r1);
-    /*
-    int number_of_constraints = global_constraints.size();
-    cout << number_of_constraints << endl;
-    int num_constaints_to_add;
-    if (number_of_constraints < 8) {
-        num_constaints_to_add = number_of_constraints;
-    } else {
-        num_constaints_to_add = 8;
-    }
-
-    for (int i = number_of_constraints - num_constaints_to_add; i < number_of_constraints; i++) {
-        IloExpr con_exp_temp(p.env);
-        for (int j = 0; j < global_constraints[i].first.size(); j++) {
-            con_exp_temp += p.var[global_constraints[i].first[j]];
+        if (constraint_map[constraint_vars] > cut_set_edges) {
+            constraint_map[constraint_vars] = cut_set_edges;
         }
-        IloRange r1(p.env, 0, con_exp_temp, global_constraints[i].second);
-        p.model.remove(r1);
-     
-       p.model.add(r1);
     }
-    */
 }
 
 vector<int> ED::solve_mip(EDParticle& p)
@@ -1015,18 +984,16 @@ vector<int> ED::solve_mip(EDParticle& p)
         IloExpr con_exp(p.env);
         IloRangeArray constraints_to_add(p.env);
         IloExpr con_exp_temp(p.env);
-        for (map<pair<vector<int>, int>, bool>::iterator it = constraint_map.begin(); it != constraint_map.end(); it++) {
+        for (map<vector<int>, int>::iterator it = constraint_map.begin(); it != constraint_map.end(); it++) {
             IloExpr con_exp(p.env);
-            if (it->second == false) {
-                continue;
-            }
-            //constraint pair <variables, |Cutset Edges|>
-            pair<vector<int>, int> constraint_pair = it->first;
 
-            for (vector<int>::iterator cs_it = constraint_pair.first.begin(); cs_it != constraint_pair.first.end(); cs_it++) {
+            //constraint pair <variables, |Cutset Edges|>
+            vector<int> constraint_vars = it->first;
+            int constraint_bound = it->second;
+            for (vector<int>::iterator cs_it = constraint_vars.begin(); cs_it != constraint_vars.end(); cs_it++) {
                 con_exp += p.var[*cs_it];
             }
-            IloRange r1(p.env, 0, con_exp, constraint_pair.second);
+            IloRange r1(p.env, 0, con_exp, constraint_bound);
             constraints_to_add.add(r1);
         }
 
