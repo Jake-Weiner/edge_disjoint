@@ -35,13 +35,6 @@ public:
     LaPSO::Particle((int)edges.size() * (int)comm.size(),(int)edges.size())
     ,graph_edges(edges),commodities(comm),num_nodes(n)
     {
-      model = IloModel(env);
-        var = IloNumVarArray(env);
-        con = IloRangeArray(env);
-        model.add(con);
-        for (int i = 0; i < comm.size(); i++) {
-            var.add(IloBoolVar(env));
-        }
         c.resize(commodities.size(),0.0);
         commodity_shortest_paths.resize(commodities.size());
 
@@ -51,10 +44,7 @@ public:
     vector<EdgeVec> solution_edges;		/// edges involved in ED solution
     vector<Commodity> commodities;
     int num_nodes;
-    IloEnv env;
-    IloModel model;
-    IloNumVarArray var;
-    IloRangeArray con;
+    
     int cut_set_size;
     vector<Commodity_SP> commodity_shortest_paths;
     vector<float> c; // shortest path costs in MIP
@@ -144,7 +134,6 @@ private:
     void populate_commodities(string filename);
     bool randComm;
     bool dN; // djikstas_naive
-    IloEnv env;
     //IloRangeArray global_constraints;
     vector<pair<vector<int>,int>> global_constraints;
     map<vector<int>,int> constraint_map;

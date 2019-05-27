@@ -465,6 +465,7 @@ void Problem::solve(UserHooks& hooks)
         for (int idx = 0; idx < param.nParticles; ++idx) {
             ParticleIter p(swarm, idx);
             sum_lb += p->lb;
+            
         }
         dual_0_tracking.push_back(commodities -  (sum_lb / param.nParticles));
     }
