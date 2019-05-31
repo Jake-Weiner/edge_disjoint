@@ -44,13 +44,14 @@ public:
     vector<EdgeVec> solution_edges;		/// edges involved in ED solution
     vector<Commodity> commodities;
     int num_nodes;
-    
     int cut_set_size;
     vector<Commodity_SP> commodity_shortest_paths;
     vector<float> c; // shortest path costs in MIP
     vector<vector<int>> cutsets; // include commodities involved in cutset e.g {{0,1,2}, {1,2,4}, {3,6,9} etc...}
     vector<int> cut_set_sizes;
-
+   
+    vector<int> solve_mip(map<vector<int>,int>& global_constraint_map);
+    
 };
 
 class ED : public LaPSO::UserHooks {
@@ -79,6 +80,7 @@ public:
     Status updateBest(Particle &p);
     void localSearch(Particle& p_);
     void initialise_global_constraints();
+    void add_constraints_mip(vector<pair<vector<int>, int>>& local_constraints);
 
 	const vector<Commodity>& getComm() const {return commodities;}
   // map from edge in graph to index of lagrange vector
@@ -144,7 +146,6 @@ private:
     void add_commodity(EDParticle& p, IntVec& viol, vector<int>& parents, int start, int end, int commodity_index);
     vector<int> find_cutset_commodities(EDParticle& p, map<int, bool>& S_cutset, map<int, bool>& T_cutset);
     int find_cutset_edges(map<int, bool>& S_cutset, map<int, bool>& T_cutset);
-    void add_constraints_mip(EDParticle &p, vector<int>& cut_set_commodities, int cut_set_edges);
     void initialise_NumVarArray();
     vector<int> solve_mip(EDParticle &p);
 };

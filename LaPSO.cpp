@@ -359,6 +359,11 @@ void Problem::solve(UserHooks& hooks)
 
             // write out particle info to see how it behaves after each iteration
         }
+        for (int idx = 0; idx < param.nParticles; ++idx) {
+                    ParticleIter p(swarm, idx);
+                    hooks.add_constraints_mip(p->local_constraints);
+                    p->local_constraints.clear();
+        }
 
         if (updateBest(hooks, nIter)) {
             noImproveIter = 0;

@@ -650,7 +650,7 @@ Status ED::heuristics(Particle& p_)
                 p.cutsets.push_back(cut_set_commodities); // include commodities involved in cutset e.g {{0,1,2}, {1,2,4}, {3,6,9} etc...}
                 p.cut_set_sizes.push_back(cut_set_edges); // number of edges connecting the 2 sets S and T
                 if (cut_set_commodities.size() > cut_set_edges) {
-                    add_constraints_mip(p, cut_set_commodities, cut_set_edges);
+                    p_.local_constraints.push_back({ cut_set_commodities, cut_set_edges });
                 }
 
                 //reset cut_set_edges and cut_set_commodities
@@ -733,7 +733,7 @@ Status ED::heuristics(Particle& p_)
 
             // add this information to the MIP structures
             if (cut_set_commodities.size() > cut_set_edges) {
-                add_constraints_mip(p, cut_set_commodities, cut_set_edges);
+                p_.local_constraints.push_back({ cut_set_commodities, cut_set_edges });
             }
 
             //reset cut_set_edges and cut_set_commodities
@@ -959,26 +959,115 @@ void ED::initialise_global_constraints(){
 }
 */
 
-void ED::add_constraints_mip(EDParticle& p, vector<int>& cut_set_commodities, int cut_set_edges)
+void ED::add_constraints_mip(vector<pair<vector<int>, int>>& local_constraints)
 {
 
     vector<int> constraint_vars;
-    for (vector<int>::iterator cs_it = cut_set_commodities.begin(); cs_it != cut_set_commodities.end(); cs_it++) {
-        constraint_vars.push_back(*cs_it);
-    }
+    int cut_set_edges;
+    
+    for (vector<pair<vector<int>, int>>::iterator cs_it = local_constraints.begin(); cs_it != local_constraints.end(); cs_it++) {
+        
+        constraint_vars = cs_it->first;
+        cut_set_edges = cs_it->second;
 
-    if (constraint_map.find(constraint_vars) == constraint_map.end()) {
-        constraint_map[constraint_vars] = cut_set_edges;
-    } else {
-        if (constraint_map[constraint_vars] > cut_set_edges) {
+        if (constraint_map.find(constraint_vars) == constraint_map.end()) {
             constraint_map[constraint_vars] = cut_set_edges;
+        } else {
+            if (constraint_map[constraint_vars] > cut_set_edges) {
+                constraint_map[constraint_vars] = cut_set_edges;
+            }
         }
     }
 }
 
-vector<int> ED::solve_mip(EDParticle& p)
+vector<int> EDParticle::solve_mip(map<vector<int>, int>& constraint_map)
 {
     vector<int> y;
+    y.resize(c.size(), 0);
+    IloEnv env;
+    IloModel model(env);
+    IloNumVarArray var(env);
+    IloRangeArray con(env);
+
+    for (int i = 0; i < c.size(); i++) {
+        var.add(IloBoolVar(env));
+    }
+
+    try {
+        IloExpr con_exp(env);
+        IloRangeArray constraints_to_add(env);
+        IloExpr con_exp_temp(env);
+        for (map<vector<int>, int>::iterator it = constraint_map.begin(); it != constraint_map.end(); it++) {
+            IloExpr con_exp(env);
+
+            //constraint pair <variables, |Cutset Edges|>
+            vector<int> constraint_vars = it->first;
+            int constraint_bound = it->second;
+            for (vector<int>::iterator cs_it = constraint_vars.begin(); cs_it != constraint_vars.end(); cs_it++) {
+                con_exp += var[*cs_it];
+            }
+            IloRange r1(env, 0, con_exp, constraint_bound);
+            constraints_to_add.add(r1);
+        }
+
+        model.add(constraints_to_add);
+        double cost;
+        IloExpr obj_exp(env);
+        for (int i = 0; i < c.size(); i++) {
+            if (c[i] == 1) {
+                cost = 1.01;
+            } else if (c[i] < 0) {
+                cost = 0;
+            } else {
+                cost = c[i];
+            }
+            obj_exp += (1 - cost) * var[i];
+        }
+        IloObjective obj_fn = IloMaximize(env, obj_exp);
+        model.add(obj_fn);
+
+        IloCplex cplex(model);
+
+        //cplex.exportModel("lpex1.lp");
+
+        // Optimize the problem and obtain solution.
+        if (!cplex.solve()) {
+            env.error() << "Failed to optimize LP" << endl;
+            throw(-1);
+        }
+
+        IloNumArray vals(env);
+        //populate y and return it
+
+        //cout << "Solution status = " << cplex.getStatus() << endl;
+        //cout << "Solution value  = " << cplex.getObjValue() << endl;
+        cplex.getValues(vals, var);
+
+        //cout << "Values        = " << vals << endl;
+
+        cout << "vals size is " << vals.getSize() << endl;
+        for (int i = 0; i < vals.getSize(); i++) {
+            y[i] = vals[i];
+            //cout << "i = " << i << " vals[i] = " << vals[i] << endl;
+        }
+
+        model.remove(obj_fn);
+        cout << "number of constraints are " << cplex.getNrows() << endl;
+        model.remove(constraints_to_add);
+
+    } catch (IloException& e) {
+        cout << e << endl;
+    } catch (...) {
+        cout << "Unknown exception caught" << endl;
+    }
+    env.end();
+    return y;
+}
+
+vector<int> ED::solve_mip(EDParticle& p)
+{
+    return (p.solve_mip(constraint_map));
+    /*vector<int> y;
     y.resize(p.c.size(), 0);
     IloEnv env;
     IloModel model(env);
@@ -1059,4 +1148,5 @@ vector<int> ED::solve_mip(EDParticle& p)
     }
     env.end();
     return y;
+    */
 }

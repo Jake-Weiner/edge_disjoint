@@ -27,6 +27,8 @@ typedef std::pair<int, int> Edge;
 typedef std::vector<Edge> EdgeVec;
 typedef EdgeVec::const_iterator EdgeIter;
 
+
+
 namespace LaPSO {
     const double INF = std::numeric_limits<double>::max();
     
@@ -224,6 +226,7 @@ namespace LaPSO {
 		int best_lb_viol = 0;
 		IntVec ub_sol;
 		double localSearch_thresh = INF;
+		std::vector<std::pair<std::vector<int>,int>> local_constraints;
 
     };
 
@@ -284,6 +287,8 @@ namespace LaPSO {
 		virtual Status heuristics(Particle &p) {return NONE;}
 
 		virtual void localSearch(Particle &p) {}
+
+		virtual void add_constraints_mip(std::vector<std::pair<std::vector<int>, int>>& local_constraints) {}
 
 
 		
