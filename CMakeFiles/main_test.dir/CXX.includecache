@@ -496,28 +496,6 @@ omp.h
 time.h
 -
 
-/home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/VolVolume.cpp
-cstdlib
--
-cstdio
--
-cstring
--
-string
--
-cmath
--
-iostream
--
-VolVolume.hpp
-/home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/VolVolume.hpp
-
-/home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/djikstra.cpp
-djikstra.h
-/home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/djikstra.h
-iostream
--
-
 /home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/main_test.cpp
 ED.h
 /home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/ED.h
@@ -541,12 +519,6 @@ iostream
 -
 string
 -
-
-/home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/prep_mip.cpp
-prep_mip.h
-/home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/prep_mip.h
-ED.h
-/home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/ED.h
 
 /home/jake/PhD/Edge_Disjoint/c++/boost_1_67_0/Build/include/boost/algorithm/string.hpp
 boost/algorithm/string/std_containers_traits.hpp

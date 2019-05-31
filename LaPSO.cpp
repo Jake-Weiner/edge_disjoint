@@ -221,29 +221,7 @@ void Problem::solve(UserHooks& hooks)
     for (nIter = 1; nIter < param.maxIter && cpuTime() < param.maxCPU && wallTime() < param.maxWallTime && status == OK && (best.lb + param.absGap <= best.ub) && fabs(best.ub - best.lb / best.ub) > param.relGap;
          ++nIter) {
 
-        printf("iter num = %d\n", nIter);
-
-        if (param.convergence_test == true) {
-            double sum_lb = 0;
-            int sum_ub = 0;
-            int sum_viol = 0;
-            int path_saved = 0;
-            for (int idx = 0; idx < param.nParticles; ++idx) {
-                ParticleIter p(swarm, idx);
-                sum_lb += p->lb;
-                sum_ub += p->ub;
-                sum_viol += p->viol_sum;
-                path_saved += p->path_saved;
-            }
-            average_lb_tracking.push_back(commodities-(sum_lb / param.nParticles));
-            average_viol_tracking.push_back(sum_viol / param.nParticles);
-            average_path_saved_tracking.push_back(path_saved / param.nParticles);
-            average_ub_tracking.push_back(commodities - (sum_ub / param.nParticles));
-            dual_euclid.push_back(euclideanDistance(swarm, "dual"));
-            perturb_euclid.push_back(euclideanDistance(swarm, "perturb"));
-            best_lb_tracking.push_back(commodities - best.lb);
-            best_ub_tracking.push_back(commodities - best.ub);
-        }
+       
 
         if (param.printLevel > 1 && nIter % param.printFreq == 0)
             printf("Iteration %d --------------------\n", nIter);
@@ -437,44 +415,7 @@ void Problem::solve(UserHooks& hooks)
         if (param.printLevel && nIter % param.printFreq == 0)
             printf("%2d: LB=%.2f UB=%.2f\n", nIter, best.lb, best.ub);
     }
-    if (param.convergence_test == true) {
-        double sum_lb = 0;
-        int sum_ub = 0;
-        int sum_viol = 0;
-        int path_saved = 0;
-        for (int idx = 0; idx < param.nParticles; ++idx) {
-            ParticleIter p(swarm, idx);
-            sum_lb += p->lb;
-            sum_ub += p->ub;
-            sum_viol += p->viol_sum;
-            path_saved += p->path_saved;
-        }
-        average_lb_tracking.push_back(commodities - (sum_lb / param.nParticles));
-        average_viol_tracking.push_back(sum_viol / param.nParticles);
-        average_path_saved_tracking.push_back(path_saved / param.nParticles);
-        average_ub_tracking.push_back(commodities -( sum_ub / param.nParticles));
-        dual_euclid.push_back(euclideanDistance(swarm, "dual"));
-        perturb_euclid.push_back(euclideanDistance(swarm, "perturb"));
-        best_lb_tracking.push_back(commodities - best.lb);
-        best_ub_tracking.push_back(commodities - best.ub);
-
-        //set duals to 0
-        for (int idx = 0; idx < param.nParticles; ++idx) {
-            ParticleIter p(swarm, idx);
-            p->dual = 0;
-            p->rc = 0;
-            p->perturb = 0;
-            hooks.solveSubproblem(*p);
-        }
-
-        sum_lb = 0;
-        for (int idx = 0; idx < param.nParticles; ++idx) {
-            ParticleIter p(swarm, idx);
-            sum_lb += p->lb;
-            
-        }
-        dual_0_tracking.push_back(commodities -  (sum_lb / param.nParticles));
-    }
+    
 
     
 }

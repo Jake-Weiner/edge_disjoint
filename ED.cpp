@@ -1046,14 +1046,12 @@ vector<int> EDParticle::solve_mip(map<vector<int>, int>& constraint_map)
 
         //cout << "Values        = " << vals << endl;
 
-        cout << "vals size is " << vals.getSize() << endl;
         for (int i = 0; i < vals.getSize(); i++) {
             y[i] = vals[i];
             //cout << "i = " << i << " vals[i] = " << vals[i] << endl;
         }
 
         model.remove(obj_fn);
-        cout << "number of constraints are " << cplex.getNrows() << endl;
         model.remove(constraints_to_add);
 
     } catch (IloException& e) {

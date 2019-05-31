@@ -151,15 +151,12 @@ int main(int argc, const char** argv)
         }
     }
 
-    std::cout << "Running " << (useVol ? "Volume" : "LaPSO") << " for disjoint paths problem with "
-              << graph_file << " & " << pairs_filename << std::endl;
     ED ed(graph_file, pairs_filename, printing, randComm, djikstras_naive, repair_edge_removal, repair_add_edge);
     //ed.initialise_global_constraints();
     const int nnode = ed.get_nodes();
     const int nedge = ed.get_edges();
     const int ncomm = (int)ed.getComm().size();
-    std::cout << "Read data " << nnode << " nodes, "
-              << nedge << " edges, " << ncomm << " ODs\n";
+
     LaPSO::Problem solver(nedge * ncomm, nedge); // number of variables & (relaxed) constraints
     //-------- set default parameter values
     solver.param.absGap = 0.999; // any two solutions must differ by at least 1
@@ -216,24 +213,13 @@ int main(int argc, const char** argv)
             }
             solver.swarm.push_back(p);
         }
-        std::cout << "set up solver with " << solver.param.nParticles
-                  << " particles"
-                  << " using veloctiy factor of " << solver.param.velocityFactor << endl;
+    
 
         solver.solve(ed);
     }
 
     //if (printing == true) { // always show the final result
-    std::cout << "Best solution missing " << solver.best.ub
-              << " paths, lower bound " << solver.best.lb
-              << std::endl
-              << "CPU time = " << solver.cpuTime()
-              << " elapsed = " << solver.wallTime() << " sec"
-              << " primal cpu time " << solver.primal_cpu_time
-              << " dual cpu time " << solver.dual_cpu_time
-              << std::endl;
-    //}
-    std::ofstream outfile;
+
 
     string parameter_output_file = "";
     if (particle_param == true) {
@@ -266,217 +252,6 @@ int main(int argc, const char** argv)
         std::cout << "running mult_rand param test" << endl;
     }
 
-    if (write_outputs) {
-        if (!parameter_output_file.empty())
-            output_filename = parameter_output_file;
-
-        try {
-            outfile.open(output_filename, std::ios_base::app);
-            outfile << graph_file << "," << pairs_filename << "," << solver.param.nCPU << "," << solver.param.nParticles << "," << solver.param.absGap << "," << solver.param.maxIter << "," << solver.param.perturbFactor << "," << solver.param.subgradFactor
-                    << "," << solver.param.subgradFmult << "," << solver.param.subgradFmin << "," << solver.param.velocityFactor
-                    << "," << solver.param.globalFactor << ","
-                    << solver.cpuTime() << "," << ed.getCommSize() - solver.best.lb << ","
-                    << ed.getCommSize() - solver.best.ub << "," << ed.getCommSize() - solver.lb_primal_cpu_time << ","
-                    << solver.primal_cpu_time << ","
-                    << solver.best_nIter
-                    << endl;
-            std::cout << "writing to " << output_filename << endl;
-            outfile.close();
-        } catch (std::ofstream::failure e) {
-            std::cerr << "Exception opening/reading/closing output file\n";
-        }
-    }
-
-    if (write_mip_edges) {
-        vector<Particle*> swarm_unsorted;
-        if (solver.param.nParticles == 1) {
-            swarm_unsorted = solver.best_particles_primal_time;
-        } else {
-            swarm_unsorted = solver.swarm_primal_time;
-        }
-        vector<Particle*> non_dom_set = sort_non_dom(swarm_unsorted);
-        size_t pos = graph_file.find("/Graphs"); //find location of word
-        graph_file.erase(0, pos + 8); //delete everything before /Graphs
-        string instance = pairs_filename;
-        pos = pairs_filename.find("rpairs.");
-        instance.erase(0, pos + 7);
-        int edge_count = 0;
-
-        ofstream mip_edges_outfile;
-        string mip_edges_filename = mip_edges_folder + "/" + graph_file + "." + instance;
-        mip_edges_outfile.open(mip_edges_filename);
-        // this file is used for the mip solver
-        bool solved_optimality = false;
-        if (solver.best.lb + solver.param.absGap <= solver.best.ub) {
-            solved_optimality = true;
-        }
-        ofstream mip_edges_map_outfile;
-        mip_edges_map_outfile.open(mip_edges_map, std::ios_base::app);
-        mip_edges_map_outfile << mip_edges_filename << "," << pairs_filename << ","
-                              << solver.param.maxCPU - solver.primal_cpu_time
-                              << "," << solved_optimality << endl;
-
-        map<Edge, bool> edges_used;
-
-        //best feasible soln
-        for (map<int, EdgeVec>::iterator it = solver.best.best_ub_sol.begin(); it != solver.best.best_ub_sol.end(); it++) {
-            for (vector<Edge>::iterator edge_it = solver.best.best_ub_sol[it->first].begin();
-                 edge_it != solver.best.best_ub_sol[it->first].end(); edge_it++) {
-                if (edges_used.find(*edge_it) != edges_used.end()
-                    || edges_used.find(Edge(edge_it->second, edge_it->first)) != edges_used.end()) {
-                    continue;
-                } else {
-                    edges_used[*edge_it] = true;
-                    edge_count++;
-                    if (write_mip_edges) {
-                        mip_edges_outfile << edge_it->first << " " << edge_it->second << " " << it->first << endl;
-                    }
-                }
-            }
-        }
-
-        //write out edges from non_dom set
-        for (int idx = 0; idx < non_dom_set.size(); ++idx) {
-            Problem::ParticleIter p(non_dom_set, idx);
-            for (vector<Edge>::iterator sol_it = p->best_lb_sol.begin(); sol_it != p->best_lb_sol.end(); sol_it++) {
-                if (edges_used.find(*sol_it) != edges_used.end() || edges_used.find(Edge(sol_it->second, sol_it->first)) != edges_used.end()) {
-                    continue;
-                } else {
-                    edges_used[*sol_it] = true;
-                    if (write_mip_edges) {
-                        mip_edges_outfile << sol_it->first << " " << sol_it->second << endl;
-                    }
-                    edge_count++;
-                }
-            }
-        }
-        if (write_edges_stats) {
-            try {
-                outfile.open(edgestats_filename, std::ios_base::app);
-                outfile << graph_file << "," << ed.get_edges() << "," << edge_count << endl;
-                outfile.close();
-            } catch (std::ofstream::failure e) {
-                std::cerr << "Exception opening/reading/closing output file\n";
-            }
-        }
-    }
-
-    if (convergence_test) {
-
-        // dual euclid
-        std::ofstream outfile;
-        outfile.open(dual_euclid_filename, std::ios_base::app);
-        for (vector<double>::iterator it = solver.dual_euclid.begin(); it != solver.dual_euclid.end();
-             it++) {
-            outfile << distance(solver.dual_euclid.begin(), it) << "," << *(it) << endl;
-        }
-        outfile.close();
-
-        // perturb euclid
-        outfile.open(perturb_euclid_filename, std::ios_base::app);
-        for (vector<double>::iterator it = solver.perturb_euclid.begin(); it != solver.perturb_euclid.end();
-             it++) {
-            outfile << distance(solver.perturb_euclid.begin(), it) << "," << *(it) << endl;
-        }
-        outfile.close();
-
-        // best lb
-        outfile.open(best_lb_filename);
-        for (vector<double>::iterator it = solver.best_lb_tracking.begin(); it != solver.best_lb_tracking.end();
-             it++) {
-            outfile << distance(solver.best_lb_tracking.begin(), it) << "," << *(it) << endl;
-        }
-        outfile.close();
-
-        // best ub
-        outfile.open(best_ub_filename);
-        for (vector<double>::iterator it = solver.best_ub_tracking.begin(); it != solver.best_ub_tracking.end();
-             it++) {
-            outfile << distance(solver.best_ub_tracking.begin(), it) << "," << *(it) << endl;
-        }
-        outfile.close();
-
-        // sum lb
-        outfile.open(average_lb_filename);
-        for (vector<double>::iterator it = solver.average_lb_tracking.begin(); it != solver.average_lb_tracking.end();
-             it++) {
-            outfile << distance(solver.average_lb_tracking.begin(), it) << "," << *(it) << endl;
-        }
-        outfile.close();
-
-        //viol tracking
-        outfile.open(average_viol_filename);
-        for (vector<double>::iterator it = solver.average_viol_tracking.begin(); it != solver.average_viol_tracking.end();
-             it++) {
-            outfile << distance(solver.average_viol_tracking.begin(), it) << "," << *(it) << endl;
-        }
-        outfile.close();
-
-        //path_saved tracking
-        outfile.open(average_path_saved_filename);
-        for (vector<double>::iterator it = solver.average_path_saved_tracking.begin(); it != solver.average_path_saved_tracking.end();
-             it++) {
-            outfile << distance(solver.average_path_saved_tracking.begin(), it) << "," << *(it) << endl;
-        }
-        outfile.close();
-
-
-        // sum ub
-        outfile.open(average_ub_filename);
-        for (vector<double>::iterator it = solver.average_ub_tracking.begin(); it != solver.average_ub_tracking.end();
-             it++) {
-            outfile << distance(solver.average_ub_tracking.begin(), it) << "," << *(it) << endl;
-        }
-        outfile.close();
-
-         // sum ub
-        outfile.open(dual_0_filename);
-        for (vector<double>::iterator it = solver.dual_0_tracking.begin(); it != solver.dual_0_tracking.end();
-             it++) {
-            outfile << distance(solver.dual_0_tracking.begin(), it) << "," << *(it) << endl;
-        }
-        outfile.close();
-    }
-
-    /*
-        std::ofstream outfile; 
-        outfile.open(LB_tracking_filename, std::ios_base::app);
-        for (int i=0; i<solver.param.nParticles; i++){
-            for (int j=0; j<solver.lower_bounds_tracking[i].size(); j++){
-                outfile << i << ","  // this is the particle num
-                << solver.lower_bounds_tracking[i][j] << "," 
-                << j // iter num
-                << endl;
-            }
-        }
-        outfile.close();
-
-        
-        outfile.open(UB_tracking_filename, std::ios_base::app);
-        for (int i=0; i<solver.param.nParticles; i++){
-            for (int j=0; j<solver.upper_bounds_tracking[i].size(); j++){
-                outfile << i << ","  // this is the particle num
-                << solver.upper_bounds_tracking[i][j] << "," 
-                << j // iter num
-                << endl;
-            }
-        }
-        outfile.close();
-    
-
-/*
-    if (convergence_test == true){
-        std::ofstream outfile; 
-        outfile.open(convergence_filename, std::ios_base::app);
-        //writeoutputs here
-        for (int i =0; i < solver.convergence_info.size(); i++){
-        outfile << solver.convergence_info[i].euclid_dist << "," << solver.convergence_info[i].nIter << "," 
-        << solver.convergence_info[i].best_lb << "," << solver.convergence_info[i].best_ub
-        << endl;
-        }
-        outfile.close();
-    }
-*/
-
+    cout << solver.best.ub << " " << solver.cpuTime() <<  endl;	
     return 0;
 }
