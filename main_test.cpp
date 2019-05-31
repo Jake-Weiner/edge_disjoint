@@ -186,7 +186,10 @@ int main(int argc, const char** argv)
     solver.dualUB = 0; // all constraints are <= so lagrange multipliers are <= 0
 
     Uniform rand;
-    rand.seed(1);
+    if (solver.param.randomSeed == 0)
+        rand.seedTime();
+    else
+        rand.seed(solver.param.randomSeed);
     if (useVol) { //const EdgeVec &edges, const vector<Commodity> &comm, const int n, Edge_Int_Map em)
         EDParticle* p = new EDParticle(ed.graph_edges, ed.getComm(), nnode, ed.EIM);
         for (int j = 0; j < solver.dsize; ++j)

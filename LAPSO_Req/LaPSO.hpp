@@ -35,8 +35,7 @@ namespace LaPSO {
     /// parameters for use in the algorithm
     struct Param {	
 		/// set some sensible default values
-		Param() : //randomSeed(331u),	// default as in Random.h 
-				  randomSeed(1),	
+		Param() : randomSeed(331u),	// default as in Random.h 
 				  subgradFactor(2.0), subgradFmult(0.8), subgradFmin(0.01),
 				  perturbFactor(1e-4), velocityFactor(0.1),globalFactor(1.0),
 				  maxIter(100),maxCPU(INF),maxWallTime(INF),

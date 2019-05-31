@@ -142,17 +142,18 @@ void Problem::solve(UserHooks& hooks)
     IntVec bestIter(param.nParticles, 0);
     std::vector<Uniform> rand(param.nParticles); //
 
-    rand[0].seed(1);
+    if (param.randomSeed != 0)
+        rand[0].seed(param.randomSeed);
+    else
+        rand[0].seedTime();
 
     Status status = OK;
 #pragma omp parallel for schedule(static, std::max(1, param.nParticles / param.nCPU))
     for (int idx = 0; idx < param.nParticles; ++idx) {
         ParticleIter p(swarm, idx);
         if (p.idx > 0) { // create random see from previous generator
-            /*rand[p.idx].seed((uint32_t)rand[p.idx - 1](
+            rand[p.idx].seed((uint32_t)rand[p.idx - 1](
                 0, std::numeric_limits<uint32_t>::max()));
-            */
-            rand[p.idx].seed(1);
         }
         for (int i = 0; i < dsize; ++i) { // check initial point is valid
             if (p->dual[i] < dualLB[i]) {

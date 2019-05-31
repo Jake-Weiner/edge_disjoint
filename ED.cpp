@@ -247,8 +247,9 @@ Status ED::solveSubproblem(Particle& p_)
 
         // loop through commodities
         for (int i = 0; i < random_indices.size(); i++) {
-            //int random_index = random_indices[i];
-            int random_index = i;
+            
+            int random_index = random_indices[i];
+           
 
             //solve SP
             p.commodities[random_index].solution_edges.clear();
@@ -454,8 +455,7 @@ Status ED::heuristics(Particle& p_)
 
             // loop through commodities randomly
             for (int i = 0; i < random_indices.size(); i++) {
-                //int random_index = random_indices[i];
-                int random_index = i;
+                int random_index = random_indices[i];
                 bool remove_path = false;
                 if (!(p.commodities[random_index].solution_edges.empty())) {
                     for (const Edge& e : p.commodities[random_index].solution_edges) {
@@ -986,6 +986,7 @@ vector<int> EDParticle::solve_mip(map<vector<int>, int>& constraint_map)
     y.resize(c.size(), 0);
     IloEnv env;
     IloModel model(env);
+  
     IloNumVarArray var(env);
     IloRangeArray con(env);
 
@@ -1027,7 +1028,7 @@ vector<int> EDParticle::solve_mip(map<vector<int>, int>& constraint_map)
         model.add(obj_fn);
 
         IloCplex cplex(model);
-
+        cplex.setOut(env.getNullStream());
         //cplex.exportModel("lpex1.lp");
 
         // Optimize the problem and obtain solution.
