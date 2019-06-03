@@ -24,7 +24,7 @@
 #include <string>
 
 typedef std::pair<int, int> Edge;
-typedef std::vector<Edge> EdgeVec;
+typedef std::vector<int> EdgeVec;
 typedef EdgeVec::const_iterator EdgeIter;
 
 
@@ -218,8 +218,8 @@ namespace LaPSO {
 		int path_saved;
 		DblVec dVel;		///< dual velocity
 		DblVec pVel;		///< perturbation velocity
-		std::map<int,EdgeVec> best_ub_sol;
-		EdgeVec best_lb_sol;
+		std::vector<EdgeVec> best_ub_sol;
+		std::vector<EdgeVec> best_lb_sol;
 		double best_lb = 0;
 		double best_ub = INF;
 		int best_lb_viol = 0;

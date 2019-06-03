@@ -83,6 +83,7 @@ void ED::populate_commodities(string filename)
     }
 }
 
+// Note: for some data sets (1 indexed) we have a dummy node 0 with no edges adjacent to it
 void ED::populate_graph(string filename)
 {
     //populate the graph
@@ -100,46 +101,40 @@ void ED::populate_graph(string filename)
             getline(input, line); //read number
             split(SplitVec, line, is_any_of(" \t"), token_compress_on); // SplitVec == { "hello abc","ABC","aBc goodbye" }
             if (line_count == 0) {
-                num_nodes = stoi(SplitVec[0]);
+                num_nodes = stoi(SplitVec[0])+1; // in case the data is indexed from 1..n
                 //g = graph_t(num_nodes);
+                node_neighbours.resize(num_nodes);
                 line_count++;
                 continue;
             }
 
             if (SplitVec.size() >= 3) {
 
-                start_node = stoi(SplitVec[0]);
+                start_node = stoi(SplitVec[0]); 
                 end_node = stoi(SplitVec[1]);
                 current_edge = Edge(start_node, end_node);
                 if (EIM.find(current_edge) != EIM.end()) {
                     std::cout << "WARNING: " << filename << " contains 2 edges between "
                               << current_edge.first << " & " << current_edge.second
-                              << " - ignored\n"; // this may give us
-                    continue;
+                              << " - duplicates accepted\n"; // this may give us
                 }
                 //add_edge(current_edge.first, current_edge.second, edge_number, g);
                 graph_edges.push_back(current_edge);
                 EIM[current_edge] = edge_number;
                 // store which nodes are connected to each other
-
-                if (node_neighbours[start_node].find(end_node) == node_neighbours[start_node].end()) {
-                    node_neighbours[start_node][end_node] = 1;
-                    //cout << start_node << " " << end_node << endl;
-                }
-
-                if (node_neighbours[end_node].find(start_node) == node_neighbours[end_node].end()) {
-                    node_neighbours[end_node][start_node] = 1;
-                    //cout << "added_node" << endl;
-                }
-
-                current_edge = Edge(current_edge.second, current_edge.first);
-                // same edge number in both directions
-                EIM[current_edge] = edge_number;
-
-                edge_number += 1;
+				node_neighbours[start_node].push_back(NodeEdgePair(end_node,edge_number));
+				node_neighbours[end_node].push_back(NodeEdgePair(start_node,edge_number));
+				++edge_number;
+                // AE: Crude fix for the duplicate edge problem
+                // current_edge = Edge(current_edge.second, current_edge.first);
+                // // same edge number in both directions
+                // EIM[current_edge] = edge_number;
+		// edge_number += 1;
             }
         }
     }
+    if(node_neighbours[num_nodes-1].empty())
+        node_neighbours.resize(--num_nodes); 
     // he's removed this part?
     // add the dummy edge between orig and dest nodes
     // for (vector<Commodity>::iterator itr = commodities.begin(); itr < commodities.end(); itr++) {
@@ -155,19 +150,15 @@ Status ED::reducedCost(const Particle& p, DblVec& redCost)
 {
     // update reduced costs for all edges except for the origin->node dummy edge weight
     for (size_t c = 0; c < commodities.size(); ++c) {
-        for (EdgeIter ei = graph_edges.begin(); ei != graph_edges.end(); ei++) {
-            if (EIM.find(*ei) != EIM.end()) {
-                redCost[primalIdx(EIM[*ei], c)] = -p.dual[EIM[*ei]];
-            }
-        }
+		for(int e=0;e<get_edges();++e)
+			redCost[primalIdx(e, c)] = -p.dual[e];
     }
     return OK;
 }
 
-void ED::update_comm_sol(EDParticle& p, double SP, vector<int> parents, double& total_paths_cost, int index,
+void ED::update_comm_sol(EDParticle& p, double SP,const vector<NodeEdgePair> &parents, double& total_paths_cost, int index,
     int start, int end, bool printing)
 {
-    int current;
     if (SP >= 1) {
         if (printing)
             std::cout << "\tCost for " << p.commodities[index].comm_idx << " (" << (p.commodities[index]).origin
@@ -185,23 +176,9 @@ void ED::update_comm_sol(EDParticle& p, double SP, vector<int> parents, double& 
             std::cout << "\tPath for " << p.commodities[index].comm_idx << " (" << p.commodities[index].origin
                       << "," << p.commodities[index].dest << ") " << SP << ": ";
         }
-
-        for (current = end; current != start; current = parents[current]) {
-            if (printing == true)
-                std::cout << " " << current;
-            if (parents[current] == -1) {
-                cout << "issue with update_comm_sol - parents array incorrect" << endl;
-                // exit;
-            }
-            Edge current_edge = Edge(parents[current], current);
-            p.x[primalIdx(EIM[current_edge], p.commodities[index].comm_idx)] += 1;
-            // solution is stored in reverse at here
-            p.commodities[index].solution_edges.push_back(current_edge);
-        }
+		storePath(p,index,start,end,parents,0,printing);
         if (printing == true)
             std::cout << " " << start << std::endl;
-        // reversing each time is not really necessary but nice
-        reverse(p.commodities[index].solution_edges.begin(), p.commodities[index].solution_edges.end());
         total_paths_cost += SP;
     }
 }
@@ -218,11 +195,10 @@ Status ED::solveSubproblem(Particle& p_)
     // solve each commodity pair independantly
 
     double total_paths_cost = 0.0;
-    vector<int> parents;
+    vector<NodeEdgePair> parents;
 
     int start;
     int end;
-    int current;
     p.ub = p.commodities.size();
     p.lb = 0;
     double max_perturb = 0.0;
@@ -274,10 +250,10 @@ Status ED::solveSubproblem(Particle& p_)
             }
             if (SP == -1) {
                 cerr << "error with djikstras" << endl;
-                exit;
+                exit(2);
             }
 
-            Commodity_SP sp = {
+            const Commodity_SP sp = {
                 start, end, parents
             };
             //update solution for current commodity
@@ -291,12 +267,7 @@ Status ED::solveSubproblem(Particle& p_)
 
     //iterate through commodities in standard order
     else {
-        int loop_idx = 0;
-        for (vector<Commodity>::iterator itr = p.commodities.begin(); itr < p.commodities.end(); ++itr) {
-            const int comm_idx = itr->comm_idx;
-
-            itr->solution_edges.clear();
-
+        for(int loop_idx = 0;loop_idx < p.commodities.size(); ++loop_idx){
             //solve SP
             p.commodities[loop_idx].solution_edges.clear();
             start = p.commodities[loop_idx].origin;
@@ -312,11 +283,17 @@ Status ED::solveSubproblem(Particle& p_)
 
             if (SP == -1) {
                 cerr << "error with djikstras" << endl;
-                exit;
+                exit(2);
             }
+            const Commodity_SP sp = {
+                start, end, parents
+            };
             //update solution for current commodity
-            update_comm_sol(p, SP, parents, total_paths_cost, loop_idx, start, end, printing);
-            loop_idx++;
+            //shortest path info required to update solutions
+            p.commodity_shortest_paths[loop_idx] = sp;
+            // p.c is cost of path -- used in MIP solver
+            p.c[loop_idx] = SP;
+            //update_comm_sol(p, SP, parents, total_paths_cost, loop_idx, start, end, printing);
         }
     }
 
@@ -325,7 +302,7 @@ Status ED::solveSubproblem(Particle& p_)
 
     for (int i = 0; i < y.size(); i++) {
         if (y[i] == 1) {
-            vector<int> parents = p.commodity_shortest_paths[i].parents;
+            const vector<NodeEdgePair> &parents = p.commodity_shortest_paths[i].parents;
             int start = p.commodity_shortest_paths[i].start;
             int end = p.commodity_shortest_paths[i].end;
             double SP = p.c[i];
@@ -361,25 +338,19 @@ Status ED::solveSubproblem(Particle& p_)
             }
         }
         p_.best_lb_viol = sum_viol;
-        p_.best_lb_sol.clear();
+        p_.best_lb_sol.resize(p.commodities.size());
         for (vector<Commodity>::iterator itr = p.commodities.begin(); itr < p.commodities.end(); ++itr) {
-            for (EdgeIter E = itr->solution_edges.begin(); E != itr->solution_edges.end(); E++) {
-                p_.best_lb_sol.push_back(*E);
-            }
+			p_.best_lb_sol[itr->comm_idx] = itr->solution_edges;
         }
-        if (p_.best_lb_sol.empty()) {
-            std::cout << "best sol is empty" << endl;
-        }
+        //if (p_.best_lb_sol.empty()) {
+        //    std::cout << "best sol is empty" << endl;
+        //}
     }
 
     if (p.isFeasible && (p.ub < p_.best_ub)) {
+		p_.best_ub_sol.resize(p.commodities.size());
         for (vector<Commodity>::iterator itr = p.commodities.begin(); itr < p.commodities.end(); ++itr) {
-            if (p_.best_ub_sol.find(itr->comm_idx) != p_.best_ub_sol.end()) {
-                p_.best_ub_sol[itr->comm_idx].clear();
-            }
-            for (EdgeIter E = itr->solution_edges.begin(); E != itr->solution_edges.end(); E++) {
-                p_.best_ub_sol[itr->comm_idx].push_back(*E);
-            }
+			p_.best_ub_sol[itr->comm_idx] = itr->solution_edges;
         }
 
         p_.best_ub = p.ub;
@@ -422,15 +393,14 @@ Status ED::heuristics(Particle& p_)
     vector<int> cut_set_commodities;
     int cut_set_edges;
     vector<int> potential_cutset;
-    map<int, bool> S_cutSet;
-    map<int, bool> T_cutSet;
+    vector<bool> S_cutSet;
     IntVec viol(p.viol.size(), 1);
     p.x = 0;
     int viol_sum = 0;
     // iterate over solution edges --> locally set viol intvec and make sure p.x is correct
     for (auto it = p.commodities.begin(); it != p.commodities.end(); it++)
-        for (const Edge& e : it->solution_edges) {
-            p.x[primalIdx(EIM[e], it->comm_idx)] += 1;
+        for (const int e : it->solution_edges) {
+            p.x[primalIdx(e, it->comm_idx)] += 1;
             viol[edgeIdx(e)] -= 1;
         }
 
@@ -440,13 +410,15 @@ Status ED::heuristics(Particle& p_)
         }
     }
     p.viol_sum = viol_sum;
-
+    ++p.nHeur;
+    vector<string> repair_remove_edge_strategy = {"random","largest_viol","perturb"};
+    const string rm_edge = (repair_remove_edge == "cyclic") ? repair_remove_edge_strategy[p.nHeur%3] : repair_remove_edge; 
     while (viol.min() < 0) {
         if (printing == true)
             cout << "\tviol sum is " << viol.sum() << endl;
 
-        if (repair_remove_edge.compare("random") == 0) {
-            cout << "using random repair" << endl;
+        if (rm_edge == "random") {
+            if(printing)cout << "using random repair" << endl;
             vector<int> random_indices;
             for (int i = 0; i < p.commodities.size(); i++) {
                 random_indices.push_back(i);
@@ -454,22 +426,21 @@ Status ED::heuristics(Particle& p_)
             random_shuffle(random_indices.begin(), random_indices.end());
 
             // loop through commodities randomly
-            for (int i = 0; i < random_indices.size(); i++) {
-                int random_index = random_indices[i];
+            for(int random_index : random_indices){
                 bool remove_path = false;
                 if (!(p.commodities[random_index].solution_edges.empty())) {
-                    for (const Edge& e : p.commodities[random_index].solution_edges) {
+                    for (const int e : p.commodities[random_index].solution_edges) {
                         //contains an edge which is violated
-                        if (viol[edgeIdx(e)] < 0) {
+                        if (viol[e] < 0) {
                             remove_path = true;
                             break;
                         }
                     }
                 }
                 if (remove_path == true) {
-                    for (const Edge& e : p.commodities[random_index].solution_edges) {
-                        p.x[primalIdx(edgeIdx(e), p.commodities[random_index].comm_idx)] -= 1;
-                        viol[edgeIdx(e)] += 1;
+                    for (const int e : p.commodities[random_index].solution_edges) {
+                        p.x[primalIdx(e, p.commodities[random_index].comm_idx)] -= 1;
+                        viol[e] += 1;
                     }
                     p.commodities[random_index].solution_edges.clear();
 
@@ -481,35 +452,21 @@ Status ED::heuristics(Particle& p_)
                         temp_rc[i] = (viol[edgeIdx(i)] == 1) ? 1 : num_edges;
                     }
 
-                    vector<int> parents;
+                    vector<NodeEdgePair> parents;
                     int start = p.commodities[random_index].origin;
                     int end = p.commodities[random_index].dest;
-                    int current;
                     double SP = djikstras_naive(EIM, node_neighbours, start, end, parents, num_nodes, num_edges,
                         temp_rc, p.x, p.commodities[random_index].comm_idx, commodities.size());
                     // if no feasible sp exists between orig and dest nodes
 
                     double thresh = num_edges;
                     if (SP < thresh) {
-                        //if (SP < 1) {
-
+						//if (SP < 1) {
+			
                         // Iterate over path and add to primal solution
-                        for (current = end; current != start; current = parents[current]) {
-                            if (parents[current] == -1) {
-                                cerr << "issue with repair - parents array incorrect" << endl;
-                                exit;
-                            }
-                            const Edge e(Edge(parents[current], current));
-                            p.x[primalIdx(edgeIdx(e), random_index)] += 1;
-                            // solution is stored in reverse at here
-
-                            p.commodities[random_index].solution_edges.push_back(e);
-                            viol[edgeIdx(e)] -= 1;
-                        }
-                        // reversing each time is not really necessary but nice
-                        reverse(p.commodities[random_index].solution_edges.begin(), p.commodities[random_index].solution_edges.end());
-                        if (printing == true)
-                            cout << "\t\trepaired path" << endl;
+						storePath(p,random_index,start,end,parents,&viol);
+						if (printing == true)
+							cout << "\t\trepaired path for commodity " << random_index << endl;
                     }
                 }
             }
@@ -529,14 +486,14 @@ Status ED::heuristics(Particle& p_)
             largest_viol = 0;
             double largest_perturb = -1;
 
-            if (repair_remove_edge.compare("largest_viol") == 0) {
+            if (rm_edge =="largest_viol") {
                 //find commodity with the largest violation, that contains this edge
                 for (auto it = p.commodities.begin(); it != p.commodities.end(); it++) {
                     if (p.x[primalIdx(largest_viol_idx, it->comm_idx)] > 0) { // the commodity contains this edge
                         current_viol = 0;
                         for (size_t i = 0; i < it->solution_edges.size(); i++) { // sum up violations this commodity has
-                            if (viol[edgeIdx(it->solution_edges[i])] < 1.0e-6) {
-                                current_viol += viol[edgeIdx(it->solution_edges[i])];
+                            if (viol[it->solution_edges[i]] < 1.0e-6) {
+                                current_viol += viol[it->solution_edges[i]];
                             }
                             if (current_viol < largest_viol) {
                                 largest_com_idx = it->comm_idx;
@@ -545,7 +502,7 @@ Status ED::heuristics(Particle& p_)
                         }
                     }
                 }
-            } else if (repair_remove_edge.compare("perturb") == 0) {
+            } else if (rm_edge == "perturb") {
                 //remove with highest perturbation value (this commodity is least likely to use this edge)
                 for (auto it = p.commodities.begin(); it != p.commodities.end(); it++) {
                     if (p.x[primalIdx(largest_viol_idx, it->comm_idx)] > 1.0e-6) { // the commodity contains this edge
@@ -566,9 +523,9 @@ Status ED::heuristics(Particle& p_)
             if (printing == true)
                 cout << "\tlargest comm idx " << largest_com_idx << " with " << -largest_viol << endl;
             // remove this path from both x AND from the solution_edges
-            for (const Edge& e : p.commodities[largest_com_idx].solution_edges) {
-                p.x[primalIdx(edgeIdx(e), largest_com_idx)] -= 1;
-                viol[edgeIdx(e)] += 1;
+            for (const int e : p.commodities[largest_com_idx].solution_edges) {
+                p.x[primalIdx(e, largest_com_idx)] -= 1;
+                viol[e] += 1;
             }
             p.commodities[largest_com_idx].solution_edges.clear();
 
@@ -584,19 +541,26 @@ Status ED::heuristics(Particle& p_)
             }
 
             //cout << min_perturb << endl;
-
+            int add_edge = p.nHeur % 4; // cycle through strategies
+            {  // unless we have a fixed strategy
+                vector<string> strategy = {"pert_repair_0","pert_repair_min","rc_repair","arb_repair"};
+                auto s = find(strategy.begin(),strategy.end(),repair_add_edge);
+                if(s != strategy.end()) add_edge = s - strategy.begin();
+            }
             for (int i = 0; i < p.rc.size(); i++) {
-                if (repair_add_edge.compare("pert_repair_0") == 0) {
-                    temp_rc[i] = (viol[edgeIdx(i)] == 1) ? p.perturb[i] : 1;
-                } else if (repair_add_edge.compare("pert_repair_min") == 0) {
+                switch(add_edge){
+                 case 0 : //if (repair_add_edge.compare("pert_repair_0") == 0) {
+                    temp_rc[i] = (viol[edgeIdx(i)] == 1) ? p.perturb[i] : 1; break;
+                 case 1: // else if (repair_add_edge.compare("pert_repair_min") == 0) {
                     temp_rc[i] = (viol[edgeIdx(i)] == 1) ? p.perturb[i] - min_perturb : 1;
                     if (temp_rc[i] < 0)
                         cout << temp_rc[i] << endl;
-                } else if (repair_add_edge.compare("rc_repair") == 0) {
-                    temp_rc[i] = (viol[edgeIdx(i)] == 1) ? p.rc[i] : 1;
-                } else if (repair_add_edge.compare("arb_repair") == 0) {
-                    temp_rc[i] = (viol[edgeIdx(i)] == 1) ? 1 : num_edges;
-                } else {
+                    break;
+                 case 2://} else if (repair_add_edge.compare("rc_repair") == 0) {
+                    temp_rc[i] = (viol[edgeIdx(i)] == 1) ? p.rc[i] : 1; break;
+                 case 3: //} else if (repair_add_edge.compare("arb_repair") == 0) {
+                    temp_rc[i] = (viol[edgeIdx(i)] == 1) ? 1 : num_edges; break;
+                default:
                     cout << "repair method - add edge not set properly" << endl;
                 }
 
@@ -606,10 +570,9 @@ Status ED::heuristics(Particle& p_)
                 //temp_rc[i] = (viol[edgeIdx(i)] == 1) ? p.rc[i] : 1;
             }
 
-            vector<int> parents;
+            vector<NodeEdgePair> parents;
             int start = p.commodities[largest_com_idx].origin;
             int end = p.commodities[largest_com_idx].dest;
-            int current;
 
             // if no feasible sp exists between orig and dest nodes
 
@@ -620,33 +583,20 @@ Status ED::heuristics(Particle& p_)
                 thresh = 1;
             }
             double SP = djikstras_naive_cutSet(EIM, node_neighbours, start, end, parents, num_nodes, num_edges,
-                temp_rc, p.x, p.commodities[largest_com_idx].comm_idx, commodities.size(), S_cutSet, T_cutSet, thresh);
+                temp_rc, p.x, p.commodities[largest_com_idx].comm_idx, commodities.size(), S_cutSet, thresh);
 
             if (SP < thresh) {
                 //if (SP < 1) {
 
                 // Iterate over path and add to primal solution
-                for (current = end; current != start; current = parents[current]) {
-                    if (parents[current] == -1) {
-                        cerr << "issue with repair - parents array incorrect" << endl;
-                        exit;
-                    }
-                    const Edge e(Edge(parents[current], current));
-                    p.x[primalIdx(edgeIdx(e), largest_com_idx)] += 1;
-                    // solution is stored in reverse at here
-
-                    p.commodities[largest_com_idx].solution_edges.push_back(e);
-                    viol[edgeIdx(e)] -= 1;
-                }
-                // reversing each time is not really necessary but nice
-                reverse(p.commodities[largest_com_idx].solution_edges.begin(), p.commodities[largest_com_idx].solution_edges.end());
+		storePath(p,largest_com_idx,start,end,parents,&viol);
                 if (printing == true)
                     cout << "\t\trepaired path" << endl;
             }
 
             else {
-                cut_set_commodities = find_cutset_commodities(p, S_cutSet, T_cutSet);
-                cut_set_edges = find_cutset_edges(S_cutSet, T_cutSet);
+                cut_set_commodities = find_cutset_commodities(p, S_cutSet);
+                cut_set_edges = find_cutset_edges(S_cutSet);
                 p.cutsets.push_back(cut_set_commodities); // include commodities involved in cutset e.g {{0,1,2}, {1,2,4}, {3,6,9} etc...}
                 p.cut_set_sizes.push_back(cut_set_edges); // number of edges connecting the 2 sets S and T
                 if (cut_set_commodities.size() > cut_set_edges) {
@@ -656,8 +606,6 @@ Status ED::heuristics(Particle& p_)
                 //reset cut_set_edges and cut_set_commodities
                 //reset_vector<int>(cut_set_commodities);
                 cut_set_edges = 0;
-                S_cutSet.clear();
-                T_cutSet.clear();
             }
         }
     }
@@ -698,49 +646,34 @@ Status ED::heuristics(Particle& p_)
             thresh = 1;
         }
 
-        vector<int> parents;
+        vector<NodeEdgePair> parents;
         int start = it->origin;
         int end = it->dest;
-        int current;
         vector<int> cutset;
         double SP = djikstras_naive_cutSet(EIM, node_neighbours, start, end, parents, num_nodes, num_edges,
-            temp_rc, p.x, comm_idx, commodities.size(), S_cutSet, T_cutSet, thresh);
+					   temp_rc, p.x, comm_idx, commodities.size(), S_cutSet, thresh);
 
         if (SP < thresh) {
 
             // Iterate over path and add to primal solution
-            for (current = end; current != start; current = parents[current]) {
-                if (parents[current] == -1) {
-                    cerr << "issue with repair - parents array incorrect" << endl;
-                    exit;
-                }
-                const Edge e(Edge(parents[current], current));
-                p.x[primalIdx(edgeIdx(e), largest_com_idx)] += 1;
-                // solution is stored in reverse at here
-                p.commodities[largest_com_idx].solution_edges.push_back(e);
-                viol[edgeIdx(e)] -= 1;
-            }
-            // reversing each time is not really necessary but nice
-            reverse(p.commodities[largest_com_idx].solution_edges.begin(), p.commodities[largest_com_idx].solution_edges.end());
+ 	    storePath(p,largest_com_idx,start,end,parents,&viol);
             if (printing == true)
                 cout << "\t\trepaired path" << endl;
 
         } else {
-            cut_set_commodities = find_cutset_commodities(p, S_cutSet, T_cutSet);
-            cut_set_edges = find_cutset_edges(S_cutSet, T_cutSet);
-            p.cutsets.push_back(cut_set_commodities); // include commodities involved in cutset e.g {{0,1,2}, {1,2,4}, {3,6,9} etc...}
-            p.cut_set_sizes.push_back(cut_set_edges);
+            cut_set_commodities = find_cutset_commodities(p, S_cutSet);
+            cut_set_edges = find_cutset_edges(S_cutSet);
+            //p.cutsets.push_back(cut_set_commodities); // include commodities involved in cutset e.g {{0,1,2}, {1,2,4}, {3,6,9} etc...}
+            //p.cut_set_sizes.push_back(cut_set_edges);
 
             // add this information to the MIP structures
             if (cut_set_commodities.size() > cut_set_edges) {
-                p_.local_constraints.push_back({ cut_set_commodities, cut_set_edges });
+                p.local_constraints.push_back({ cut_set_commodities, cut_set_edges });
             }
 
             //reset cut_set_edges and cut_set_commodities
             //reset_vector<int>(cut_set_commodities);
             cut_set_edges = 0;
-            S_cutSet.clear();
-            T_cutSet.clear();
         }
     }
     p.ub = 0;
@@ -755,13 +688,9 @@ Status ED::heuristics(Particle& p_)
         cout << "Heuristic found solution with " << p.ub << " missing paths\n";
 
     if (p.isFeasible && (p.ub < p_.best_ub)) {
+		p.best_ub_sol.resize(p.commodities.size());
         for (vector<Commodity>::iterator itr = p.commodities.begin(); itr < p.commodities.end(); ++itr) {
-            if (p_.best_ub_sol.find(itr->comm_idx) != p_.best_ub_sol.end()) {
-                p_.best_ub_sol[itr->comm_idx].clear();
-            }
-            for (EdgeIter E = itr->solution_edges.begin(); E != itr->solution_edges.end(); E++) {
-                p_.best_ub_sol[itr->comm_idx].push_back(*E);
-            }
+			p.best_ub_sol[itr->comm_idx] = itr->solution_edges;
         }
         p_.best_ub = p.ub;
     }
@@ -805,9 +734,9 @@ void ED::localSearch(Particle& p_)
         if (it->solution_edges.empty()) {
             commodities_to_add.push_back(*it);
         } else {
-            for (const Edge& e : it->solution_edges) {
-                p.x[primalIdx(EIM[e], it->comm_idx)] += 1;
-                viol[edgeIdx(e)] -= 1;
+            for (const int& e : it->solution_edges) {
+                p.x[primalIdx(e, it->comm_idx)] += 1;
+                viol[e] -= 1;
             }
         }
     }
@@ -821,7 +750,6 @@ void ED::localSearch(Particle& p_)
     //try and add in commodities 1 at a time using previously_unused edges
     for (auto it = commodities_to_add.begin(); it != commodities_to_add.end(); it++) {
         int comm_idx = it->comm_idx;
-        double min_perturb = p.perturb.min();
         for (int i = 0; i < p.rc.size(); i++) {
             if (repair_add_edge.compare("pert_repair_0") == 0) {
                 temp_rc[i] = (viol[edgeIdx(i)] == 1) ? p.perturb[i] : 1;
@@ -837,10 +765,9 @@ void ED::localSearch(Particle& p_)
                 temp_rc[i] = 0 + 1e-16;
             }
         }
-        vector<int> parents;
+        vector<NodeEdgePair> parents;
         int start = it->origin;
         int end = it->dest;
-        int current;
         double SP = djikstras_naive(EIM, node_neighbours, start, end, parents, num_nodes, num_edges,
             temp_rc, p.x, comm_idx, commodities.size());
         // if no feasible sp exists between orig and dest nodes
@@ -855,19 +782,7 @@ void ED::localSearch(Particle& p_)
             //if (SP < 1) {
             //cout << "added commodity in local_search" << endl;
             // Iterate over path and add to primal solution
-            for (current = end; current != start; current = parents[current]) {
-                if (parents[current] == -1) {
-                    cerr << "issue with local search - parents array incorrect" << endl;
-                    exit;
-                }
-                const Edge e(Edge(parents[current], current));
-                p.x[primalIdx(edgeIdx(e), comm_idx)] += 1;
-                // solution is stored in reverse at here
-                p.commodities[comm_idx].solution_edges.push_back(e);
-                viol[edgeIdx(e)] -= 1;
-            }
-            // reversing each time is not really necessary but nice
-            reverse(p.commodities[comm_idx].solution_edges.begin(), p.commodities[comm_idx].solution_edges.end());
+	    storePath(p,comm_idx,start,end,parents,&viol);
         }
     }
 
@@ -886,13 +801,9 @@ void ED::localSearch(Particle& p_)
 
     //update best_ub solution
     if (p.ub < p_.best_ub) {
+		p_.best_ub_sol.resize(p.commodities.size());
         for (vector<Commodity>::iterator itr = p.commodities.begin(); itr < p.commodities.end(); ++itr) {
-            if (p_.best_ub_sol.find(itr->comm_idx) != p_.best_ub_sol.end()) {
-                p_.best_ub_sol[itr->comm_idx].clear();
-            }
-            for (EdgeIter E = itr->solution_edges.begin(); E != itr->solution_edges.end(); E++) {
-                p_.best_ub_sol[itr->comm_idx].push_back(*E);
-            }
+			p_.best_ub_sol[itr->comm_idx] = itr->solution_edges;
         }
         p_.best_ub = p.ub;
     }
@@ -915,40 +826,43 @@ void ED::write_mip(vector<Particle*>& non_dom, double lb, double ub, string outf
     outfile << ub << endl;
     */
 }
-/* Stuff for emacs/xemacs to conform to the "Visual Studio formatting standard"
- * Local Variables:
- * tab-width: 4
- * eval: (c-set-style "stroustrup")
- * End:
-*/
 
-vector<int> ED::find_cutset_commodities(EDParticle& p, map<int, bool>& S_cutSet, map<int, bool>& T_cutSet)
+ void ED::storePath(EDParticle &p,int comm,int start,int end,const vector<NodeEdgePair> &parents,
+		 vector<int> *viol,bool doPrint) const
+ {
+   for (int current = end; current != start; current = parents[current].first) {
+     if(doPrint) std::cout << " " << current;     
+     if (parents[current].first == -1) {
+       cerr << "issue storingPath - parents array incorrect" << endl;
+     }
+     const int eidx = parents[current].second;
+     p.x[primalIdx(eidx, comm)] += 1;
+     // solution is stored in reverse at here
+     p.commodities[comm].solution_edges.push_back(eidx);
+     if(viol != 0) (*viol)[eidx] -= 1;
+   }
+   // reversing each time is not really necessary but nice
+   reverse(p.commodities[comm].solution_edges.begin(), p.commodities[comm].solution_edges.end());   
+ }
+ 
+
+vector<int> ED::find_cutset_commodities(const EDParticle& p, const vector<bool>& S_cutSet) const
 {
     vector<int> cut_set;
-    for (vector<Commodity>::iterator comm_it = p.commodities.begin(); comm_it < p.commodities.end(); comm_it++) {
-        int commodity_orig = comm_it->origin;
-        int commodity_dest = comm_it->dest;
-        if ((S_cutSet.find(commodity_orig) != S_cutSet.end()) && (T_cutSet.find(commodity_dest) != T_cutSet.end())) {
-            cut_set.push_back(comm_it->comm_idx);
-        }
-        if ((T_cutSet.find(commodity_orig) != T_cutSet.end()) && (S_cutSet.find(commodity_dest) != S_cutSet.end())) {
-            cut_set.push_back(comm_it->comm_idx);
-        }
+    for (const auto &comm : p.commodities) {
+		if( S_cutSet[comm.origin] != S_cutSet[comm.dest])
+			cut_set.push_back(comm.comm_idx);
     }
     return cut_set;
 }
 
-int ED::find_cutset_edges(map<int, bool>& S_cutSet, map<int, bool>& T_cutSet)
+int ED::find_cutset_edges(const vector<bool>& S_cutSet) const
 {
 
     int cut_set_edges = 0;
-    for (map<int, bool>::iterator S_cut_it = S_cutSet.begin(); S_cut_it != S_cutSet.end(); S_cut_it++) {
-        for (map<int, bool>::iterator T_cut_it = T_cutSet.begin(); T_cut_it != T_cutSet.end(); T_cut_it++) {
-            if (node_neighbours[S_cut_it->first].find(T_cut_it->first) != node_neighbours[S_cut_it->first].end()) {
-                cut_set_edges += 1;
-            }
-        }
-    }
+    for(const Edge &edge : graph_edges)
+      if( S_cutSet[edge.first] != S_cutSet[edge.second])
+		  ++cut_set_edges;
 
     return cut_set_edges;
 }
@@ -1029,6 +943,7 @@ vector<int> EDParticle::solve_mip(map<vector<int>, int>& constraint_map)
 
         IloCplex cplex(model);
         cplex.setOut(env.getNullStream());
+        cplex.setParam(IloCplex::Threads,1); // each particle gets 1 thread only
         //cplex.exportModel("lpex1.lp");
 
         // Optimize the problem and obtain solution.
@@ -1045,12 +960,14 @@ vector<int> EDParticle::solve_mip(map<vector<int>, int>& constraint_map)
         cplex.getValues(vals, var);
 
         //cout << "Values        = " << vals << endl;
-
+		double improvement =0;
         for (int i = 0; i < vals.getSize(); i++) {
-            y[i] = vals[i];
+            y[i] = floor(vals[i]+0.1); // make sure we don't get rounding error
+			if(c[i] < 1) improvement += (1-vals[i])*(1-c[i]);
             //cout << "i = " << i << " vals[i] = " << vals[i] << endl;
         }
-
+		//std::cout << "MIP: "<<constraint_map.size()
+		//		  << " constraints, tightened by " << improvement<<std::endl;
         model.remove(obj_fn);
         model.remove(constraints_to_add);
 
@@ -1149,3 +1066,9 @@ vector<int> ED::solve_mip(EDParticle& p)
     return y;
     */
 }
+/* Stuff for emacs/xemacs to conform to the "Visual Studio formatting standard"
+ * Local Variables:
+ * tab-width: 4
+ * eval: (c-set-style "stroustrup")
+ * End:
+*/

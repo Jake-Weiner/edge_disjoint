@@ -33,8 +33,8 @@ int main(int argc, const char** argv)
     string dual_0_filename = "";
     string best_bounds_tracking = "";
     string convergence_filename = "";
-    string repair_add_edge = "";
-    string repair_edge_removal = "";
+    string repair_add_edge = "rc_repair";
+    string repair_edge_removal = "random";
 
     bool useVol = false;
     bool particle_param = false;
@@ -110,6 +110,8 @@ int main(int argc, const char** argv)
             repair_add_edge = "rc_repair";
         } else if (string(argv[i]) == "add_arb") {
             repair_add_edge = "arb_repair";
+        }else if(string(argv[i])=="cyclic") { // make sure we test all of the code
+            repair_edge_removal = repair_add_edge = "cyclic";
         }
 
         //output files
@@ -150,12 +152,28 @@ int main(int argc, const char** argv)
             
         }
     }
-
+    if(graph_file == "" || pairs_filename==""){
+      std::cerr <<"Need .bb (graph) and .rpairs (pairs) file\n";
+      std::cerr <<"Arguments: --<param>=<value>  for param in randomSeed, \n"
+		<<"  subgradFactor, subgradFmult, perturbFactor, velocityFactor\n"
+		<<"  globalFactor, maxIter, maxCPU, maxWallTime, nParticles,\n"
+		<<"  printLevel, printFreq, heurFreq, eps, absGap, relGap, nCPU\n";
+      std::cerr <<"Boolean flags: P, Pe, gF, v, S, M ,MR, rC, dN, zI, lS, sI, L"
+		<<"  remove_largest_viol, remove_perturb, remove_random,\n"
+		<<"  add_pert_0, add_pert_min, add_rc, add_arb\n";
+      std::cerr <<"Output files: wes <f>, wme <f>, wo <f>, cT <f> x 9\n";
+      return 1;
+    }
+      
+    std::cout << "Running " << (useVol ? "Volume" : "LaPSO") << " for disjoint paths problem with "
+              << graph_file << " & " << pairs_filename << std::endl;
     ED ed(graph_file, pairs_filename, printing, randComm, djikstras_naive, repair_edge_removal, repair_add_edge);
     //ed.initialise_global_constraints();
     const int nnode = ed.get_nodes();
     const int nedge = ed.get_edges();
     const int ncomm = (int)ed.getComm().size();
+    std::cout << "Read data " << nnode << " nodes, "
+              << nedge << " edges, " << ncomm << " ODs\n";
 
     LaPSO::Problem solver(nedge * ncomm, nedge); // number of variables & (relaxed) constraints
     //-------- set default parameter values
@@ -213,7 +231,8 @@ int main(int argc, const char** argv)
             }
             solver.swarm.push_back(p);
         }
-    
+	std::cout << "Running LaPSO with " << solver.param.nParticles
+		  << " particles on " << solver.param.nCPU << " threads\n";
 
         solver.solve(ed);
     }
@@ -251,7 +270,8 @@ int main(int argc, const char** argv)
         std::cout << "read in MR" << endl;
         std::cout << "running mult_rand param test" << endl;
     }
-
+    cout << "Lower bound = " << solver.best.lb << "  Upper bound = " << solver.best.ub
+	 << " time = " << solver.cpuTime() << " / " << solver.wallTime() << " cpu/wall sec\n";
     cout << solver.best.ub << " " << solver.cpuTime() <<  endl;	
     return 0;
 }
