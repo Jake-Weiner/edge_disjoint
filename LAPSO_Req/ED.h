@@ -49,7 +49,7 @@ public:
     vector<float> c; // shortest path costs in MIP
     vector<vector<int>> cutsets; // include commodities involved in cutset e.g {{0,1,2}, {1,2,4}, {3,6,9} etc...}
     vector<int> cut_set_sizes;
-   
+    int repair_iter = 0;
     vector<int> solve_mip(map<vector<int>,int>& global_constraint_map);
     
 };
