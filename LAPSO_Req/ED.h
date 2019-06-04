@@ -47,8 +47,8 @@ public:
     int num_nodes;
     int cut_set_size;
     vector<Commodity_SP> commodity_shortest_paths;
-    vector<float> c; // shortest path costs in MIP
-    vector<vector<int>> cutsets; // include commodities involved in cutset e.g {{0,1,2}, {1,2,4}, {3,6,9} etc...}
+    vector<double> c; // shortest path costs in MIP
+    //vector<vector<int>> cutsets; // include commodities involved in cutset e.g {{0,1,2}, {1,2,4}, {3,6,9} etc...}
     vector<int> cut_set_sizes;
    
     vector<int> solve_mip(map<vector<int>,int>& global_constraint_map);

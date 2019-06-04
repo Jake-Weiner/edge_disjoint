@@ -272,6 +272,18 @@ int main(int argc, const char** argv)
     }
     cout << "Lower bound = " << solver.best.lb << "  Upper bound = " << solver.best.ub
 	 << " time = " << solver.cpuTime() << " / " << solver.wallTime() << " cpu/wall sec\n";
-    cout << solver.best.ub << " " << solver.cpuTime() <<  endl;	
+    cout << solver.best.ub << " " << solver.cpuTime() <<  endl;
+    if(printing){ // show solution & verify that it is feasible
+      vector<int> viol(ed.graph_edges.size(),-1);
+      for(size_t c=0;c<ed.solution_edges.size();++c){
+	std::cout << c << " (" << ed.getComm()[c].origin<<"," << ed.getComm()[c].dest <<"):";
+	for(int e : ed.solution_edges[c]){
+	  ++viol[e];
+	  if(viol[e] > 0) std::cerr <<" ERROR: solution infeasible\n";
+	  std::cout << " " << ed.graph_edges[e].first << "-" << ed.graph_edges[e].second;
+	}
+	std::cout << std::endl;
+      }
+    }
     return 0;
 }

@@ -159,7 +159,7 @@ Status ED::reducedCost(const Particle& p, DblVec& redCost)
 void ED::update_comm_sol(EDParticle& p, double SP,const vector<NodeEdgePair> &parents, double& total_paths_cost, int index,
     int start, int end, bool printing)
 {
-    if (SP >= 1) {
+    if (SP >= 1 || parents[end].first == -1) { // no (short enough) path to end
         if (printing)
             std::cout << "\tCost for " << p.commodities[index].comm_idx << " (" << (p.commodities[index]).origin
                       << "," << (p.commodities[index]).dest << ") " << SP << std::endl;
@@ -241,12 +241,10 @@ Status ED::solveSubproblem(Particle& p_)
             }
             if (dN) { // djikstras without violation consideration
                 SP = djikstras_naive(EIM, node_neighbours, start, end, parents, num_nodes, num_edges,
-                    p.rc, p.x, p.commodities[random_index].comm_idx, commodities.size());
-            }
-
-            else {
+									 p.rc, p.x, p.commodities[random_index].comm_idx, commodities.size(),1.0);
+            } else { // Threshold = 1.0 means don't return paths longer than 1.0
                 SP = djikstras(max_perturb, EIM, node_neighbours, start, end, parents, num_nodes, num_edges,
-                    p.rc, p.x, p.commodities[random_index].comm_idx, commodities.size());
+							   p.rc, p.x, p.commodities[random_index].comm_idx, commodities.size(),1.0);
             }
             if (SP == -1) {
                 cerr << "error with djikstras" << endl;
@@ -275,10 +273,10 @@ Status ED::solveSubproblem(Particle& p_)
             double SP;
             if (dN) { // djikstras without violation consideration
                 SP = djikstras_naive(EIM, node_neighbours, start, end, parents, num_nodes, num_edges,
-                    p.rc, p.x, p.commodities[loop_idx].comm_idx, commodities.size());
+									 p.rc, p.x, p.commodities[loop_idx].comm_idx, commodities.size(),1.0);
             } else {
                 SP = djikstras(max_perturb, EIM, node_neighbours, start, end, parents, num_nodes, num_edges,
-                    p.rc, p.x, p.commodities[loop_idx].comm_idx, commodities.size());
+							   p.rc, p.x, p.commodities[loop_idx].comm_idx, commodities.size(),1.0);
             }
 
             if (SP == -1) {
@@ -301,16 +299,14 @@ Status ED::solveSubproblem(Particle& p_)
     int path_saved = 0;
 
     for (int i = 0; i < y.size(); i++) {
+		const vector<NodeEdgePair> &parents = p.commodity_shortest_paths[i].parents;
+		int start = p.commodity_shortest_paths[i].start;
+		int end = p.commodity_shortest_paths[i].end;
         if (y[i] == 1) {
-            const vector<NodeEdgePair> &parents = p.commodity_shortest_paths[i].parents;
-            int start = p.commodity_shortest_paths[i].start;
-            int end = p.commodity_shortest_paths[i].end;
             double SP = p.c[i];
             update_comm_sol(p, SP, parents, total_paths_cost, i, start, end, printing);
         } else {
-            if (p.c[i] < 1) {
-                path_saved += 1;
-            }
+            if (p.c[i] < 1) path_saved += 1;
             update_comm_sol(p, 1.5, parents, total_paths_cost, i, start, end, printing);
         }
     }
@@ -411,6 +407,13 @@ Status ED::heuristics(Particle& p_)
     }
     p.viol_sum = viol_sum;
     ++p.nHeur;
+	int add_edge_strategy = p.nHeur % 4; // cycle through strategies
+	{  //                          unless we have a fixed strategy
+		vector<string> strategy = {"pert_repair_0","pert_repair_min","rc_repair","arb_repair"};
+		auto s = find(strategy.begin(),strategy.end(),repair_add_edge);
+		if(s != strategy.end()) add_edge_strategy = s - strategy.begin();
+	}
+	
     vector<string> repair_remove_edge_strategy = {"random","largest_viol","perturb"};
     const string rm_edge = (repair_remove_edge == "cyclic") ? repair_remove_edge_strategy[p.nHeur%3] : repair_remove_edge; 
     while (viol.min() < 0) {
@@ -446,27 +449,31 @@ Status ED::heuristics(Particle& p_)
 
                     //try and re-add in path
 
+                    const double thresh = num_nodes; // max path length = num_nodes-1
                     DblVec temp_rc;
                     temp_rc.resize(p.rc.size());
                     for (int i = 0; i < p.rc.size(); i++) {
-                        temp_rc[i] = (viol[edgeIdx(i)] == 1) ? 1 : num_edges;
+                        temp_rc[i] = (viol[edgeIdx(i)] == 1) ? 1 : (thresh+1);
                     }
 
                     vector<NodeEdgePair> parents;
                     int start = p.commodities[random_index].origin;
                     int end = p.commodities[random_index].dest;
                     double SP = djikstras_naive(EIM, node_neighbours, start, end, parents, num_nodes, num_edges,
-                        temp_rc, p.x, p.commodities[random_index].comm_idx, commodities.size());
+								 temp_rc, p.x, p.commodities[random_index].comm_idx, commodities.size(),thresh);
                     // if no feasible sp exists between orig and dest nodes
 
-                    double thresh = num_edges;
                     if (SP < thresh) {
 						//if (SP < 1) {
 			
                         // Iterate over path and add to primal solution
 						storePath(p,random_index,start,end,parents,&viol);
-						if (printing == true)
-							cout << "\t\trepaired path for commodity " << random_index << endl;
+						if (printing == true){
+							cout << "\t\trandom repaired path for commodity " << random_index << endl;
+							// for(const int e:p.commodities[random_index].solution_edges)
+							// 	if(viol[e] != 0)
+							// 		std::cerr << "ERROR: infeasible path v["<<e <<"]="<<viol[e]<<endl;
+						}
                     }
                 }
             }
@@ -513,9 +520,7 @@ Status ED::heuristics(Particle& p_)
                         }
                     }
                 }
-            }
-
-            else {
+            } else {
                 cout << "repair method not set properly" << endl;
                 exit(1);
             }
@@ -534,32 +539,23 @@ Status ED::heuristics(Particle& p_)
             IntVec distances_heur(num_nodes); // integer distances
             DblVec temp_rc;
             temp_rc.resize(p.rc.size());
-            double min_perturb = p.perturb.min();
-
-            if (min_perturb > 0) {
-                min_perturb = 0;
-            }
-
+            const double min_perturb = std::min(0.0,p.perturb.min());
+			const double max_perturb = std::max(0.0,p.perturb.max());
+			const double scale =1.0/num_nodes * 1.0/(max_perturb-min_perturb+1e-5);
             //cout << min_perturb << endl;
-            int add_edge = p.nHeur % 4; // cycle through strategies
-            {  // unless we have a fixed strategy
-                vector<string> strategy = {"pert_repair_0","pert_repair_min","rc_repair","arb_repair"};
-                auto s = find(strategy.begin(),strategy.end(),repair_add_edge);
-                if(s != strategy.end()) add_edge = s - strategy.begin();
-            }
             for (int i = 0; i < p.rc.size(); i++) {
-                switch(add_edge){
-                 case 0 : //if (repair_add_edge.compare("pert_repair_0") == 0) {
-                    temp_rc[i] = (viol[edgeIdx(i)] == 1) ? p.perturb[i] : 1; break;
-                 case 1: // else if (repair_add_edge.compare("pert_repair_min") == 0) {
-                    temp_rc[i] = (viol[edgeIdx(i)] == 1) ? p.perturb[i] - min_perturb : 1;
-                    if (temp_rc[i] < 0)
-                        cout << temp_rc[i] << endl;
+                switch(add_edge_strategy){
+				case 0 : //if (repair_add_edge.compare("pert_repair_0") == 0) {
+					temp_rc[i] = (viol[edgeIdx(i)] == 1) ? scale*p.perturb[i] : 1; break;
+				case 1: // else if (repair_add_edge.compare("pert_repair_min") == 0) {
+					temp_rc[i] = (viol[edgeIdx(i)] == 1) ? scale*(p.perturb[i] - min_perturb) : 1;
+					if (temp_rc[i] < 0) temp_rc[i] = 0.0; // rounding error
                     break;
                  case 2://} else if (repair_add_edge.compare("rc_repair") == 0) {
-                    temp_rc[i] = (viol[edgeIdx(i)] == 1) ? p.rc[i] : 1; break;
+					 temp_rc[i] = (viol[edgeIdx(i)] == 1) ?
+						 std::min(1.0/num_nodes,p.rc[i]/num_nodes) : 1; break;
                  case 3: //} else if (repair_add_edge.compare("arb_repair") == 0) {
-                    temp_rc[i] = (viol[edgeIdx(i)] == 1) ? 1 : num_edges; break;
+					 temp_rc[i] = (viol[edgeIdx(i)] == 1) ? 1.0/num_nodes : 1.0; break;
                 default:
                     cout << "repair method - add edge not set properly" << endl;
                 }
@@ -576,12 +572,7 @@ Status ED::heuristics(Particle& p_)
 
             // if no feasible sp exists between orig and dest nodes
 
-            double thresh;
-            if (repair_add_edge.compare("arb_repair") == 0) {
-                thresh = num_edges;
-            } else {
-                thresh = 1;
-            }
+            const double thresh = 1.0;
             double SP = djikstras_naive_cutSet(EIM, node_neighbours, start, end, parents, num_nodes, num_edges,
                 temp_rc, p.x, p.commodities[largest_com_idx].comm_idx, commodities.size(), S_cutSet, thresh);
 
@@ -589,16 +580,16 @@ Status ED::heuristics(Particle& p_)
                 //if (SP < 1) {
 
                 // Iterate over path and add to primal solution
-		storePath(p,largest_com_idx,start,end,parents,&viol);
+				storePath(p,largest_com_idx,start,end,parents,&viol);
                 if (printing == true)
-                    cout << "\t\trepaired path" << endl;
+                    cout << "\t\t"<<add_edge_strategy << " repaired path " <<largest_com_idx << endl;
             }
-
             else {
                 cut_set_commodities = find_cutset_commodities(p, S_cutSet);
                 cut_set_edges = find_cutset_edges(S_cutSet);
-                p.cutsets.push_back(cut_set_commodities); // include commodities involved in cutset e.g {{0,1,2}, {1,2,4}, {3,6,9} etc...}
-                p.cut_set_sizes.push_back(cut_set_edges); // number of edges connecting the 2 sets S and T
+				// p.cutsets is not used (?)
+                //p.cutsets.push_back(cut_set_commodities); // include commodities involved in cutset e.g {{0,1,2}, {1,2,4}, {3,6,9} etc...}
+                //p.cut_set_sizes.push_back(cut_set_edges); // number of edges connecting the 2 sets S and T
                 if (cut_set_commodities.size() > cut_set_edges) {
                     p_.local_constraints.push_back({ cut_set_commodities, cut_set_edges });
                 }
@@ -621,30 +612,30 @@ Status ED::heuristics(Particle& p_)
     temp_rc.resize(p.rc.size());
     for (auto it = commodities_to_add.begin(); it != commodities_to_add.end(); it++) {
         int comm_idx = it->comm_idx;
-        double min_perturb = p.perturb.min();
+		const double min_perturb = std::min(0.0,p.perturb.min());
+		const double max_perturb = std::max(0.0,p.perturb.max());
+		const double scale =1.0/num_nodes * 1.0/(max_perturb-min_perturb+1e-5);
         for (int i = 0; i < p.rc.size(); i++) {
-            if (repair_add_edge.compare("pert_repair_0") == 0) {
-                temp_rc[i] = (viol[edgeIdx(i)] == 1) ? p.perturb[i] : 1;
-            } else if (repair_add_edge.compare("pert_repair_min") == 0) {
-                temp_rc[i] = (viol[edgeIdx(i)] == 1) ? p.perturb[i] - min_perturb : 1;
-            } else if (repair_add_edge.compare("rc_repair") == 0) {
-                temp_rc[i] = (viol[edgeIdx(i)] == 1) ? p.rc[i] : 1;
-            } else if (repair_add_edge.compare("arb_repair") == 0) {
-                temp_rc[i] = (viol[edgeIdx(i)] == 1) ? 1 : num_edges;
-            }
+			switch(add_edge_strategy){
+            case 0: //if (repair_add_edge.compare("pert_repair_0") == 0) {
+                temp_rc[i] = (viol[edgeIdx(i)] == 1) ? scale*p.perturb[i] : 1; break;
+            case 1: //} else if (repair_add_edge.compare("pert_repair_min") == 0) {
+                temp_rc[i] = (viol[edgeIdx(i)] == 1) ? scale*(p.perturb[i] - min_perturb) : 1;
+				break;
+            case 2://} else if (repair_add_edge.compare("rc_repair") == 0) {
+                temp_rc[i] = (viol[edgeIdx(i)] == 1) ?
+					std::min(1.0/num_nodes,p.rc[i]/num_nodes) : 1;
+				break;
+            case 3://} else if (repair_add_edge.compare("arb_repair") == 0) {
+                temp_rc[i] = (viol[edgeIdx(i)] == 1) ? 1.0/num_nodes : 1.0; break;
+            default: cerr << "repair method - add edge strategy not set properly" << endl;				
+			}
 
-            if (temp_rc[i] < 0) {
-                temp_rc[i] = 0 + 1e-16;
-            }
+            if (temp_rc[i] < 0) temp_rc[i] = 0;
         }
 
         // calculate theshold that paths require for successful path connection
-        double thresh;
-        if (repair_add_edge.compare("arb_repair") == 0) {
-            thresh = num_edges;
-        } else {
-            thresh = 1;
-        }
+        const double thresh=1.0;
 
         vector<NodeEdgePair> parents;
         int start = it->origin;
@@ -656,9 +647,9 @@ Status ED::heuristics(Particle& p_)
         if (SP < thresh) {
 
             // Iterate over path and add to primal solution
- 	    storePath(p,largest_com_idx,start,end,parents,&viol);
-            if (printing == true)
-                cout << "\t\trepaired path" << endl;
+			storePath(p,comm_idx,start,end,parents,&viol);
+            if (printing == true) 
+                cout << "\t\t" << add_edge_strategy <<" repaired path of " <<comm_idx << endl;
 
         } else {
             cut_set_commodities = find_cutset_commodities(p, S_cutSet);
@@ -839,7 +830,7 @@ void ED::write_mip(vector<Particle*>& non_dom, double lb, double ub, string outf
      p.x[primalIdx(eidx, comm)] += 1;
      // solution is stored in reverse at here
      p.commodities[comm].solution_edges.push_back(eidx);
-     if(viol != 0) (*viol)[eidx] -= 1;
+     if(viol != 0)  (*viol)[eidx] -= 1;
    }
    // reversing each time is not really necessary but nice
    reverse(p.commodities[comm].solution_edges.begin(), p.commodities[comm].solution_edges.end());   
