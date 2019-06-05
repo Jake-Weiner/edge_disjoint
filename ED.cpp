@@ -999,6 +999,18 @@ vector<int> EDParticle::solve_mip(map<vector<int>, int>& constraint_map)
         IloExpr con_exp(env);
         IloRangeArray constraints_to_add(env);
         IloExpr con_exp_temp(env);
+       
+        /*
+        if (constraint_map.empty()){
+            IloExpr con_exp(env);
+            for (int i = 0 ; i<c.size() ; i++){
+                con_exp += var[i];
+            }
+            IloRange r1(env, 0, con_exp, c.size());
+            constraints_to_add.add(r1);
+        }
+        */
+        
         for (map<vector<int>, int>::iterator it = constraint_map.begin(); it != constraint_map.end(); it++) {
             IloExpr con_exp(env);
 
@@ -1029,6 +1041,7 @@ vector<int> EDParticle::solve_mip(map<vector<int>, int>& constraint_map)
         model.add(obj_fn);
 
         IloCplex cplex(model);
+        cplex.setParam(IloCplex::Threads,1); // each particle gets 1 thread only
         cplex.setOut(env.getNullStream());
         //cplex.exportModel("lpex1.lp");
 
@@ -1063,6 +1076,7 @@ vector<int> EDParticle::solve_mip(map<vector<int>, int>& constraint_map)
         cout << "Unknown exception caught" << endl;
     }
     env.end();
+
     return y;
 }
 

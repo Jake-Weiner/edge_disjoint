@@ -118,6 +118,7 @@ Problem::Problem(int nVar, int nConstr)
     best.isFeasible = false;
     best.perturb.resize(nVar, 0.0);
     best.dual.resize(nConstr, 0.0);
+
 }
 
 // Main method
