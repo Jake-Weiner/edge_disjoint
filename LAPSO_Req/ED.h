@@ -10,8 +10,9 @@ using namespace std;
 typedef vector<string> split_vector_type;
 typedef pair<int, int> Edge;
 typedef map<Edge,int> Edge_Int_Map;
-typedef vector<Edge> EdgeVec;
 typedef EdgeVec::const_iterator EdgeIter;
+typedef std::pair<int,int> NodeEdgePair; // neighbouring node and edge index
+
 
 struct Commodity {
     int origin;
@@ -141,7 +142,7 @@ private:
     map<vector<int>,int> constraint_map;
     string repair_remove_edge;
     string repair_add_edge;
-    map<int,map<int,bool>> node_neighbours;
+    vector<vector<NodeEdgePair>> node_neighbours;
     void remove_commodity(EDParticle& p, IntVec& viol, int commodity_index);
     void add_commodity(EDParticle& p, IntVec& viol, vector<int>& parents, int start, int end, int commodity_index);
     vector<int> find_cutset_commodities(EDParticle& p, map<int, bool>& S_cutset, map<int, bool>& T_cutset);

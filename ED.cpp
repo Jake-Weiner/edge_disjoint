@@ -85,7 +85,7 @@ void ED::populate_commodities(string filename)
 
 void ED::populate_graph(string filename)
 {
-    //populate the graph
+        //populate the graph
     ifstream input(filename);
     split_vector_type SplitVec;
     size_t edge_number = 0;
@@ -100,54 +100,40 @@ void ED::populate_graph(string filename)
             getline(input, line); //read number
             split(SplitVec, line, is_any_of(" \t"), token_compress_on); // SplitVec == { "hello abc","ABC","aBc goodbye" }
             if (line_count == 0) {
-                num_nodes = stoi(SplitVec[0]);
+                num_nodes = stoi(SplitVec[0])+1; // in case the data is indexed from 1..n
                 //g = graph_t(num_nodes);
+                node_neighbours.resize(num_nodes);
                 line_count++;
                 continue;
             }
 
             if (SplitVec.size() >= 3) {
-
-                start_node = stoi(SplitVec[0]);
+                start_node = stoi(SplitVec[0]); 
                 end_node = stoi(SplitVec[1]);
                 current_edge = Edge(start_node, end_node);
                 if (EIM.find(current_edge) != EIM.end()) {
                     std::cout << "WARNING: " << filename << " contains 2 edges between "
                               << current_edge.first << " & " << current_edge.second
-                              << " - ignored\n"; // this may give us
-                    continue;
+                              << " - duplicates accepted\n"; // this may give us
                 }
                 //add_edge(current_edge.first, current_edge.second, edge_number, g);
                 graph_edges.push_back(current_edge);
                 EIM[current_edge] = edge_number;
                 // store which nodes are connected to each other
-
-                if (node_neighbours[start_node].find(end_node) == node_neighbours[start_node].end()) {
-                    node_neighbours[start_node][end_node] = 1;
-                    //cout << start_node << " " << end_node << endl;
-                }
-
-                if (node_neighbours[end_node].find(start_node) == node_neighbours[end_node].end()) {
-                    node_neighbours[end_node][start_node] = 1;
-                    //cout << "added_node" << endl;
-                }
-
-                current_edge = Edge(current_edge.second, current_edge.first);
-                // same edge number in both directions
-                EIM[current_edge] = edge_number;
-
-                edge_number += 1;
+				node_neighbours[start_node].push_back(NodeEdgePair(end_node,edge_number));
+				node_neighbours[end_node].push_back(NodeEdgePair(start_node,edge_number));
+				++edge_number;
+                // AE: Crude fix for the duplicate edge problem
+                // current_edge = Edge(current_edge.second, current_edge.first);
+                // // same edge number in both directions
+                // EIM[current_edge] = edge_number;
+		// edge_number += 1;
             }
         }
     }
-    // he's removed this part?
-    // add the dummy edge between orig and dest nodes
-    // for (vector<Commodity>::iterator itr = commodities.begin(); itr < commodities.end(); itr++) {
-    // current_edge = Edge((*itr).origin, (*itr).dest);
-    // EIM[current_edge] = edge_number;
-    // edge_number += 1;
-    // weights.push_back(1);
-    // }
+    if(node_neighbours[num_nodes-1].empty())
+        node_neighbours.resize(--num_nodes); 
+
     num_edges = graph_edges.size();
 }
 
