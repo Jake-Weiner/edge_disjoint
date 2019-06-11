@@ -150,11 +150,10 @@ Status ED::reducedCost(const Particle& p, DblVec& redCost)
     return OK;
 }
 
-void ED::update_comm_sol(EDParticle& p, double SP, vector<int> parents, double& total_paths_cost, int index,
+void ED::update_comm_sol(EDParticle& p, double SP,const vector<NodeEdgePair> &parents, double& total_paths_cost, int index,
     int start, int end, bool printing)
 {
-    int current;
-    if (SP >= 1) {
+    if (SP >= 1 || parents[end].first == -1) { // no (short enough) path to end
         if (printing)
             std::cout << "\tCost for " << p.commodities[index].comm_idx << " (" << (p.commodities[index]).origin
                       << "," << (p.commodities[index]).dest << ") " << SP << std::endl;
@@ -171,26 +170,31 @@ void ED::update_comm_sol(EDParticle& p, double SP, vector<int> parents, double& 
             std::cout << "\tPath for " << p.commodities[index].comm_idx << " (" << p.commodities[index].origin
                       << "," << p.commodities[index].dest << ") " << SP << ": ";
         }
-
-        for (current = end; current != start; current = parents[current]) {
-            if (printing == true)
-                std::cout << " " << current;
-            if (parents[current] == -1) {
-                cout << "issue with update_comm_sol - parents array incorrect" << endl;
-                // exit;
-            }
-            Edge current_edge = Edge(parents[current], current);
-            p.x[primalIdx(EIM[current_edge], p.commodities[index].comm_idx)] += 1;
-            // solution is stored in reverse at here
-            p.commodities[index].solution_edges.push_back(current_edge);
-        }
+		storePath(p,index,start,end,parents,0,printing);
         if (printing == true)
             std::cout << " " << start << std::endl;
-        // reversing each time is not really necessary but nice
-        reverse(p.commodities[index].solution_edges.begin(), p.commodities[index].solution_edges.end());
         total_paths_cost += SP;
     }
 }
+
+void ED::storePath(EDParticle &p,int comm,int start,int end,const vector<NodeEdgePair> &parents,
+		 vector<int> *viol,bool doPrint) const
+ {
+   for (int current = end; current != start; current = parents[current].first) {
+     if(doPrint) std::cout << " " << current;     
+     if (parents[current].first == -1) {
+       cerr << "issue storingPath - parents array incorrect" << endl;
+     }
+     const int eidx = parents[current].second;
+     p.x[primalIdx(eidx, comm)] += 1;
+     // solution is stored in reverse at here
+     p.commodities[comm].solution_edges.push_back(eidx);
+     if(viol != 0)  (*viol)[eidx] -= 1;
+   }
+   // reversing each time is not really necessary but nice
+   reverse(p.commodities[comm].solution_edges.begin(), p.commodities[comm].solution_edges.end());   
+ }
+
 
 Status ED::solveSubproblem(Particle& p_)
 {
@@ -204,11 +208,10 @@ Status ED::solveSubproblem(Particle& p_)
     // solve each commodity pair independantly
 
     double total_paths_cost = 0.0;
-    vector<int> parents;
+    vector<NodeEdgePair> parents;
 
     int start;
     int end;
-    int current;
     p.ub = p.commodities.size();
     p.lb = 0;
     double max_perturb = 0.0;
@@ -233,8 +236,9 @@ Status ED::solveSubproblem(Particle& p_)
 
         // loop through commodities
         for (int i = 0; i < random_indices.size(); i++) {
-
+            
             int random_index = random_indices[i];
+           
 
             //solve SP
             p.commodities[random_index].solution_edges.clear();
@@ -250,19 +254,17 @@ Status ED::solveSubproblem(Particle& p_)
             }
             if (dN) { // djikstras without violation consideration
                 SP = djikstras_naive(EIM, node_neighbours, start, end, parents, num_nodes, num_edges,
-                    p.rc, p.x, p.commodities[random_index].comm_idx, commodities.size());
-            }
-
-            else {
+									 p.rc, p.x, p.commodities[random_index].comm_idx, commodities.size(),1.0);
+            } else { // Threshold = 1.0 means don't return paths longer than 1.0
                 SP = djikstras(max_perturb, EIM, node_neighbours, start, end, parents, num_nodes, num_edges,
-                    p.rc, p.x, p.commodities[random_index].comm_idx, commodities.size());
+							   p.rc, p.x, p.commodities[random_index].comm_idx, commodities.size(),1.0);
             }
             if (SP == -1) {
                 cerr << "error with djikstras" << endl;
-                exit;
+                exit(2);
             }
 
-            Commodity_SP sp = {
+            const Commodity_SP sp = {
                 start, end, parents
             };
             //update solution for current commodity
@@ -276,12 +278,7 @@ Status ED::solveSubproblem(Particle& p_)
 
     //iterate through commodities in standard order
     else {
-        int loop_idx = 0;
-        for (vector<Commodity>::iterator itr = p.commodities.begin(); itr < p.commodities.end(); ++itr) {
-            const int comm_idx = itr->comm_idx;
-
-            itr->solution_edges.clear();
-
+        for(int loop_idx = 0;loop_idx < p.commodities.size(); ++loop_idx){
             //solve SP
             p.commodities[loop_idx].solution_edges.clear();
             start = p.commodities[loop_idx].origin;
@@ -289,19 +286,25 @@ Status ED::solveSubproblem(Particle& p_)
             double SP;
             if (dN) { // djikstras without violation consideration
                 SP = djikstras_naive(EIM, node_neighbours, start, end, parents, num_nodes, num_edges,
-                    p.rc, p.x, p.commodities[loop_idx].comm_idx, commodities.size());
+									 p.rc, p.x, p.commodities[loop_idx].comm_idx, commodities.size(),1.0);
             } else {
                 SP = djikstras(max_perturb, EIM, node_neighbours, start, end, parents, num_nodes, num_edges,
-                    p.rc, p.x, p.commodities[loop_idx].comm_idx, commodities.size());
+							   p.rc, p.x, p.commodities[loop_idx].comm_idx, commodities.size(),1.0);
             }
 
             if (SP == -1) {
                 cerr << "error with djikstras" << endl;
-                exit;
+                exit(2);
             }
+            const Commodity_SP sp = {
+                start, end, parents
+            };
             //update solution for current commodity
-            update_comm_sol(p, SP, parents, total_paths_cost, loop_idx, start, end, printing);
-            loop_idx++;
+            //shortest path info required to update solutions
+            p.commodity_shortest_paths[loop_idx] = sp;
+            // p.c is cost of path -- used in MIP solver
+            p.c[loop_idx] = SP;
+            //update_comm_sol(p, SP, parents, total_paths_cost, loop_idx, start, end, printing);
         }
     }
 
@@ -309,16 +312,14 @@ Status ED::solveSubproblem(Particle& p_)
     int path_saved = 0;
 
     for (int i = 0; i < y.size(); i++) {
+		const vector<NodeEdgePair> &parents = p.commodity_shortest_paths[i].parents;
+		int start = p.commodity_shortest_paths[i].start;
+		int end = p.commodity_shortest_paths[i].end;
         if (y[i] == 1) {
-            vector<int> parents = p.commodity_shortest_paths[i].parents;
-            int start = p.commodity_shortest_paths[i].start;
-            int end = p.commodity_shortest_paths[i].end;
             double SP = p.c[i];
             update_comm_sol(p, SP, parents, total_paths_cost, i, start, end, printing);
         } else {
-            if (p.c[i] < 1) {
-                path_saved += 1;
-            }
+            if (p.c[i] < 1) path_saved += 1;
             update_comm_sol(p, 1.5, parents, total_paths_cost, i, start, end, printing);
         }
     }
@@ -346,25 +347,19 @@ Status ED::solveSubproblem(Particle& p_)
             }
         }
         p_.best_lb_viol = sum_viol;
-        p_.best_lb_sol.clear();
+        p_.best_lb_sol.resize(p.commodities.size());
         for (vector<Commodity>::iterator itr = p.commodities.begin(); itr < p.commodities.end(); ++itr) {
-            for (EdgeIter E = itr->solution_edges.begin(); E != itr->solution_edges.end(); E++) {
-                p_.best_lb_sol.push_back(*E);
-            }
+			p_.best_lb_sol[itr->comm_idx] = itr->solution_edges;
         }
-        if (p_.best_lb_sol.empty()) {
-            std::cout << "best sol is empty" << endl;
-        }
+        //if (p_.best_lb_sol.empty()) {
+        //    std::cout << "best sol is empty" << endl;
+        //}
     }
 
     if (p.isFeasible && (p.ub < p_.best_ub)) {
+		p_.best_ub_sol.resize(p.commodities.size());
         for (vector<Commodity>::iterator itr = p.commodities.begin(); itr < p.commodities.end(); ++itr) {
-            if (p_.best_ub_sol.find(itr->comm_idx) != p_.best_ub_sol.end()) {
-                p_.best_ub_sol[itr->comm_idx].clear();
-            }
-            for (EdgeIter E = itr->solution_edges.begin(); E != itr->solution_edges.end(); E++) {
-                p_.best_ub_sol[itr->comm_idx].push_back(*E);
-            }
+			p_.best_ub_sol[itr->comm_idx] = itr->solution_edges;
         }
 
         p_.best_ub = p.ub;

@@ -25,7 +25,7 @@ struct Commodity {
 struct Commodity_SP {
     int start;
     int end;
-    vector<int> parents;
+    vector<NodeEdgePair> parents;
 };
 
 
@@ -70,7 +70,7 @@ public:
     int maxEDsolves;		// abort after this many
     ~ED();
     Status reducedCost(const Particle &p, DblVec &redCost);
-    void update_comm_sol(EDParticle& p, double SP, vector<int> parents, double& total_paths_cost, int random_index,
+    void update_comm_sol(EDParticle& p, double SP,const vector<NodeEdgePair> &parents, double& total_paths_cost, int random_index,
     int start, int end, bool printing);
     Status solveSubproblem(Particle& p);
     //void randomiseMethod(EDParticle &p);
@@ -125,6 +125,8 @@ public:
   bool getrandComm() {return randComm;}
   int get_nodes() {return num_nodes;} 
   int get_edges() {return num_edges;} 
+  void storePath(EDParticle &p,int comm,int start,int end,const vector<NodeEdgePair> &parents,
+		 vector<int> *viol=0,bool doPrint=false) const;
 
 
 
