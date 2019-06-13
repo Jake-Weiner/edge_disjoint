@@ -286,7 +286,7 @@ int main(int argc, const char** argv)
             std::cerr << "Exception opening/reading/closing output file\n";
         }
     }
-
+    /*
     if (write_mip_edges) {
         vector<Particle*> swarm_unsorted;
         if (solver.param.nParticles == 1) {
@@ -360,7 +360,7 @@ int main(int argc, const char** argv)
             }
         }
     }
-
+    */
     if (convergence_test) {
 
         // dual euclid

@@ -32,7 +32,7 @@ struct Commodity_SP {
 
 class EDParticle : public LaPSO::Particle {
 public:
-    EDParticle(const EdgeVec &edges, const vector<Commodity> &comm, const int n, Edge_Int_Map em) : 
+    EDParticle(const vector<Edge> &edges, const vector<Commodity> &comm, const int n, Edge_Int_Map em) : 
     LaPSO::Particle((int)edges.size() * (int)comm.size(),(int)edges.size())
     ,graph_edges(edges),commodities(comm),num_nodes(n)
     {
@@ -41,14 +41,14 @@ public:
 
         cut_set_size = commodities.size();
     }
-    EdgeVec graph_edges;		/// list of edges in graph
+    vector<Edge> graph_edges;		/// list of edges in graph
     vector<EdgeVec> solution_edges;		/// edges involved in ED solution
     vector<Commodity> commodities;
     int num_nodes;
     int cut_set_size;
     vector<Commodity_SP> commodity_shortest_paths;
-    vector<float> c; // shortest path costs in MIP
-    vector<vector<int>> cutsets; // include commodities involved in cutset e.g {{0,1,2}, {1,2,4}, {3,6,9} etc...}
+    vector<double> c; // shortest path costs in MIP
+    //vector<vector<int>> cutsets; // include commodities involved in cutset e.g {{0,1,2}, {1,2,4}, {3,6,9} etc...}
     vector<int> cut_set_sizes;
     int repair_iter = 0;
     vector<int> solve_mip(map<vector<int>,int>& global_constraint_map);

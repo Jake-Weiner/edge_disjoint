@@ -466,7 +466,6 @@ Status ED::heuristics(Particle& p_)
                         temp_rc, p.x, p.commodities[random_index].comm_idx, commodities.size(), thresh);
                     // if no feasible sp exists between orig and dest nodes
 
-                    double thresh = num_edges;
                     if (SP < thresh) {
                         //if (SP < 1) {
                         storePath(p, random_index, start, end, parents, &viol);
@@ -687,7 +686,6 @@ Status ED::updateBest(Particle& p_)
     return OK;
 }
 
-/*
 void ED::localSearch(Particle& p_)
 {
 
@@ -709,9 +707,9 @@ void ED::localSearch(Particle& p_)
         if (it->solution_edges.empty()) {
             commodities_to_add.push_back(*it);
         } else {
-            for (const Edge& e : it->solution_edges) {
-                p.x[primalIdx(EIM[e], it->comm_idx)] += 1;
-                viol[edgeIdx(e)] -= 1;
+            for (const int& e : it->solution_edges) {
+                p.x[primalIdx(e, it->comm_idx)] += 1;
+                viol[e] -= 1;
             }
         }
     }
@@ -725,7 +723,6 @@ void ED::localSearch(Particle& p_)
     //try and add in commodities 1 at a time using previously_unused edges
     for (auto it = commodities_to_add.begin(); it != commodities_to_add.end(); it++) {
         int comm_idx = it->comm_idx;
-        double min_perturb = p.perturb.min();
         for (int i = 0; i < p.rc.size(); i++) {
             if (repair_add_edge.compare("pert_repair_0") == 0) {
                 temp_rc[i] = (viol[edgeIdx(i)] == 1) ? p.perturb[i] : 1;
@@ -741,10 +738,9 @@ void ED::localSearch(Particle& p_)
                 temp_rc[i] = 0 + 1e-16;
             }
         }
-        vector<int> parents;
+        vector<NodeEdgePair> parents;
         int start = it->origin;
         int end = it->dest;
-        int current;
         double SP = djikstras_naive(EIM, node_neighbours, start, end, parents, num_nodes, num_edges,
             temp_rc, p.x, comm_idx, commodities.size());
         // if no feasible sp exists between orig and dest nodes
@@ -759,19 +755,7 @@ void ED::localSearch(Particle& p_)
             //if (SP < 1) {
             //cout << "added commodity in local_search" << endl;
             // Iterate over path and add to primal solution
-            for (current = end; current != start; current = parents[current]) {
-                if (parents[current] == -1) {
-                    cerr << "issue with local search - parents array incorrect" << endl;
-                    exit;
-                }
-                const Edge e(Edge(parents[current], current));
-                p.x[primalIdx(edgeIdx(e), comm_idx)] += 1;
-                // solution is stored in reverse at here
-                p.commodities[comm_idx].solution_edges.push_back(e);
-                viol[edgeIdx(e)] -= 1;
-            }
-            // reversing each time is not really necessary but nice
-            reverse(p.commodities[comm_idx].solution_edges.begin(), p.commodities[comm_idx].solution_edges.end());
+            storePath(p, comm_idx, start, end, parents, &viol);
         }
     }
 
@@ -790,18 +774,13 @@ void ED::localSearch(Particle& p_)
 
     //update best_ub solution
     if (p.ub < p_.best_ub) {
+        p_.best_ub_sol.resize(p.commodities.size());
         for (vector<Commodity>::iterator itr = p.commodities.begin(); itr < p.commodities.end(); ++itr) {
-            if (p_.best_ub_sol.find(itr->comm_idx) != p_.best_ub_sol.end()) {
-                p_.best_ub_sol[itr->comm_idx].clear();
-            }
-            for (EdgeIter E = itr->solution_edges.begin(); E != itr->solution_edges.end(); E++) {
-                p_.best_ub_sol[itr->comm_idx].push_back(*E);
-            }
+            p_.best_ub_sol[itr->comm_idx] = itr->solution_edges;
         }
         p_.best_ub = p.ub;
     }
 }
-*/
 
 void ED::write_mip(vector<Particle*>& non_dom, double lb, double ub, string outfile_name)
 {
