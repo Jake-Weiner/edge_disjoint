@@ -148,8 +148,8 @@ private:
     vector<vector<NodeEdgePair>> node_neighbours;
     void remove_commodity(EDParticle& p, IntVec& viol, int commodity_index);
     void add_commodity(EDParticle& p, IntVec& viol, vector<int>& parents, int start, int end, int commodity_index);
-    vector<int> find_cutset_commodities(EDParticle& p, map<int, bool>& S_cutset, map<int, bool>& T_cutset);
-    int find_cutset_edges(map<int, bool>& S_cutset, map<int, bool>& T_cutset);
+        vector<int> find_cutset_commodities(const EDParticle& p, const vector<bool>& S_cutSet) const;
+    int find_cutset_edges(const vector<bool>& S_cutSet) const;
     void initialise_NumVarArray();
     vector<int> solve_mip(EDParticle &p);
 };
