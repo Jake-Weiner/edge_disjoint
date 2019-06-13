@@ -85,7 +85,7 @@ void ED::populate_commodities(string filename)
 
 void ED::populate_graph(string filename)
 {
-        //populate the graph
+    //populate the graph
     ifstream input(filename);
     split_vector_type SplitVec;
     size_t edge_number = 0;
@@ -100,7 +100,7 @@ void ED::populate_graph(string filename)
             getline(input, line); //read number
             split(SplitVec, line, is_any_of(" \t"), token_compress_on); // SplitVec == { "hello abc","ABC","aBc goodbye" }
             if (line_count == 0) {
-                num_nodes = stoi(SplitVec[0])+1; // in case the data is indexed from 1..n
+                num_nodes = stoi(SplitVec[0]) + 1; // in case the data is indexed from 1..n
                 //g = graph_t(num_nodes);
                 node_neighbours.resize(num_nodes);
                 line_count++;
@@ -108,7 +108,7 @@ void ED::populate_graph(string filename)
             }
 
             if (SplitVec.size() >= 3) {
-                start_node = stoi(SplitVec[0]); 
+                start_node = stoi(SplitVec[0]);
                 end_node = stoi(SplitVec[1]);
                 current_edge = Edge(start_node, end_node);
                 if (EIM.find(current_edge) != EIM.end()) {
@@ -120,19 +120,19 @@ void ED::populate_graph(string filename)
                 graph_edges.push_back(current_edge);
                 EIM[current_edge] = edge_number;
                 // store which nodes are connected to each other
-				node_neighbours[start_node].push_back(NodeEdgePair(end_node,edge_number));
-				node_neighbours[end_node].push_back(NodeEdgePair(start_node,edge_number));
-				++edge_number;
+                node_neighbours[start_node].push_back(NodeEdgePair(end_node, edge_number));
+                node_neighbours[end_node].push_back(NodeEdgePair(start_node, edge_number));
+                ++edge_number;
                 // AE: Crude fix for the duplicate edge problem
                 // current_edge = Edge(current_edge.second, current_edge.first);
                 // // same edge number in both directions
                 // EIM[current_edge] = edge_number;
-		// edge_number += 1;
+                // edge_number += 1;
             }
         }
     }
-    if(node_neighbours[num_nodes-1].empty())
-        node_neighbours.resize(--num_nodes); 
+    if (node_neighbours[num_nodes - 1].empty())
+        node_neighbours.resize(--num_nodes);
 
     num_edges = graph_edges.size();
 }
@@ -141,16 +141,13 @@ Status ED::reducedCost(const Particle& p, DblVec& redCost)
 {
     // update reduced costs for all edges except for the origin->node dummy edge weight
     for (size_t c = 0; c < commodities.size(); ++c) {
-        for (EdgeIter ei = graph_edges.begin(); ei != graph_edges.end(); ei++) {
-            if (EIM.find(*ei) != EIM.end()) {
-                redCost[primalIdx(EIM[*ei], c)] = -p.dual[EIM[*ei]];
-            }
-        }
+        for (int e = 0; e < get_edges(); ++e)
+            redCost[primalIdx(e, c)] = -p.dual[e];
     }
     return OK;
 }
 
-void ED::update_comm_sol(EDParticle& p, double SP,const vector<NodeEdgePair> &parents, double& total_paths_cost, int index,
+void ED::update_comm_sol(EDParticle& p, double SP, const vector<NodeEdgePair>& parents, double& total_paths_cost, int index,
     int start, int end, bool printing)
 {
     if (SP >= 1 || parents[end].first == -1) { // no (short enough) path to end
@@ -170,31 +167,32 @@ void ED::update_comm_sol(EDParticle& p, double SP,const vector<NodeEdgePair> &pa
             std::cout << "\tPath for " << p.commodities[index].comm_idx << " (" << p.commodities[index].origin
                       << "," << p.commodities[index].dest << ") " << SP << ": ";
         }
-		storePath(p,index,start,end,parents,0,printing);
+        storePath(p, index, start, end, parents, 0, printing);
         if (printing == true)
             std::cout << " " << start << std::endl;
         total_paths_cost += SP;
     }
 }
 
-void ED::storePath(EDParticle &p,int comm,int start,int end,const vector<NodeEdgePair> &parents,
-		 vector<int> *viol,bool doPrint) const
- {
-   for (int current = end; current != start; current = parents[current].first) {
-     if(doPrint) std::cout << " " << current;     
-     if (parents[current].first == -1) {
-       cerr << "issue storingPath - parents array incorrect" << endl;
-     }
-     const int eidx = parents[current].second;
-     p.x[primalIdx(eidx, comm)] += 1;
-     // solution is stored in reverse at here
-     p.commodities[comm].solution_edges.push_back(eidx);
-     if(viol != 0)  (*viol)[eidx] -= 1;
-   }
-   // reversing each time is not really necessary but nice
-   reverse(p.commodities[comm].solution_edges.begin(), p.commodities[comm].solution_edges.end());   
- }
-
+void ED::storePath(EDParticle& p, int comm, int start, int end, const vector<NodeEdgePair>& parents,
+    vector<int>* viol, bool doPrint) const
+{
+    for (int current = end; current != start; current = parents[current].first) {
+        if (doPrint)
+            std::cout << " " << current;
+        if (parents[current].first == -1) {
+            cerr << "issue storingPath - parents array incorrect" << endl;
+        }
+        const int eidx = parents[current].second;
+        p.x[primalIdx(eidx, comm)] += 1;
+        // solution is stored in reverse at here
+        p.commodities[comm].solution_edges.push_back(eidx);
+        if (viol != 0)
+            (*viol)[eidx] -= 1;
+    }
+    // reversing each time is not really necessary but nice
+    reverse(p.commodities[comm].solution_edges.begin(), p.commodities[comm].solution_edges.end());
+}
 
 Status ED::solveSubproblem(Particle& p_)
 {
@@ -236,9 +234,8 @@ Status ED::solveSubproblem(Particle& p_)
 
         // loop through commodities
         for (int i = 0; i < random_indices.size(); i++) {
-            
+
             int random_index = random_indices[i];
-           
 
             //solve SP
             p.commodities[random_index].solution_edges.clear();
@@ -254,10 +251,10 @@ Status ED::solveSubproblem(Particle& p_)
             }
             if (dN) { // djikstras without violation consideration
                 SP = djikstras_naive(EIM, node_neighbours, start, end, parents, num_nodes, num_edges,
-									 p.rc, p.x, p.commodities[random_index].comm_idx, commodities.size(),1.0);
+                    p.rc, p.x, p.commodities[random_index].comm_idx, commodities.size(), 1.0);
             } else { // Threshold = 1.0 means don't return paths longer than 1.0
                 SP = djikstras(max_perturb, EIM, node_neighbours, start, end, parents, num_nodes, num_edges,
-							   p.rc, p.x, p.commodities[random_index].comm_idx, commodities.size(),1.0);
+                    p.rc, p.x, p.commodities[random_index].comm_idx, commodities.size(), 1.0);
             }
             if (SP == -1) {
                 cerr << "error with djikstras" << endl;
@@ -278,7 +275,7 @@ Status ED::solveSubproblem(Particle& p_)
 
     //iterate through commodities in standard order
     else {
-        for(int loop_idx = 0;loop_idx < p.commodities.size(); ++loop_idx){
+        for (int loop_idx = 0; loop_idx < p.commodities.size(); ++loop_idx) {
             //solve SP
             p.commodities[loop_idx].solution_edges.clear();
             start = p.commodities[loop_idx].origin;
@@ -286,10 +283,10 @@ Status ED::solveSubproblem(Particle& p_)
             double SP;
             if (dN) { // djikstras without violation consideration
                 SP = djikstras_naive(EIM, node_neighbours, start, end, parents, num_nodes, num_edges,
-									 p.rc, p.x, p.commodities[loop_idx].comm_idx, commodities.size(),1.0);
+                    p.rc, p.x, p.commodities[loop_idx].comm_idx, commodities.size(), 1.0);
             } else {
                 SP = djikstras(max_perturb, EIM, node_neighbours, start, end, parents, num_nodes, num_edges,
-							   p.rc, p.x, p.commodities[loop_idx].comm_idx, commodities.size(),1.0);
+                    p.rc, p.x, p.commodities[loop_idx].comm_idx, commodities.size(), 1.0);
             }
 
             if (SP == -1) {
@@ -312,14 +309,15 @@ Status ED::solveSubproblem(Particle& p_)
     int path_saved = 0;
 
     for (int i = 0; i < y.size(); i++) {
-		const vector<NodeEdgePair> &parents = p.commodity_shortest_paths[i].parents;
-		int start = p.commodity_shortest_paths[i].start;
-		int end = p.commodity_shortest_paths[i].end;
+        const vector<NodeEdgePair>& parents = p.commodity_shortest_paths[i].parents;
+        int start = p.commodity_shortest_paths[i].start;
+        int end = p.commodity_shortest_paths[i].end;
         if (y[i] == 1) {
             double SP = p.c[i];
             update_comm_sol(p, SP, parents, total_paths_cost, i, start, end, printing);
         } else {
-            if (p.c[i] < 1) path_saved += 1;
+            if (p.c[i] < 1)
+                path_saved += 1;
             update_comm_sol(p, 1.5, parents, total_paths_cost, i, start, end, printing);
         }
     }
@@ -349,7 +347,7 @@ Status ED::solveSubproblem(Particle& p_)
         p_.best_lb_viol = sum_viol;
         p_.best_lb_sol.resize(p.commodities.size());
         for (vector<Commodity>::iterator itr = p.commodities.begin(); itr < p.commodities.end(); ++itr) {
-			p_.best_lb_sol[itr->comm_idx] = itr->solution_edges;
+            p_.best_lb_sol[itr->comm_idx] = itr->solution_edges;
         }
         //if (p_.best_lb_sol.empty()) {
         //    std::cout << "best sol is empty" << endl;
@@ -357,9 +355,9 @@ Status ED::solveSubproblem(Particle& p_)
     }
 
     if (p.isFeasible && (p.ub < p_.best_ub)) {
-		p_.best_ub_sol.resize(p.commodities.size());
+        p_.best_ub_sol.resize(p.commodities.size());
         for (vector<Commodity>::iterator itr = p.commodities.begin(); itr < p.commodities.end(); ++itr) {
-			p_.best_ub_sol[itr->comm_idx] = itr->solution_edges;
+            p_.best_ub_sol[itr->comm_idx] = itr->solution_edges;
         }
 
         p_.best_ub = p.ub;
@@ -409,8 +407,8 @@ Status ED::heuristics(Particle& p_)
     int viol_sum = 0;
     // iterate over solution edges --> locally set viol intvec and make sure p.x is correct
     for (auto it = p.commodities.begin(); it != p.commodities.end(); it++)
-        for (const Edge& e : it->solution_edges) {
-            p.x[primalIdx(EIM[e], it->comm_idx)] += 1;
+        for (const int e : it->solution_edges) {
+            p.x[primalIdx(e, it->comm_idx)] += 1;
             viol[edgeIdx(e)] -= 1;
         }
 
@@ -438,18 +436,18 @@ Status ED::heuristics(Particle& p_)
                 int random_index = random_indices[i];
                 bool remove_path = false;
                 if (!(p.commodities[random_index].solution_edges.empty())) {
-                    for (const Edge& e : p.commodities[random_index].solution_edges) {
+                    for (const int e : p.commodities[random_index].solution_edges) {
                         //contains an edge which is violated
-                        if (viol[edgeIdx(e)] < 0) {
+                        if (viol[e] < 0) {
                             remove_path = true;
                             break;
                         }
                     }
                 }
                 if (remove_path == true) {
-                    for (const Edge& e : p.commodities[random_index].solution_edges) {
-                        p.x[primalIdx(edgeIdx(e), p.commodities[random_index].comm_idx)] -= 1;
-                        viol[edgeIdx(e)] += 1;
+                    for (const int e : p.commodities[random_index].solution_edges) {
+                        p.x[primalIdx(e, p.commodities[random_index].comm_idx)] -= 1;
+                        viol[e] += 1;
                     }
                     p.commodities[random_index].solution_edges.clear();
 
@@ -461,7 +459,7 @@ Status ED::heuristics(Particle& p_)
                         temp_rc[i] = (viol[edgeIdx(i)] == 1) ? 1 : num_edges;
                     }
 
-                    vector<int> parents;
+                    vector<NodeEdgePair> parents;
                     int start = p.commodities[random_index].origin;
                     int end = p.commodities[random_index].dest;
                     int current;
@@ -472,24 +470,10 @@ Status ED::heuristics(Particle& p_)
                     double thresh = num_edges;
                     if (SP < thresh) {
                         //if (SP < 1) {
-
-                        // Iterate over path and add to primal solution
-                        for (current = end; current != start; current = parents[current]) {
-                            if (parents[current] == -1) {
-                                cerr << "issue with repair - parents array incorrect" << endl;
-                                exit;
-                            }
-                            const Edge e(Edge(parents[current], current));
-                            p.x[primalIdx(edgeIdx(e), random_index)] += 1;
-                            // solution is stored in reverse at here
-
-                            p.commodities[random_index].solution_edges.push_back(e);
-                            viol[edgeIdx(e)] -= 1;
+                        storePath(p, random_index, start, end, parents, &viol);
+                        if (printing == true) {
+                            cout << "\t\trandom repaired path for commodity " << random_index << endl;
                         }
-                        // reversing each time is not really necessary but nice
-                        reverse(p.commodities[random_index].solution_edges.begin(), p.commodities[random_index].solution_edges.end());
-                        if (printing == true)
-                            cout << "\t\trepaired path" << endl;
                     }
                 }
             }
@@ -546,9 +530,9 @@ Status ED::heuristics(Particle& p_)
             if (printing == true)
                 cout << "\tlargest comm idx " << largest_com_idx << " with " << -largest_viol << endl;
             // remove this path from both x AND from the solution_edges
-            for (const Edge& e : p.commodities[largest_com_idx].solution_edges) {
-                p.x[primalIdx(edgeIdx(e), largest_com_idx)] -= 1;
-                viol[edgeIdx(e)] += 1;
+            for (const int e : p.commodities[largest_com_idx].solution_edges) {
+                p.x[primalIdx(e, largest_com_idx)] -= 1;
+                viol[e] += 1;
             }
             p.commodities[largest_com_idx].solution_edges.clear();
 
@@ -980,7 +964,7 @@ vector<int> EDParticle::solve_mip(map<vector<int>, int>& constraint_map)
         IloExpr con_exp(env);
         IloRangeArray constraints_to_add(env);
         IloExpr con_exp_temp(env);
-       
+
         /*
         if (constraint_map.empty()){
             IloExpr con_exp(env);
@@ -991,7 +975,7 @@ vector<int> EDParticle::solve_mip(map<vector<int>, int>& constraint_map)
             constraints_to_add.add(r1);
         }
         */
-        
+
         for (map<vector<int>, int>::iterator it = constraint_map.begin(); it != constraint_map.end(); it++) {
             IloExpr con_exp(env);
 
@@ -1022,7 +1006,7 @@ vector<int> EDParticle::solve_mip(map<vector<int>, int>& constraint_map)
         model.add(obj_fn);
 
         IloCplex cplex(model);
-        cplex.setParam(IloCplex::Threads,1); // each particle gets 1 thread only
+        cplex.setParam(IloCplex::Threads, 1); // each particle gets 1 thread only
         cplex.setOut(env.getNullStream());
         //cplex.exportModel("lpex1.lp");
 

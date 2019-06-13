@@ -60,7 +60,7 @@ class ED : public LaPSO::UserHooks {
 public:
     LaPSO::DblVec weights;
     Edge_Int_Map EIM;
-    EdgeVec graph_edges;
+    vector<Edge> graph_edges;
     int solution_cost; // objective value of solution
     vector<EdgeVec> solution_edges; //edges used in each commodity SP
     ED(string graph_filename, string pairs_filename, bool _printing, bool _randComm, 
@@ -105,14 +105,15 @@ public:
   const size_t primalIdx(size_t edge ,int c) const {
     return num_edges(g)*c+ edge; }
   */
-  const size_t primalIdx(const int edge_idx,const int comm_idx){
+  const size_t primalIdx(const int edge_idx,const int comm_idx) const{
     return comm_idx*num_edges + edge_idx;
   }
-  const size_t edgeIdx(const int primal_idx){
+  const size_t edgeIdx(const int primal_idx) const{
     return primal_idx % num_edges;
   }
 
-  const size_t edgeIdx(Edge e){
+    const size_t edgeIdx(Edge e) const{
+    std::cerr << "WARNING: edgeIdx may not be unique!!!!!!!!!!!!!!!!!!!!!\n";
     auto ei = EIM.find(e);
     if(ei == EIM.end()) return 999999999; // error
     return ei->second; 
