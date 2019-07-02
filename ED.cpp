@@ -199,7 +199,7 @@ Status ED::solveSubproblem(Particle& p_)
 
     int start;
     int end;
-    p.ub = p.commodities.size();
+    p.ub = 0; // number of commodities not routed - counted in update_comm_sol()
     p.lb = 0;
     double max_perturb = 0.0;
 
@@ -734,46 +734,49 @@ void ED::localSearch(Particle& p_)
     //randomise commodity iteration order
     random_shuffle(commodities_to_add.begin(), commodities_to_add.end());
 
-    double perturb_min = p.perturb.min();
-    if (perturb_min > 0) {
-        perturb_min = 0;
-    }
+	const double min_perturb = std::min(0.0,p.perturb.min());
+	const double max_perturb = std::max(0.0,p.perturb.max());
+	const double scale =1.0/num_nodes * 1.0/(max_perturb-min_perturb+1e-5);
+	int add_edge_strategy = p.nHeur % 4; // cycle through strategies
+	{  //                          unless we have a fixed strategy
+		vector<string> strategy = {"pert_repair_0","pert_repair_min","rc_repair","arb_repair"};
+		auto s = find(strategy.begin(),strategy.end(),repair_add_edge);
+		if(s != strategy.end()) add_edge_strategy = s - strategy.begin();
+	}
     //try and add in commodities 1 at a time using previously_unused edges
     for (auto it = commodities_to_add.begin(); it != commodities_to_add.end(); it++) {
-        int comm_idx = it->comm_idx;
-        for (int i = 0; i < p.rc.size(); i++) {
-            if (repair_add_edge.compare("pert_repair_0") == 0) {
-                temp_rc[i] = (viol[edgeIdx(i)] == 1) ? p.perturb[i] : 1;
-            } else if (repair_add_edge.compare("pert_repair_min") == 0) {
-                temp_rc[i] = (viol[edgeIdx(i)] == 1) ? p.perturb[i] - perturb_min : 1;
-            } else if (repair_add_edge.compare("rc_repair") == 0) {
-                temp_rc[i] = (viol[edgeIdx(i)] == 1) ? p.rc[i] : 1;
-            } else if (repair_add_edge.compare("arb_repair") == 0) {
-                temp_rc[i] = (viol[edgeIdx(i)] == 1) ? 1 : num_edges;
-            }
-
-            if (temp_rc[i] < 0) {
-                temp_rc[i] = 0 + 1e-16;
-            }
-        }
+        const int comm_idx = it->comm_idx;
+		for (int i = 0; i < p.rc.size(); i++) {
+			switch(add_edge_strategy){
+			case 0 : //if (repair_add_edge.compare("pert_repair_0") == 0) {
+				temp_rc[i] = (viol[edgeIdx(i)] == 1) ? scale*p.perturb[i] : 1; break;
+			case 1: // else if (repair_add_edge.compare("pert_repair_min") == 0) {
+				temp_rc[i] = (viol[edgeIdx(i)] == 1) ? scale*(p.perturb[i] - min_perturb) : 1;
+				if (temp_rc[i] < 0) temp_rc[i] = 0.0; // rounding error
+				break;
+			case 2://} else if (repair_add_edge.compare("rc_repair") == 0) {
+				temp_rc[i] = (viol[edgeIdx(i)] == 1) ?
+					std::min(1.0/num_nodes,p.rc[i]/num_nodes) : 1; break;
+			case 3: //} else if (repair_add_edge.compare("arb_repair") == 0) {
+				temp_rc[i] = (viol[edgeIdx(i)] == 1) ? 1.0/num_nodes : 1.0; break;
+			default:
+				cout << "repair method - add edge not set properly" << endl;
+			}
+			
+			if (temp_rc[i] < 0) temp_rc[i] = 0;
+		}
         vector<NodeEdgePair> parents;
         int start = it->origin;
         int end = it->dest;
+        const double thresh=1.0;
         double SP = djikstras_naive(EIM, node_neighbours, start, end, parents, num_nodes, num_edges,
-            temp_rc, p.x, comm_idx, commodities.size());
+									temp_rc, p.x, comm_idx, commodities.size(),thresh);
         // if no feasible sp exists between orig and dest nodes
-
-        double thresh;
-        if (repair_add_edge.compare("arb_repair") == 0) {
-            thresh = num_edges;
-        } else {
-            thresh = 1;
-        }
         if (SP < thresh) {
             //if (SP < 1) {
             //cout << "added commodity in local_search" << endl;
             // Iterate over path and add to primal solution
-	    storePath(p,comm_idx,start,end,parents,&viol);
+			storePath(p,comm_idx,start,end,parents,&viol);
         }
     }
 

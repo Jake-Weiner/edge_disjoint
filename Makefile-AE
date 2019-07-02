@@ -2,11 +2,12 @@ CPLEX_ROOT=/usr/local/CPLEX/12.8
 INC:=-ILAPSO_Req -I $(CPLEX_ROOT)/cplex/include -I$(CPLEX_ROOT)/concert/include
 CFLAGS=$(INC) -fopenmp -m64  -DIL_STD -O3 -Wall -Wno-sign-compare -g --std=c++11
 CFLAGS+=-DNDEBUG
-#CFLAGS+=-fsanitize=bounds -D_GLIBCXX_DEBUG
 CXXFLAGS:=$(CFLAGS)
 LIBS=-L$(CPLEX_ROOT)/cplex/lib/x86-64_linux/static_pic \
 	-L $(CPLEX_ROOT)/concert/lib/x86-64_linux/static_pic\
-	-lconcert -lilocplex -lcplex -lm -lpthread -ldl -fopenmp -lubsan
+	-lconcert -lilocplex -lcplex -lm -lpthread -ldl -fopenmp
+#CFLAGS+=-fsanitize=bounds -D_GLIBCXX_DEBUG
+#LIBS += -lubsan
 SRC=main_test.cpp ED.cpp LaPSO.cpp CpuTimer.cpp anyoption.cpp VolVolume.cpp prep_mip.cpp djikstra.cpp
 OBJ=$(SRC:.cpp=.o)
 CFLAGS=-O3

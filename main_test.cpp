@@ -238,6 +238,14 @@ int main(int argc, const char** argv)
     }
 
     //if (printing == true) { // always show the final result
+    std::cout << "Best solution missing " << solver.best.ub
+              << " paths, lower bound " << solver.best.lb
+              << std::endl
+              << "CPU time = " << solver.cpuTime()
+              << " elapsed = " << solver.wallTime() << " sec"
+	      << " primal cpu time " << solver.primal_cpu_time
+	      << " dual cpu time " << solver.dual_cpu_time
+	      << std::endl;
 
 
     string parameter_output_file = "";
