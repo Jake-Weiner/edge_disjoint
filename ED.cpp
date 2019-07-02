@@ -933,14 +933,14 @@ vector<int> EDParticle::solve_mip(map<vector<int>, int>& constraint_map)
 
         //cout << "Values        = " << vals << endl;
 
-        cout << "vals size is " << vals.getSize() << endl;
+        double improvement =0;
         for (int i = 0; i < vals.getSize(); i++) {
-            y[i] = vals[i];
+            y[i] = floor(vals[i]+0.1); // make sure we don't get rounding error
+			if(c[i] < 1) improvement += (1-vals[i])*(1-c[i]);
             //cout << "i = " << i << " vals[i] = " << vals[i] << endl;
         }
 
         model.remove(obj_fn);
-        cout << "number of constraints are " << cplex.getNrows() << endl;
         model.remove(constraints_to_add);
 
     } catch (IloException& e) {
