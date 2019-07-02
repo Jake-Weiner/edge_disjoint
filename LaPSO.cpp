@@ -384,7 +384,7 @@ void Problem::solve(UserHooks& hooks)
                 double maxdual = std::max(0.0, swarm[0]->rc.max()) - std::min(0.0, swarm[0]->rc.min());
                 if (maxdual < 1e-9)
                     maxdual = 1;
-#pragma omp parallel for
+#pragma omp parallel for schedule(static, std::max(1, param.nParticles / param.nCPU))
                 for (int idx = 0; idx < param.nParticles; ++idx) {
                     ParticleIter p(swarm, idx);
                     for (int j = 0; j < dsize; ++j) { // generate pertubation about
