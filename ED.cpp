@@ -715,11 +715,10 @@ void ED::localSearch(Particle& p_)
     }
     //randomise commodity iteration order
     random_shuffle(commodities_to_add.begin(), commodities_to_add.end());
+    const double min_perturb = std::min(0.0,p.perturb.min());
+	const double max_perturb = std::max(0.0,p.perturb.max());
+	const double scale =1.0/num_nodes * 1.0/(max_perturb-min_perturb+1e-5);
 
-    double perturb_min = p.perturb.min();
-    if (perturb_min > 0) {
-        perturb_min = 0;
-    }
     //try and add in commodities 1 at a time using previously_unused edges
     for (auto it = commodities_to_add.begin(); it != commodities_to_add.end(); it++) {
         int comm_idx = it->comm_idx;
@@ -734,9 +733,7 @@ void ED::localSearch(Particle& p_)
                 temp_rc[i] = (viol[edgeIdx(i)] == 1) ? 1 : num_edges;
             }
 
-            if (temp_rc[i] < 0) {
-                temp_rc[i] = 0 + 1e-16;
-            }
+            if (temp_rc[i] < 0) temp_rc[i] = 0;
         }
         vector<NodeEdgePair> parents;
         int start = it->origin;
