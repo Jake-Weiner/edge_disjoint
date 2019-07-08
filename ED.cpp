@@ -305,23 +305,18 @@ Status ED::solveSubproblem(Particle& p_)
         }
     }
 
-    vector<int> y = solve_mip(p);
-    int path_saved = 0;
+    //vector<int> y = solve_mip(p);
+    //int path_saved = 0;
 
-    for (int i = 0; i < y.size(); i++) {
+    for (int i = 0; i < p.c.size(); i++) {
         const vector<NodeEdgePair>& parents = p.commodity_shortest_paths[i].parents;
         int start = p.commodity_shortest_paths[i].start;
         int end = p.commodity_shortest_paths[i].end;
-        if (y[i] == 1) {
-            double SP = p.c[i];
-            update_comm_sol(p, SP, parents, total_paths_cost, i, start, end, printing);
-        } else {
-            if (p.c[i] < 1)
-                path_saved += 1;
-            update_comm_sol(p, 1.5, parents, total_paths_cost, i, start, end, printing);
-        }
+        
+        double SP = p.c[i];
+        update_comm_sol(p, SP, parents, total_paths_cost, i, start, end, printing);
     }
-    p.path_saved = path_saved;
+
     p.commodity_shortest_paths.clear();
     p.commodity_shortest_paths.resize(commodities.size());
 
@@ -689,6 +684,8 @@ Status ED::updateBest(Particle& p_)
 void ED::localSearch(Particle& p_)
 {
 
+    return;
+    /*
     EDParticle& p(static_cast<EDParticle&>(p_));
 
     if (!p.isFeasible) {
@@ -777,6 +774,7 @@ void ED::localSearch(Particle& p_)
         }
         p_.best_ub = p.ub;
     }
+    */
 }
 
 void ED::write_mip(vector<Particle*>& non_dom, double lb, double ub, string outfile_name)
