@@ -25,8 +25,10 @@ int main(int argc, const char** argv)
     string dual_euclid_filename = "";
     string perturb_euclid_filename = "";
     string best_lb_filename = "";
+    string best_noncutset_lb_filename = "";
     string best_ub_filename = "";
     string average_lb_filename = "";
+    string average_noncutset_lb_filename = "";
     string average_viol_filename = "";
     string average_path_saved_filename = "";
     string average_ub_filename = "";
@@ -54,6 +56,8 @@ int main(int argc, const char** argv)
     bool convergence_test = false;
     bool _localSearch = false;
     bool print_initial_costs = false;
+
+    
 
     double set_initial = 0.1;
     for (int i = 1; i < argc; ++i) {
@@ -127,26 +131,42 @@ int main(int argc, const char** argv)
             write_outputs = true;
             if (string(argv[i + 1]).find(".csv") != std::string::npos)
                 output_filename = string(argv[i + 1]);
-        } else if (string(argv[i]) == "cT") {
+        } else if (string(argv[i]) == "cT") { 
             convergence_test = true;
-            if (string(argv[i + 1]).find(".csv") != std::string::npos)
-                dual_euclid_filename = string(argv[i + 1]);
-            if (string(argv[i + 2]).find(".csv") != std::string::npos)
-                perturb_euclid_filename = string(argv[i + 2]);
-            if (string(argv[i + 3]).find(".csv") != std::string::npos)
-                best_lb_filename = string(argv[i + 3]);
-            if (string(argv[i + 4]).find(".csv") != std::string::npos)
-                best_ub_filename = string(argv[i + 4]);
-            if (string(argv[i + 5]).find(".csv") != std::string::npos)
-                average_lb_filename = string(argv[i + 5]);
-            if (string(argv[i+6]).find(".csv") != std::string::npos)
-                average_viol_filename = string(argv[i+6]);
-            if (string(argv[i+7]).find(".csv") != std::string::npos)
-                average_path_saved_filename = string(argv[i+7]);
-            if (string(argv[i+8]).find(".csv") != std::string::npos)
-                average_ub_filename = string(argv[i+8]);
-            if (string(argv[i+9]).find(".csv") != std::string::npos)
-                dual_0_filename = string(argv[i+9]);
+            char *end;
+            int cT_int = strtol(argv[i+1], &end, 10);
+            if (*end != '\0') {
+                std::cout << "invalid cT integer.\n";
+                return 1;
+            }
+            int current_index = i;
+            for (int i=current_index+2; i<current_index + 2 + cT_int; i++){
+            std::cout << argv[i] << endl; 
+            if (string(argv[i]).find("dual") != std::string::npos)
+                dual_euclid_filename = string(argv[i]);
+            if (string(argv[i]).find("perturb") != std::string::npos)
+                perturb_euclid_filename = string(argv[i]);
+            if (string(argv[i]).find("best_lb") != std::string::npos)
+                best_lb_filename = string(argv[i]);
+            if (string(argv[i]).find("best_noncutset_lb") != std::string::npos)
+                best_noncutset_lb_filename = string(argv[i]);
+            if (string(argv[i]).find("best_ub") != std::string::npos)
+                best_ub_filename = string(argv[i]);
+            if (string(argv[i]).find("average_lb") != std::string::npos)
+                average_lb_filename = string(argv[i]);
+            if (string(argv[i]).find("average_noncutset_lb") != std::string::npos)
+                average_noncutset_lb_filename = string(argv[i]);
+            if (string(argv[i]).find("average_viol") != std::string::npos)
+                average_viol_filename = string(argv[i]);
+            if (string(argv[i]).find("average_path_saved") != std::string::npos)
+                average_path_saved_filename = string(argv[i]);
+            if (string(argv[i]).find("average_ub") != std::string::npos)
+                average_ub_filename = string(argv[i]);
+            if (string(argv[i]).find("dual_0") != std::string::npos)
+                dual_0_filename = string(argv[i]);
+            }
+
+
             
         }
     }
@@ -381,7 +401,7 @@ int main(int argc, const char** argv)
         outfile.close();
 
         // best lb
-        outfile.open(best_lb_filename);
+        outfile.open(best_lb_filename, std::ios_base::app);
         for (vector<double>::iterator it = solver.best_lb_tracking.begin(); it != solver.best_lb_tracking.end();
              it++) {
             outfile << distance(solver.best_lb_tracking.begin(), it) << "," << *(it) << endl;
@@ -389,7 +409,7 @@ int main(int argc, const char** argv)
         outfile.close();
 
         // best ub
-        outfile.open(best_ub_filename);
+        outfile.open(best_ub_filename, std::ios_base::app);
         for (vector<double>::iterator it = solver.best_ub_tracking.begin(); it != solver.best_ub_tracking.end();
              it++) {
             outfile << distance(solver.best_ub_tracking.begin(), it) << "," << *(it) << endl;
@@ -397,12 +417,13 @@ int main(int argc, const char** argv)
         outfile.close();
 
         // sum lb
-        outfile.open(average_lb_filename);
+        outfile.open(average_lb_filename, std::ios_base::app);
         for (vector<double>::iterator it = solver.average_lb_tracking.begin(); it != solver.average_lb_tracking.end();
              it++) {
             outfile << distance(solver.average_lb_tracking.begin(), it) << "," << *(it) << endl;
         }
         outfile.close();
+
 
         //viol tracking
         outfile.open(average_viol_filename);
