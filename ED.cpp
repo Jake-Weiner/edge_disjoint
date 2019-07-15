@@ -331,6 +331,20 @@ Status ED::solveSubproblem(Particle& p_)
     p.lb = (total_paths_cost + p.dual.sum()) - num_edges * max_perturb;
     //update particles best local solution
     if (p.lb > p_.best_lb) {
+        // try and improve lb with cutset
+        double mip_total_paths_cost = 0;
+        vector<int> y = solve_mip(p);
+
+        for (int i = 0; i < y.size(); i++) {
+            if (y[i] == 1){
+                mip_total_paths_cost += p.c[i];
+            }
+            else{
+                mip_total_paths_cost += 1;
+            }
+        }
+
+        p.lb = (mip_total_paths_cost + p.dual.sum()) - num_edges * max_perturb;
         p_.best_lb = p.lb;
         double sum_viol = 0;
         for (int i = 0; i < p.viol.size(); i++) {
