@@ -305,9 +305,6 @@ Status ED::solveSubproblem(Particle& p_)
         }
     }
 
-    //vector<int> y = solve_mip(p);
-    //int path_saved = 0;
-
     for (int i = 0; i < p.c.size(); i++) {
         const vector<NodeEdgePair>& parents = p.commodity_shortest_paths[i].parents;
         int start = p.commodity_shortest_paths[i].start;
@@ -331,20 +328,6 @@ Status ED::solveSubproblem(Particle& p_)
     p.lb = (total_paths_cost + p.dual.sum()) - num_edges * max_perturb;
     //update particles best local solution
     if (p.lb > p_.best_lb) {
-        // try and improve lb with cutset
-        double mip_total_paths_cost = 0;
-        vector<int> y = solve_mip(p);
-
-        for (int i = 0; i < y.size(); i++) {
-            if (y[i] == 1){
-                mip_total_paths_cost += p.c[i];
-            }
-            else{
-                mip_total_paths_cost += 1;
-            }
-        }
-
-        p.lb = (mip_total_paths_cost + p.dual.sum()) - num_edges * max_perturb;
         p_.best_lb = p.lb;
         double sum_viol = 0;
         for (int i = 0; i < p.viol.size(); i++) {
@@ -358,9 +341,6 @@ Status ED::solveSubproblem(Particle& p_)
         for (vector<Commodity>::iterator itr = p.commodities.begin(); itr < p.commodities.end(); ++itr) {
             p_.best_lb_sol[itr->comm_idx] = itr->solution_edges;
         }
-        //if (p_.best_lb_sol.empty()) {
-        //    std::cout << "best sol is empty" << endl;
-        //}
     }
 
     if (p.isFeasible && (p.ub < p_.best_ub)) {
@@ -587,14 +567,6 @@ Status ED::heuristics(Particle& p_)
                     cout << "\t\trepaired path" << endl;
             }
 
-            else {
-                cut_set_commodities = find_cutset_commodities(p, S_cutSet);
-                cut_set_edges = find_cutset_edges(S_cutSet);
-                if (cut_set_commodities.size() > cut_set_edges) {
-                    p_.local_constraints.push_back({ cut_set_commodities, cut_set_edges });
-                }
-                cut_set_edges = 0;
-            }
         }
     }
 
@@ -647,15 +619,7 @@ Status ED::heuristics(Particle& p_)
                 if (printing == true)
                     cout << "\t\trepaired path" << endl;
 
-            } else {
-                cut_set_commodities = find_cutset_commodities(p, S_cutSet);
-                cut_set_edges = find_cutset_edges(S_cutSet);
-                // add this information to the MIP structures
-                if (cut_set_commodities.size() > cut_set_edges) {
-                    p_.local_constraints.push_back({ cut_set_commodities, cut_set_edges });
-                }
-                cut_set_edges = 0;
-            }
+            } 
         }
     }
     p.ub = 0;
