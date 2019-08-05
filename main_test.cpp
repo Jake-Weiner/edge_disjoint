@@ -123,10 +123,11 @@ int main(int argc, const char** argv)
                 edgestats_filename = string(argv[i + 1]);
         } else if (string(argv[i]) == "wme") {
             write_mip_edges = true;
-            if (string(argv[i + 1]).find("Reduced_Graph") != std::string::npos)
-                mip_edges_folder = string(argv[i + 1]);
-            if (string(argv[i + 2]).find("maps") != std::string::npos)
-                mip_edges_map = string(argv[i + 2]);
+            mip_edges_folder = string(argv[i + 1]);
+            // if (string(argv[i + 1]).find("Reduced_Graph") != std::string::npos)
+                
+            // if (string(argv[i + 2]).find("maps") != std::string::npos)
+            //     mip_edges_map = string(argv[i + 2]);
         } else if (string(argv[i]) == "wo") {
             write_outputs = true;
             if (string(argv[i + 1]).find(".csv") != std::string::npos)
@@ -306,16 +307,16 @@ int main(int argc, const char** argv)
             std::cerr << "Exception opening/reading/closing output file\n";
         }
     }
-    /*
+    
     if (write_mip_edges) {
-        vector<Particle*> swarm_unsorted;
-        if (solver.param.nParticles == 1) {
-            swarm_unsorted = solver.best_particles_primal_time;
-        } else {
-            swarm_unsorted = solver.swarm_primal_time;
-        }
-        vector<Particle*> non_dom_set = sort_non_dom(swarm_unsorted);
-        size_t pos = graph_file.find("/Graphs"); //find location of word
+        // vector<Particle*> swarm_unsorted;
+        // if (solver.param.nParticles == 1) {
+        //     swarm_unsorted = solver.best_particles_primal_time;
+        // } else {
+        //     swarm_unsorted = solver.swarm_primal_time;
+        // }
+        // vector<Particle*> non_dom_set = sort_non_dom(swarm_unsorted);
+        size_t pos = graph_file.find("/graphs"); //find location of word
         graph_file.erase(0, pos + 8); //delete everything before /Graphs
         string instance = pairs_filename;
         pos = pairs_filename.find("rpairs.");
@@ -326,61 +327,67 @@ int main(int argc, const char** argv)
         string mip_edges_filename = mip_edges_folder + "/" + graph_file + "." + instance;
         mip_edges_outfile.open(mip_edges_filename);
         // this file is used for the mip solver
-        bool solved_optimality = false;
-        if (solver.best.lb + solver.param.absGap <= solver.best.ub) {
-            solved_optimality = true;
-        }
-        ofstream mip_edges_map_outfile;
-        mip_edges_map_outfile.open(mip_edges_map, std::ios_base::app);
-        mip_edges_map_outfile << mip_edges_filename << "," << pairs_filename << ","
-                              << solver.param.maxCPU - solver.primal_cpu_time
-                              << "," << solved_optimality << endl;
+        // bool solved_optimality = false;
+        // if (solver.best.lb + solver.param.absGap <= solver.best.ub) {
+        //     solved_optimality = true;
+        // }
+        // ofstream mip_edges_map_outfile;
+        // mip_edges_map_outfile.open(mip_edges_map, std::ios_base::app);
+        // mip_edges_map_outfile << mip_edges_filename << "," << pairs_filename << ","
+        //                       << solver.param.maxCPU - solver.primal_cpu_time
+        //                       << "," << solved_optimality << endl;
 
-        map<Edge, bool> edges_used;
+        //map<Edge, bool> edges_used;
 
         //best feasible soln
-        for (map<int, EdgeVec>::iterator it = solver.best.best_ub_sol.begin(); it != solver.best.best_ub_sol.end(); it++) {
-            for (vector<Edge>::iterator edge_it = solver.best.best_ub_sol[it->first].begin();
-                 edge_it != solver.best.best_ub_sol[it->first].end(); edge_it++) {
-                if (edges_used.find(*edge_it) != edges_used.end()
-                    || edges_used.find(Edge(edge_it->second, edge_it->first)) != edges_used.end()) {
-                    continue;
-                } else {
-                    edges_used[*edge_it] = true;
-                    edge_count++;
-                    if (write_mip_edges) {
-                        mip_edges_outfile << edge_it->first << " " << edge_it->second << " " << it->first << endl;
-                    }
-                }
-            }
-        }
 
-        //write out edges from non_dom set
-        for (int idx = 0; idx < non_dom_set.size(); ++idx) {
-            Problem::ParticleIter p(non_dom_set, idx);
-            for (vector<Edge>::iterator sol_it = p->best_lb_sol.begin(); sol_it != p->best_lb_sol.end(); sol_it++) {
-                if (edges_used.find(*sol_it) != edges_used.end() || edges_used.find(Edge(sol_it->second, sol_it->first)) != edges_used.end()) {
-                    continue;
-                } else {
-                    edges_used[*sol_it] = true;
-                    if (write_mip_edges) {
-                        mip_edges_outfile << sol_it->first << " " << sol_it->second << endl;
-                    }
-                    edge_count++;
-                }
+        for (int i = 0; i<solver.best.best_ub_sol.size();++i){
+            for (auto& edge_pair : solver.best.best_ub_sol[i]){
+                mip_edges_outfile << edge_pair.first << " " << edge_pair.second << " " << i << endl;
             }
         }
-        if (write_edges_stats) {
-            try {
-                outfile.open(edgestats_filename, std::ios_base::app);
-                outfile << graph_file << "," << ed.get_edges() << "," << edge_count << endl;
-                outfile.close();
-            } catch (std::ofstream::failure e) {
-                std::cerr << "Exception opening/reading/closing output file\n";
-            }
-        }
+        // for (map<int, EdgeVec>::iterator it = solver.best.best_ub_sol.begin(); it != solver.best.best_ub_sol.end(); it++) {
+        //     for (vector<Edge>::iterator edge_it = solver.best.best_ub_sol[it->first].begin();
+        //          edge_it != solver.best.best_ub_sol[it->first].end(); edge_it++) {
+        //         if (edges_used.find(*edge_it) != edges_used.end()
+        //             || edges_used.find(Edge(edge_it->second, edge_it->first)) != edges_used.end()) {
+        //             continue;
+        //         } else {
+        //             edges_used[*edge_it] = true;
+        //             edge_count++;
+        //             if (write_mip_edges) {
+        //                 mip_edges_outfile << edge_it->first << " " << edge_it->second << " " << it->first << endl;
+        //             }
+        //         }
+        //     }
+        // }
     }
-    */
+    //     //write out edges from non_dom set
+    //     for (int idx = 0; idx < non_dom_set.size(); ++idx) {
+    //         Problem::ParticleIter p(non_dom_set, idx);
+    //         for (vector<Edge>::iterator sol_it = p->best_lb_sol.begin(); sol_it != p->best_lb_sol.end(); sol_it++) {
+    //             if (edges_used.find(*sol_it) != edges_used.end() || edges_used.find(Edge(sol_it->second, sol_it->first)) != edges_used.end()) {
+    //                 continue;
+    //             } else {
+    //                 edges_used[*sol_it] = true;
+    //                 if (write_mip_edges) {
+    //                     mip_edges_outfile << sol_it->first << " " << sol_it->second << endl;
+    //                 }
+    //                 edge_count++;
+    //             }
+    //         }
+    //     }
+    //     if (write_edges_stats) {
+    //         try {
+    //             outfile.open(edgestats_filename, std::ios_base::app);
+    //             outfile << graph_file << "," << ed.get_edges() << "," << edge_count << endl;
+    //             outfile.close();
+    //         } catch (std::ofstream::failure e) {
+    //             std::cerr << "Exception opening/reading/closing output file\n";
+    //         }
+    //     }
+    // }
+    
     if (convergence_test) {
 
         // dual euclid

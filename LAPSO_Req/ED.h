@@ -18,6 +18,7 @@ struct Commodity {
     int origin;
     int dest;
     EdgeVec solution_edges;
+    vector<Edge> solution_edges_nodes;
     float solution_value;
     int comm_idx;
 };
@@ -63,6 +64,7 @@ public:
     vector<Edge> graph_edges;
     int solution_cost; // objective value of solution
     vector<EdgeVec> solution_edges; //edges used in each commodity SP
+    vector<Edge> solution_edges_nodes; //edges used for MIP warmstart
     ED(string graph_filename, string pairs_filename, bool _printing, bool _randComm, 
     bool _djikstras_naive, string repair_remove_edge,string repair_add_edge);
     //void solve_ED(EDParticle &p);

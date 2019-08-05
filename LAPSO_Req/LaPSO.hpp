@@ -218,8 +218,8 @@ namespace LaPSO {
 		int path_saved;
 		DblVec dVel;		///< dual velocity
 		DblVec pVel;		///< perturbation velocity
-		std::vector<EdgeVec> best_ub_sol;
-		std::vector<EdgeVec> best_lb_sol;
+		std::vector<std::vector<Edge>> best_ub_sol;
+		std::vector<std::vector<Edge>> best_lb_sol;
 		double best_lb = 0;
 		double best_ub = INF;
 		int best_lb_viol = 0;
