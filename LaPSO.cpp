@@ -219,11 +219,30 @@ void Problem::solve(UserHooks& hooks)
         printf("Initial LB=%g UB=%g\n", best.lb, best.ub);
     int noImproveIter = 0, nReset = 0, maxNoImprove = 1000;
 
+    vector<double> lb_time_limits = {90.0, 180.0,  270.0, 360.0, 450.0,  540.0,  630.0,  720.0,  810.0,  900.0};
+
+
+    int current_lb_time_limits_idx = 0;
+    double last_lb_comparison;
     for (nIter = 1; nIter < param.maxIter && cpuTime() < param.maxCPU && wallTime() < param.maxWallTime && status == OK && (best.lb + param.absGap <= best.ub) && fabs(best.ub - best.lb / best.ub) > param.relGap;
          ++nIter) {
 
-        printf("iter num = %d\n", nIter);
 
+        printf("iter num = %d\n", nIter);
+        printf("best upper bound so far is %f \n" , commodities - best.lb);
+        // cpu time is within the limit
+        if (cpuTime() < lb_time_limits[current_lb_time_limits_idx]){
+               last_lb_comparison = commodities - best.lb;
+        }
+        else{ // update next limit, use the last found best solution that was within the limit
+            printf("Current Limit is %f with bound of %f \n",lb_time_limits[current_lb_time_limits_idx],last_lb_comparison);
+
+            current_lb_time_limits_idx++;
+            lb_comparisons.push_back(last_lb_comparison);
+            if (current_lb_time_limits_idx > lb_time_limits.size() -1){
+                break;
+            }
+        }
         if (param.convergence_test == true) {
             double sum_lb = 0;
             int sum_ub = 0;

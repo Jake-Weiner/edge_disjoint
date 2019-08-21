@@ -334,6 +334,7 @@ namespace LaPSO {
 		std::vector<double> average_viol_tracking;
 		std::vector<double> average_path_saved_tracking;
 		std::vector<double> best_lb_tracking;
+		std::vector<double> lb_comparisons;
 		std::vector<double> best_ub_tracking;
 		std::vector<double> dual_0_tracking;
 		std::vector<double> dual_euclid;
