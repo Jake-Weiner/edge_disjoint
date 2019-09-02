@@ -20,6 +20,7 @@ int main(int argc, const char** argv)
     string pairs_filename = "";
     string output_filename = "";
     string mip_edges_folder = "";
+    string reduced_edges_folder = "";
     string mip_edges_map = "";
     string edgestats_filename = "";
     string dual_euclid_filename = "";
@@ -48,9 +49,11 @@ int main(int argc, const char** argv)
     bool mult_update = false;
     bool mult_random_update = false;
     bool write_edges_stats = false;
+
     bool randComm = false;
     bool write_outputs = false;
     bool write_mip_edges = false;
+    bool write_reduced_edges = false;
     bool djikstras_naive = false;
     bool _zeroInitial = false;
     bool particle_tracking = false;
@@ -123,10 +126,9 @@ int main(int argc, const char** argv)
         } else if (string(argv[i]) == "wme") {
             write_mip_edges = true;
             mip_edges_folder = string(argv[i + 1]);
-            // if (string(argv[i + 1]).find("Reduced_Graph") != std::string::npos)
-
-            // if (string(argv[i + 2]).find("maps") != std::string::npos)
-            //     mip_edges_map = string(argv[i + 2]);
+        } else if (string(argv[i]) == "wre") {
+            write_reduced_edges = true;
+            reduced_edges_folder = string(argv[i + 1]);
         } else if (string(argv[i]) == "wo") {
             write_outputs = true;
             if (string(argv[i + 1]).find(".csv") != std::string::npos)
@@ -304,6 +306,26 @@ int main(int argc, const char** argv)
             outfile.close();
         } catch (std::ofstream::failure e) {
             std::cerr << "Exception opening/reading/closing output file\n";
+        }
+    }
+
+    //x variables test
+    if (write_reduced_edges) {
+        size_t pos = graph_file.find("/graphs"); //find location of word
+        graph_file.erase(0, pos + 8); //delete everything before /Graphs
+        string instance = pairs_filename;
+        pos = pairs_filename.find("rpairs.");
+        instance.erase(0, pos + 7);
+        ofstream reduced_edges_outfile;
+        string mip_edges_filename = reduced_edges_folder + "/" + graph_file + "." + instance;
+        reduced_edges_outfile.open(mip_edges_filename);
+        for (int primal_idx = 0; primal_idx < solver.x_total.size(); primal_idx++) {
+            if (solver.x_total[primal_idx] < 7) {
+                int edge_idx = ed.edgeIdx(primal_idx);
+                Edge e = ed.IEM[edge_idx];
+                int commodity_idx = (primal_idx - edge_idx) / ed.get_edges();
+                reduced_edges_outfile << e.first << " " << e.second << " " << commodity_idx << endl;
+            }
         }
     }
 

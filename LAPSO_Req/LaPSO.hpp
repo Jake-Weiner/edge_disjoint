@@ -206,6 +206,7 @@ namespace LaPSO {
 		DblVec dual;	///< lagrange multiplier for each relaxed constraint
 		DblVec perturb; ///< perturbation for each variable
 		IntVec x;	///< primal solution for dual & perturbation
+		
 		/// The viol vector contains the violation from the primal solution
 		/// calculated as b-Ax for the relaxed constraints
 		DblVec viol;
@@ -318,7 +319,7 @@ namespace LaPSO {
 		DblVec dualLB;
 		/// The dual upper bound (0 for <= constraints otherwise +INF)
 		DblVec dualUB;	
-	
+		IntVec x_total;
 		/// Solutions: swarm contains all particles
 		/// swarm is stored as pointers to allow it to contain subclasses of
 		/// Particle. The particles are deleted by the Problem destructor.

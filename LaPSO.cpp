@@ -380,6 +380,12 @@ void Problem::solve(UserHooks& hooks)
 
             // write out particle info to see how it behaves after each iteration
         }
+        for (int idx = 0; idx < param.nParticles; ++idx) {
+            ParticleIter p(swarm, idx);
+            for (int x_idx = 0; x_idx < p->x.size(); ++x_idx){
+                x_total[x_idx] += p->x[x_idx];
+            }
+        }
 
         if (updateBest(hooks, nIter)) {
             noImproveIter = 0;
@@ -507,6 +513,7 @@ double Problem::wallTime() const
 void Problem::initialise(UserHooks& hooks)
 {
     nIter = 0;
+    x_total.resize(psize,0);
     omp_set_num_threads(param.nCPU);
     _wallTime = omp_get_wtime();
     timer.reset();

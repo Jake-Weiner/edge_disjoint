@@ -99,10 +99,10 @@ void ED::populate_graph(string filename)
         while (!input.eof()) {
             string line;
             getline(input, line); //read number
-            split(SplitVec, line, is_any_of(" \t"), token_compress_on); // SplitVec == { "hello abc","ABC","aBc goodbye" }
+            split(SplitVec, line, is_any_of(" \t"), token_compress_on); 
             if (line_count == 0) {
                 num_nodes = stoi(SplitVec[0]) + 1; // in case the data is indexed from 1..n
-                //g = graph_t(num_nodes);
+               
                 node_neighbours.resize(num_nodes);
                 line_count++;
                 continue;
@@ -117,9 +117,10 @@ void ED::populate_graph(string filename)
                               << current_edge.first << " & " << current_edge.second
                               << " - duplicates accepted\n"; // this may give us
                 }
-                //add_edge(current_edge.first, current_edge.second, edge_number, g);
+                
                 graph_edges.push_back(current_edge);
                 EIM[current_edge] = edge_number;
+                IEM[edge_number] = current_edge;
                 // store which nodes are connected to each other
                 node_neighbours[start_node].push_back(NodeEdgePair(end_node, edge_number));
                 node_neighbours[end_node].push_back(NodeEdgePair(start_node, edge_number));
