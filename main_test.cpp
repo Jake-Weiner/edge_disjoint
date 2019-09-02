@@ -320,7 +320,7 @@ int main(int argc, const char** argv)
         string mip_edges_filename = reduced_edges_folder + "/" + graph_file + "." + instance;
         reduced_edges_outfile.open(mip_edges_filename);
         for (int primal_idx = 0; primal_idx < solver.x_total.size(); primal_idx++) {
-            if (solver.x_total[primal_idx] < 7) {
+            if (solver.x_total[primal_idx] < 4) {
                 int edge_idx = ed.edgeIdx(primal_idx);
                 Edge e = ed.IEM[edge_idx];
                 int commodity_idx = (primal_idx - edge_idx) / ed.get_edges();
