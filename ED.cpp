@@ -876,7 +876,51 @@ void ED::add_constraints_mip(vector<pair<vector<int>, int>>& local_constraints)
 
 vector<int> EDParticle::solve_mip(map<vector<int>, int>& constraint_map)
 {
+
+    // K=Set( k for k in keys(od_pairs) if od_pairs[k][source] in vertices && od_pairs[k][sink] in vertices)
+	// @variable(mip,x[i=vertices,j=neighbours[i],k=K],Bin, start=0)
+	// @variable(mip,z[k=K],Bin, start = 0) # is this commodity used?
+	// # for k in keys(od_pairs)
+	// # 	setvalue(z[k],0)
+	// # for key in neighbours
+	// # 	setvalue(x[key,neighbours[key]])
+	
+
+	// open(reduced_edges_file) do reduced_edge_input
+	// 	for (index, data) in enumerate(eachline(reduced_edge_input))
+	// 		a = split(data)
+	// 		first_node = parse(Int16,a[1])
+	// 		second_node = parse(Int16,a[2])
+	// 		commodity_number = parse(Int16,a[3]) + 1
+			
+	// 		setlowerbound(x[first_node,second_node ,commodity_number],0)
+	// 		setlowerbound(x[second_node,first_node ,commodity_number],0)
+	// 		setupperbound(x[first_node,second_node ,commodity_number],0)
+	// 		setupperbound(x[second_node,first_node ,commodity_number],0)
+	// 		# x[first_node,second_node ,commodity_number] == 0
+	// 		# x[second_node,first_node ,commodity_number] == 0
+
+	// 	end
+	// end
+
+	// for obj in warm_start_edges
+	// 	setupperbound(x[obj[1],obj[2],obj[3]],1)
+	//  	setvalue(x[obj[1],obj[2],obj[3]], 1)
+	//  	setvalue(z[obj[3]], 1)
+	// end
+
+	// @objective(mip,Max,sum( z[k] for k=K ))
+
+
+	// @constraint(mip,flow[i=vertices,k=K], sum(x[i,j,k] for j in neighbours[i]) - sum( x[j,i,k] for j in neighbours[i] ) ==
+	//                                               ((i==od_pairs[k][source] ? z[k] : 0) + (i==od_pairs[k][sink] ? -z[k] : 0)))
+	// # @constraint(mip,test_flow[k=K], )                                     
+
+	// @constraint(mip,cap[i=vertices,j=neighbours[i];i<j], sum(x[i,j,k]+x[j,i,k] for k=K) <= 1)
+
+
     vector<int> y;
+    
     y.resize(c.size(), 0);
     IloEnv env;
     IloModel model(env);
