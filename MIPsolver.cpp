@@ -1,17 +1,11 @@
 #include "MIPsolver.h"
 #include "ED.h"
 
-typedef IloArray<IloNumVarArray> NumVarMatrix;
-typedef IloArray<NumVarMatrix> NumVar3Matrix;
+
 
 using namespace std;
 
-template <typename Container> // we can make this generic for any container [1]
-struct container_hash {
-    std::size_t operator()(Container const& c) const {
-        return boost::hash_range(c.begin(), c.end());
-    }
-};
+
 
 void MIP_Solver::generate_nodeNeighbours(vector<vector<NodeEdgePair>>& node_neighbours){
     for (int node_idx = 0; node_idx < node_neighbours.size(); ++node_idx) {
@@ -24,41 +18,43 @@ void MIP_Solver::generate_nodeNeighbours(vector<vector<NodeEdgePair>>& node_neig
     }
 }
 
-void MIP_Solver::test_generate_nodeNeighbours(){
 
-}
 
-IloRangeArray MIP_Solver::generate_EDP_constraints(IloEnv& env, IloNumVarArray& z_var, NumVar3Matrix& x_var){
+// void MIP_Solver::test_generate_nodeNeighbours(){
+
+// }
+
+// IloRangeArray MIP_Solver::generate_EDP_constraints(IloEnv& env, IloNumVarArray& z_var, NumVar3Matrix& x_var){
 
     
-      // flow constraints
-    IloRangeArray constraints_to_add(env);
-    for (int k = 0; k < num_commodities; k++) {
-        for (int vertex = 0; vertex < node_neighbours.size(); ++vertex) {
-            IloExpr out_flow(env);
-            IloExpr in_flow(env);
-            IloExpr flow_constr(env);
-            for (auto& neighbours : node_neighbours[vertex]) {
-                int neighbour_node = neighbours.first;
-                out_flow += x_var[vertex][neighbour_node][k];
-                in_flow += x_var[neighbour_node][vertex][k];
-            }
-            flow_constr = out_flow - in_flow;
-            if (vertex != commodities[k].origin && vertex != commodities[k].dest) {
-                IloRange r1(env, flow_constr == 0);
-                constraints_to_add.add(r1);
-            } else if (vertex == commodities[k].origin) {
-                IloRange r1(env, flow_constr == z_var[k]);
-                constraints_to_add.add(r1);
-            } else if (vertex == commodities[k].dest) {
-                IloRange r1(env, flow_constr == -z_var[k]);
-                constraints_to_add.add(r1);
-            }
-        }
+//       // flow constraints
+//     IloRangeArray constraints_to_add(env);
+//     for (int k = 0; k < num_commodities; k++) {
+//         for (int vertex = 0; vertex < node_neighbours.size(); ++vertex) {
+//             IloExpr out_flow(env);
+//             IloExpr in_flow(env);
+//             IloExpr flow_constr(env);
+//             for (auto& neighbours : node_neighbours[vertex]) {
+//                 int neighbour_node = neighbours.first;
+//                 out_flow += x_var[vertex][neighbour_node][k];
+//                 in_flow += x_var[neighbour_node][vertex][k];
+//             }
+//             flow_constr = out_flow - in_flow;
+//             if (vertex != commodities[k].origin && vertex != commodities[k].dest) {
+//                 IloRange r1(env, flow_constr == 0);
+//                 constraints_to_add.add(r1);
+//             } else if (vertex == commodities[k].origin) {
+//                 IloRange r1(env, flow_constr == z_var[k]);
+//                 constraints_to_add.add(r1);
+//             } else if (vertex == commodities[k].dest) {
+//                 IloRange r1(env, flow_constr == -z_var[k]);
+//                 constraints_to_add.add(r1);
+//             }
+//         }
        
-    }
+//     }
 
-}
+// }
 
 // MIP_Solver::generate_model(int edges, vector<Commodity>& commodities, vector<vector<NodeEdgePair>>& node_neighbours)
 // {

@@ -4,7 +4,7 @@
             "name": "Linux",
             "includePath": [
                 "/home/jake/PhD/Edge_Disjoint/c++/boost_1_67_0/Build/include",
-                "${workspaceFolder}/LAPSO_Req",
+                "/home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/LAPSO_Req",
                 "/home/jake/PhD/Coding_Libraries/cplex/include",
                 "/home/jake/PhD/Coding_Libraries/concert/include"
             ],

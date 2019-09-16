@@ -1,3 +1,6 @@
+#ifndef ED_H
+#define ED_H
+
 #include "LaPSO.hpp"
 #include <ilcplex/ilocplex.h>
 #include <string>
@@ -137,7 +140,7 @@ public:
   int get_edges() {return num_edges;} 
   void storePath(EDParticle &p,int comm,int start,int end,const vector<NodeEdgePair> &parents,
 		 vector<int> *viol=0,bool doPrint=false) const;
-
+  vector<vector<NodeEdgePair>> get_node_neighbours(){return node_neighbours;}
 
 
 private:
@@ -161,6 +164,8 @@ private:
     int find_cutset_edges(const vector<bool>& S_cutSet) const;
     void initialise_NumVarArray();
     vector<int> solve_mip(EDParticle &p);
+
 };
 
 
+#endif 

@@ -8,7 +8,7 @@
             "name": "(gdb) ED_Launch",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/main_test",
+            "program": "/home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/Testing/testing_main",
             "args": ["--perturbFactor=0.5", "--subgradFactor=2","-subgradFmult=0.6", "--velocityFactor=0.1", 
                 "--globalFactor=0.05","--subgradFmin=0.0001",
                 "--printLevel=0" ,"--maxIter=30000","--maxCPU=900", "--nCPU=4","--nParticles=8", "L", "rC", "dN", "sI", "0.1", 
