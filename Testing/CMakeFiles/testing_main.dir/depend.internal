@@ -56,8 +56,8 @@ CMakeFiles/testing_main.dir/MIPsolver_test.cpp.o
  /home/jake/PhD/Coding_Libraries/cplex/include/ilcplex/iloparam.h
  /home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/LAPSO_Req/CpuTimer.h
  /home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/LAPSO_Req/ED.h
+ /home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/LAPSO_Req/EDP_MIPsolver.h
  /home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/LAPSO_Req/LaPSO.hpp
- /home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/LAPSO_Req/MIPsolver.h
  /home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/LAPSO_Req/MIPsolver_test.h
  /home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/Testing/MIPsolver_test.cpp
  /home/jake/PhD/Edge_Disjoint/c++/boost_1_67_0/Build/include/boost/assert.hpp
@@ -773,14 +773,7 @@ CMakeFiles/testing_main.dir/home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git
  /home/jake/PhD/Edge_Disjoint/c++/boost_1_67_0/Build/include/boost/utility/identity_type.hpp
  /home/jake/PhD/Edge_Disjoint/c++/boost_1_67_0/Build/include/boost/utility/result_of.hpp
  /home/jake/PhD/Edge_Disjoint/c++/boost_1_67_0/Build/include/boost/version.hpp
-CMakeFiles/testing_main.dir/home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/LaPSO.cpp.o
- /home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/LAPSO_Req/CpuTimer.h
- /home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/LAPSO_Req/LaPSO.hpp
- /home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/LAPSO_Req/Random.h
- /home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/LAPSO_Req/anyoption.h
- /home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/LAPSO_Req/stdintMSVC.h
- /home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/LaPSO.cpp
-CMakeFiles/testing_main.dir/home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/MIPsolver.cpp.o
+CMakeFiles/testing_main.dir/home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/EDP_MIPsolver.cpp.o
  /home/jake/PhD/Coding_Libraries/concert/include/ilconcert/iloalg.h
  /home/jake/PhD/Coding_Libraries/concert/include/ilconcert/iloalgi.h
  /home/jake/PhD/Coding_Libraries/concert/include/ilconcert/iloallocator.h
@@ -833,11 +826,11 @@ CMakeFiles/testing_main.dir/home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git
  /home/jake/PhD/Coding_Libraries/cplex/include/ilcplex/ilocplexi.h
  /home/jake/PhD/Coding_Libraries/cplex/include/ilcplex/ilogoals.h
  /home/jake/PhD/Coding_Libraries/cplex/include/ilcplex/iloparam.h
+ /home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/EDP_MIPsolver.cpp
  /home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/LAPSO_Req/CpuTimer.h
  /home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/LAPSO_Req/ED.h
+ /home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/LAPSO_Req/EDP_MIPsolver.h
  /home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/LAPSO_Req/LaPSO.hpp
- /home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/LAPSO_Req/MIPsolver.h
- /home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/MIPsolver.cpp
  /home/jake/PhD/Edge_Disjoint/c++/boost_1_67_0/Build/include/boost/assert.hpp
  /home/jake/PhD/Edge_Disjoint/c++/boost_1_67_0/Build/include/boost/config.hpp
  /home/jake/PhD/Edge_Disjoint/c++/boost_1_67_0/Build/include/boost/config/compiler/borland.hpp
@@ -957,6 +950,13 @@ CMakeFiles/testing_main.dir/home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git
  /home/jake/PhD/Edge_Disjoint/c++/boost_1_67_0/Build/include/boost/type_traits/remove_cv.hpp
  /home/jake/PhD/Edge_Disjoint/c++/boost_1_67_0/Build/include/boost/type_traits/remove_reference.hpp
  /home/jake/PhD/Edge_Disjoint/c++/boost_1_67_0/Build/include/boost/version.hpp
+CMakeFiles/testing_main.dir/home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/LaPSO.cpp.o
+ /home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/LAPSO_Req/CpuTimer.h
+ /home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/LAPSO_Req/LaPSO.hpp
+ /home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/LAPSO_Req/Random.h
+ /home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/LAPSO_Req/anyoption.h
+ /home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/LAPSO_Req/stdintMSVC.h
+ /home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/LaPSO.cpp
 CMakeFiles/testing_main.dir/home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/VolVolume.cpp.o
  /home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/LAPSO_Req/CpuTimer.h
  /home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/LAPSO_Req/LaPSO.hpp
@@ -1202,8 +1202,8 @@ CMakeFiles/testing_main.dir/main.cpp.o
  /home/jake/PhD/Coding_Libraries/cplex/include/ilcplex/iloparam.h
  /home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/LAPSO_Req/CpuTimer.h
  /home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/LAPSO_Req/ED.h
+ /home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/LAPSO_Req/EDP_MIPsolver.h
  /home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/LAPSO_Req/LaPSO.hpp
- /home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/LAPSO_Req/MIPsolver.h
  /home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/LAPSO_Req/MIPsolver_test.h
  /home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/LAPSO_Req/Random.h
  /home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/LAPSO_Req/VolVolume.hpp

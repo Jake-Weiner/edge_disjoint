@@ -2,7 +2,7 @@
 
 void generate_nodeNeighbours_test(vector<vector<NodeEdgePair>>& node_neighbours){
 
-    MIP_Solver ms;
+    EDP_MIPsolver ms;
     ms.generate_nodeNeighbours(node_neighbours);
     unordered_map<int, vector<int>> nN = ms.get_nodeNeighbours();
     //node_neighbours (from ED class) output
@@ -23,4 +23,9 @@ void generate_nodeNeighbours_test(vector<vector<NodeEdgePair>>& node_neighbours)
         cout << endl;
     }
 
+}
+
+void solve_EDP_MIP(int edges, const vector<Commodity>& commodities, vector<vector<NodeEdgePair>>& node_neighbours){
+    EDP_MIPsolver ms;
+    ms.solve_EDP(edges, commodities, node_neighbours);
 }

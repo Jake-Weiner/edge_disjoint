@@ -22,6 +22,6 @@ link_directories("/home/jake/PhD/Coding_Libraries/cplex/lib/x86-64_linux/static_
 link_directories("/home/jake/PhD/Coding_Libraries/concert/lib/x86-64_linux/static_pic")
 link_directories("/home/jake/PhD/Edge_Disjoint/c++/boost_1_67_0/Build/lib")
 
-add_executable(testing_main main.cpp MIPsolver_test.cpp ${Root_Folder}/MIPsolver.cpp ${Root_Folder}/ED.cpp ${Root_Folder}/LaPSO.cpp ${Root_Folder}/CpuTimer.cpp ${Root_Folder}/anyoption.cpp ${Root_Folder}/VolVolume.cpp ${Root_Folder}/prep_mip.cpp ${Root_Folder}/djikstra.cpp)
+add_executable(testing_main main.cpp MIPsolver_test.cpp ${Root_Folder}/EDP_MIPsolver.cpp ${Root_Folder}/ED.cpp ${Root_Folder}/LaPSO.cpp ${Root_Folder}/CpuTimer.cpp ${Root_Folder}/anyoption.cpp ${Root_Folder}/VolVolume.cpp ${Root_Folder}/prep_mip.cpp ${Root_Folder}/djikstra.cpp)
 
 target_link_libraries(testing_main concert ilocplex cplex m pthread dl)

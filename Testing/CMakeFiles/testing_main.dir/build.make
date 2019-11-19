@@ -83,18 +83,18 @@ CMakeFiles/testing_main.dir/MIPsolver_test.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/testing_main.dir/MIPsolver_test.cpp.s"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/Testing/MIPsolver_test.cpp -o CMakeFiles/testing_main.dir/MIPsolver_test.cpp.s
 
-CMakeFiles/testing_main.dir/home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/MIPsolver.cpp.o: CMakeFiles/testing_main.dir/flags.make
-CMakeFiles/testing_main.dir/home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/MIPsolver.cpp.o: /home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/MIPsolver.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/Testing/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building CXX object CMakeFiles/testing_main.dir/home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/MIPsolver.cpp.o"
-	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/testing_main.dir/home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/MIPsolver.cpp.o -c /home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/MIPsolver.cpp
+CMakeFiles/testing_main.dir/home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/EDP_MIPsolver.cpp.o: CMakeFiles/testing_main.dir/flags.make
+CMakeFiles/testing_main.dir/home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/EDP_MIPsolver.cpp.o: /home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/EDP_MIPsolver.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/Testing/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building CXX object CMakeFiles/testing_main.dir/home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/EDP_MIPsolver.cpp.o"
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/testing_main.dir/home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/EDP_MIPsolver.cpp.o -c /home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/EDP_MIPsolver.cpp
 
-CMakeFiles/testing_main.dir/home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/MIPsolver.cpp.i: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/testing_main.dir/home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/MIPsolver.cpp.i"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/MIPsolver.cpp > CMakeFiles/testing_main.dir/home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/MIPsolver.cpp.i
+CMakeFiles/testing_main.dir/home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/EDP_MIPsolver.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/testing_main.dir/home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/EDP_MIPsolver.cpp.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/EDP_MIPsolver.cpp > CMakeFiles/testing_main.dir/home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/EDP_MIPsolver.cpp.i
 
-CMakeFiles/testing_main.dir/home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/MIPsolver.cpp.s: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/testing_main.dir/home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/MIPsolver.cpp.s"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/MIPsolver.cpp -o CMakeFiles/testing_main.dir/home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/MIPsolver.cpp.s
+CMakeFiles/testing_main.dir/home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/EDP_MIPsolver.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/testing_main.dir/home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/EDP_MIPsolver.cpp.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/EDP_MIPsolver.cpp -o CMakeFiles/testing_main.dir/home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/EDP_MIPsolver.cpp.s
 
 CMakeFiles/testing_main.dir/home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/ED.cpp.o: CMakeFiles/testing_main.dir/flags.make
 CMakeFiles/testing_main.dir/home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/ED.cpp.o: /home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/ED.cpp
@@ -191,7 +191,7 @@ CMakeFiles/testing_main.dir/home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git
 testing_main_OBJECTS = \
 "CMakeFiles/testing_main.dir/main.cpp.o" \
 "CMakeFiles/testing_main.dir/MIPsolver_test.cpp.o" \
-"CMakeFiles/testing_main.dir/home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/MIPsolver.cpp.o" \
+"CMakeFiles/testing_main.dir/home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/EDP_MIPsolver.cpp.o" \
 "CMakeFiles/testing_main.dir/home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/ED.cpp.o" \
 "CMakeFiles/testing_main.dir/home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/LaPSO.cpp.o" \
 "CMakeFiles/testing_main.dir/home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/CpuTimer.cpp.o" \
@@ -205,7 +205,7 @@ testing_main_EXTERNAL_OBJECTS =
 
 testing_main: CMakeFiles/testing_main.dir/main.cpp.o
 testing_main: CMakeFiles/testing_main.dir/MIPsolver_test.cpp.o
-testing_main: CMakeFiles/testing_main.dir/home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/MIPsolver.cpp.o
+testing_main: CMakeFiles/testing_main.dir/home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/EDP_MIPsolver.cpp.o
 testing_main: CMakeFiles/testing_main.dir/home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/ED.cpp.o
 testing_main: CMakeFiles/testing_main.dir/home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/LaPSO.cpp.o
 testing_main: CMakeFiles/testing_main.dir/home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/CpuTimer.cpp.o

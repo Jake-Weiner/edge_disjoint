@@ -204,6 +204,33 @@ home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/ED.cpp.s:
 	$(MAKE) -f CMakeFiles/testing_main.dir/build.make CMakeFiles/testing_main.dir/home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/ED.cpp.s
 .PHONY : home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/ED.cpp.s
 
+home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/EDP_MIPsolver.o: home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/EDP_MIPsolver.cpp.o
+
+.PHONY : home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/EDP_MIPsolver.o
+
+# target to build an object file
+home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/EDP_MIPsolver.cpp.o:
+	$(MAKE) -f CMakeFiles/testing_main.dir/build.make CMakeFiles/testing_main.dir/home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/EDP_MIPsolver.cpp.o
+.PHONY : home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/EDP_MIPsolver.cpp.o
+
+home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/EDP_MIPsolver.i: home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/EDP_MIPsolver.cpp.i
+
+.PHONY : home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/EDP_MIPsolver.i
+
+# target to preprocess a source file
+home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/EDP_MIPsolver.cpp.i:
+	$(MAKE) -f CMakeFiles/testing_main.dir/build.make CMakeFiles/testing_main.dir/home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/EDP_MIPsolver.cpp.i
+.PHONY : home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/EDP_MIPsolver.cpp.i
+
+home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/EDP_MIPsolver.s: home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/EDP_MIPsolver.cpp.s
+
+.PHONY : home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/EDP_MIPsolver.s
+
+# target to generate assembly for a file
+home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/EDP_MIPsolver.cpp.s:
+	$(MAKE) -f CMakeFiles/testing_main.dir/build.make CMakeFiles/testing_main.dir/home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/EDP_MIPsolver.cpp.s
+.PHONY : home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/EDP_MIPsolver.cpp.s
+
 home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/LaPSO.o: home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/LaPSO.cpp.o
 
 .PHONY : home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/LaPSO.o
@@ -230,33 +257,6 @@ home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/LaPSO.s: home/jake/PhD/Edge
 home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/LaPSO.cpp.s:
 	$(MAKE) -f CMakeFiles/testing_main.dir/build.make CMakeFiles/testing_main.dir/home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/LaPSO.cpp.s
 .PHONY : home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/LaPSO.cpp.s
-
-home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/MIPsolver.o: home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/MIPsolver.cpp.o
-
-.PHONY : home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/MIPsolver.o
-
-# target to build an object file
-home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/MIPsolver.cpp.o:
-	$(MAKE) -f CMakeFiles/testing_main.dir/build.make CMakeFiles/testing_main.dir/home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/MIPsolver.cpp.o
-.PHONY : home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/MIPsolver.cpp.o
-
-home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/MIPsolver.i: home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/MIPsolver.cpp.i
-
-.PHONY : home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/MIPsolver.i
-
-# target to preprocess a source file
-home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/MIPsolver.cpp.i:
-	$(MAKE) -f CMakeFiles/testing_main.dir/build.make CMakeFiles/testing_main.dir/home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/MIPsolver.cpp.i
-.PHONY : home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/MIPsolver.cpp.i
-
-home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/MIPsolver.s: home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/MIPsolver.cpp.s
-
-.PHONY : home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/MIPsolver.s
-
-# target to generate assembly for a file
-home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/MIPsolver.cpp.s:
-	$(MAKE) -f CMakeFiles/testing_main.dir/build.make CMakeFiles/testing_main.dir/home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/MIPsolver.cpp.s
-.PHONY : home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/MIPsolver.cpp.s
 
 home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/VolVolume.o: home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/VolVolume.cpp.o
 
@@ -411,12 +411,12 @@ help:
 	@echo "... home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/ED.o"
 	@echo "... home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/ED.i"
 	@echo "... home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/ED.s"
+	@echo "... home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/EDP_MIPsolver.o"
+	@echo "... home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/EDP_MIPsolver.i"
+	@echo "... home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/EDP_MIPsolver.s"
 	@echo "... home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/LaPSO.o"
 	@echo "... home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/LaPSO.i"
 	@echo "... home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/LaPSO.s"
-	@echo "... home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/MIPsolver.o"
-	@echo "... home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/MIPsolver.i"
-	@echo "... home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/MIPsolver.s"
 	@echo "... home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/VolVolume.o"
 	@echo "... home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/VolVolume.i"
 	@echo "... home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/VolVolume.s"

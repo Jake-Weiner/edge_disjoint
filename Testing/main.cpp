@@ -9,7 +9,7 @@
 #include <fstream>
 #include <iostream>
 #include <string>
-#include "MIPsolver.h"
+#include "EDP_MIPsolver.h"
 #include "MIPsolver_test.h"
 
 using namespace LaPSO;
@@ -209,7 +209,8 @@ int main(int argc, const char** argv)
     solver.best.lb = 0; // no path left out
     solver.dualUB = 0; // all constraints are <= so lagrange multipliers are <= 0
     vector<vector<NodeEdgePair>> node_neighbours = ed.get_node_neighbours();
-    generate_nodeNeighbours_test(node_neighbours);
+    solve_EDP_MIP(ed.get_edges(),ed.getComm(),node_neighbours);
+
     Uniform rand;
     if (solver.param.randomSeed == 0)
         rand.seedTime();
@@ -244,7 +245,7 @@ int main(int argc, const char** argv)
         std::cout << "set up solver with " << solver.param.nParticles
                   << " particles"
                   << " using veloctiy factor of " << solver.param.velocityFactor << endl;
-        solver.solve(ed);
+        //solver.solve(ed);
     }
 
 
