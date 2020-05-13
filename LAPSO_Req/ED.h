@@ -2,11 +2,13 @@
 #define ED_H
 
 #include "LaPSO.hpp"
+#include "types.h"
 #include <ilcplex/ilocplex.h>
 #include <string>
 #include <map>
 #include <unordered_map>
 #include <boost/functional/hash.hpp>
+
 
 using namespace LaPSO;
 using namespace std;
@@ -32,6 +34,7 @@ struct Commodity_SP {
     int end;
     vector<NodeEdgePair> parents;
 };
+
 
 template <typename Container> // we can make this generic for any container [1]
 struct container_hash {
@@ -88,7 +91,7 @@ public:
     vector<EdgeVec> solution_edges; //edges used in each commodity SP
     vector<Edge> solution_edges_nodes; //edges used for MIP warmstart
     ED(string graph_filename, string pairs_filename, bool _printing, bool _randComm, 
-    bool _djikstras_naive, string repair_remove_edge,string repair_add_edge);
+    bool _djikstras_naive, repairRemoveEdgeMethod RREM, repairAddEdgeMethod RAEM);
     //void solve_ED(EDParticle &p);
     int nEDsolves;		// number of times ED was solved
     int maxEDsolves;		// abort after this many
@@ -167,8 +170,9 @@ private:
     //IloRangeArray global_constraints;
     vector<pair<vector<int>,int>> global_constraints;
     map<vector<int>,int> constraint_map;
-    string repair_remove_edge;
-    string repair_add_edge;
+    repairRemoveEdgeMethod RREM;
+    repairAddEdgeMethod RAEM;
+    
     vector<vector<NodeEdgePair>> node_neighbours;
     void remove_commodity(EDParticle& p, IntVec& viol, int commodity_index);
     void add_commodity(EDParticle& p, IntVec& viol, vector<int>& parents, int start, int end, int commodity_index);

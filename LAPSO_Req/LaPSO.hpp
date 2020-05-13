@@ -101,7 +101,7 @@ namespace LaPSO {
 		bool particle_tracking;
 		std::string particle_tracking_filename;
 		bool localSearch = false;
-		bool convergence_test = false;
+		bool iteration_checks = false;
 		std::string convergence_output;
 		
     };

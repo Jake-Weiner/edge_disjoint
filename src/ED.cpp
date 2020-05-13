@@ -47,8 +47,8 @@ type_name()
 using namespace boost;
 using namespace std;
 
-ED::ED(string graph_filename, string pairs_filename, bool _printing, bool _randComm, bool _djikstras_naive,
-    string _repair_remove_edge, string _repair_add_edge)
+ED::ED(string graph_filename, string pairs_filename, bool _printing, bool _randComm, bool _djikstras_naive, repairRemoveEdgeMethod RREM,
+    repairAddEdgeMethod RAEM)
     : nEDsolves(0)
     , maxEDsolves(10)
 {
@@ -59,8 +59,8 @@ ED::ED(string graph_filename, string pairs_filename, bool _printing, bool _randC
     printing = _printing;
     randComm = _randComm;
     dN = _djikstras_naive;
-    repair_remove_edge = _repair_remove_edge;
-    repair_add_edge = _repair_add_edge;
+    this->RREM =  RREM;
+    this->RAEM = RAEM;
 }
 
 ED::~ED() {}
@@ -456,7 +456,7 @@ Status ED::heuristics(Particle& p_)
         if (printing == true)
             cout << "\tviol sum is " << viol.sum() << endl;
 
-        if (repair_remove_edge.compare("random") == 0) {
+        if (RREM == random ) {
             cout << "using random repair" << endl;
             vector<int> random_indices;
             for (int i = 0; i < p.commodities.size(); i++) {
@@ -526,7 +526,8 @@ Status ED::heuristics(Particle& p_)
             largest_viol = 0;
             double largest_perturb = -1;
 
-            if (repair_remove_edge.compare("largest_viol") == 0) {
+            // Using remove largest viol method
+            if (RREM  == largest_viol) {
                 //find commodity with the largest violation, that contains this edge
                 for (auto it = p.commodities.begin(); it != p.commodities.end(); it++) {
                     if (p.x[primalIdx(largest_viol_idx, it->comm_idx)] > 0) { // the commodity contains this edge
@@ -542,7 +543,8 @@ Status ED::heuristics(Particle& p_)
                         }
                     }
                 }
-            } else if (repair_remove_edge.compare("perturb") == 0) {
+                // using remove perturb method
+            } else if (RREM  == perturb) {
                 //remove with highest perturbation value (this commodity is least likely to use this edge)
                 for (auto it = p.commodities.begin(); it != p.commodities.end(); it++) {
                     if (p.x[primalIdx(largest_viol_idx, it->comm_idx)] > 1.0e-6) { // the commodity contains this edge
@@ -578,15 +580,17 @@ Status ED::heuristics(Particle& p_)
             const double min_perturb = std::min(0.0, p.perturb.min());
             const double max_perturb = std::max(0.0, p.perturb.max());
             const double scale = 1.0 / num_nodes * 1.0 / (max_perturb - min_perturb + 1e-5);
+
+
             for (int i = 0; i < p.rc.size(); i++) {
-                if (repair_add_edge.compare("pert_repair_0") == 0) {
+                if (RAEM == pert_repair_0) {
                     temp_rc[i] = (viol[edgeIdx(i)] == 1) ? scale * p.perturb[i] : 1;
-                } else if (repair_add_edge.compare("pert_repair_min") == 0) {
+                } else if (RAEM == pert_repair_min) {
                     temp_rc[i] = (viol[edgeIdx(i)] == 1) ? scale * (p.perturb[i] - min_perturb) : 1;
 
-                } else if (repair_add_edge.compare("rc_repair") == 0) {
+                } else if (RAEM == rc_repair) {
                     temp_rc[i] = (viol[edgeIdx(i)] == 1) ? std::min(1.0 / num_nodes, p.rc[i] / num_nodes) : 1;
-                } else if (repair_add_edge.compare("arb_repair") == 0) {
+                } else if (RAEM == arb_repair) {
                     temp_rc[i] = (viol[edgeIdx(i)] == 1) ? 1.0 / num_nodes : 1.0;
                 } else {
                     cout << "repair method - add edge not set properly" << endl;
@@ -617,58 +621,60 @@ Status ED::heuristics(Particle& p_)
         }
     }
 
-    if (p.repair_iter % 3 == 0) {
-        vector<Commodity> commodities_to_add;
-        for (auto it = p.commodities.begin(); it != p.commodities.end(); it++) {
-            // commodity checks and reset p.x
-            if (it->solution_edges.empty()) {
-                commodities_to_add.push_back(*it);
-            }
-        }
-        DblVec temp_rc;
-        temp_rc.resize(p.rc.size());
-        for (auto it = commodities_to_add.begin(); it != commodities_to_add.end(); it++) {
-            int comm_idx = it->comm_idx;
-            const double min_perturb = std::min(0.0, p.perturb.min());
-            const double max_perturb = std::max(0.0, p.perturb.max());
-            const double scale = 1.0 / num_nodes * 1.0 / (max_perturb - min_perturb + 1e-5);
-            for (int i = 0; i < p.rc.size(); i++) {
-                if (repair_add_edge.compare("pert_repair_0") == 0) {
-                    temp_rc[i] = (viol[edgeIdx(i)] == 1) ? scale * p.perturb[i] : 1;
-                } else if (repair_add_edge.compare("pert_repair_min") == 0) {
-                    temp_rc[i] = (viol[edgeIdx(i)] == 1) ? scale * (p.perturb[i] - min_perturb) : 1;
+    // if (p.repair_iter % 3 == 0) {
+    //     vector<Commodity> commodities_to_add;
+    //     for (auto it = p.commodities.begin(); it != p.commodities.end(); it++) {
+    //         // commodity checks and reset p.x
+    //         if (it->solution_edges.empty()) {
+    //             commodities_to_add.push_back(*it);
+    //         }
+    //     }
+    //     DblVec temp_rc;
+    //     temp_rc.resize(p.rc.size());
+    //     for (auto it = commodities_to_add.begin(); it != commodities_to_add.end(); it++) {
+    //         int comm_idx = it->comm_idx;
+    //         const double min_perturb = std::min(0.0, p.perturb.min());
+    //         const double max_perturb = std::max(0.0, p.perturb.max());
+    //         const double scale = 1.0 / num_nodes * 1.0 / (max_perturb - min_perturb + 1e-5);
+    //         for (int i = 0; i < p.rc.size(); i++) {
+    //             if (repair_add_edge.compare("pert_repair_0") == 0) {
+    //                 temp_rc[i] = (viol[edgeIdx(i)] == 1) ? scale * p.perturb[i] : 1;
+    //             } else if (repair_add_edge.compare("pert_repair_min") == 0) {
+    //                 temp_rc[i] = (viol[edgeIdx(i)] == 1) ? scale * (p.perturb[i] - min_perturb) : 1;
 
-                } else if (repair_add_edge.compare("rc_repair") == 0) {
-                    temp_rc[i] = (viol[edgeIdx(i)] == 1) ? std::min(1.0 / num_nodes, p.rc[i] / num_nodes) : 1;
-                } else if (repair_add_edge.compare("arb_repair") == 0) {
-                    temp_rc[i] = (viol[edgeIdx(i)] == 1) ? 1.0 / num_nodes : 1.0;
-                } else {
-                    cout << "repair method - add edge not set properly" << endl;
-                }
+    //             } else if (repair_add_edge.compare("rc_repair") == 0) {
+    //                 temp_rc[i] = (viol[edgeIdx(i)] == 1) ? std::min(1.0 / num_nodes, p.rc[i] / num_nodes) : 1;
+    //             } else if (repair_add_edge.compare("arb_repair") == 0) {
+    //                 temp_rc[i] = (viol[edgeIdx(i)] == 1) ? 1.0 / num_nodes : 1.0;
+    //             } else {
+    //                 cout << "repair method - add edge not set properly" << endl;
+    //             }
 
-                if (temp_rc[i] < 0) { // rounding error
-                    temp_rc[i] = 0.0;
-                }
-            }
+    //             if (temp_rc[i] < 0) { // rounding error
+    //                 temp_rc[i] = 0.0;
+    //             }
+    //         }
 
-            // calculate theshold that paths require for successful path connection
-            const double thresh = 1.0;
-            vector<NodeEdgePair> parents;
-            int start = it->origin;
-            int end = it->dest;
-            int current;
-            vector<int> cutset;
-            double SP = djikstras_naive_cutSet(EIM, node_neighbours, start, end, parents, num_nodes, num_edges,
-                temp_rc, p.x, comm_idx, commodities.size(), S_cutSet, thresh);
+    //         // calculate theshold that paths require for successful path connection
+    //         const double thresh = 1.0;
+    //         vector<NodeEdgePair> parents;
+    //         int start = it->origin;
+    //         int end = it->dest;
+    //         int current;
+    //         vector<int> cutset;
+    //         double SP = djikstras_naive_cutSet(EIM, node_neighbours, start, end, parents, num_nodes, num_edges,
+    //             temp_rc, p.x, comm_idx, commodities.size(), S_cutSet, thresh);
 
-            if (SP < thresh) {
-                storePath(p, comm_idx, start, end, parents, &viol);
-                if (printing == true)
-                    cout << "\t\trepaired path" << endl;
+    //         if (SP < thresh) {
+    //             storePath(p, comm_idx, start, end, parents, &viol);
+    //             if (printing == true)
+    //                 cout << "\t\trepaired path" << endl;
 
-            } 
-        }
-    }
+    //         } 
+    //     }
+    // }
+
+    
     p.ub = 0;
 
     for (auto it = p.commodities.begin(); it != p.commodities.end(); it++) {
