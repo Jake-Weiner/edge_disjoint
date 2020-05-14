@@ -123,221 +123,248 @@ main_test/fast:
 	$(MAKE) -f CMakeFiles/main_test.dir/build.make CMakeFiles/main_test.dir/build
 .PHONY : main_test/fast
 
-CpuTimer.o: CpuTimer.cpp.o
+src/ArgParser.o: src/ArgParser.cpp.o
 
-.PHONY : CpuTimer.o
-
-# target to build an object file
-CpuTimer.cpp.o:
-	$(MAKE) -f CMakeFiles/main_test.dir/build.make CMakeFiles/main_test.dir/CpuTimer.cpp.o
-.PHONY : CpuTimer.cpp.o
-
-CpuTimer.i: CpuTimer.cpp.i
-
-.PHONY : CpuTimer.i
-
-# target to preprocess a source file
-CpuTimer.cpp.i:
-	$(MAKE) -f CMakeFiles/main_test.dir/build.make CMakeFiles/main_test.dir/CpuTimer.cpp.i
-.PHONY : CpuTimer.cpp.i
-
-CpuTimer.s: CpuTimer.cpp.s
-
-.PHONY : CpuTimer.s
-
-# target to generate assembly for a file
-CpuTimer.cpp.s:
-	$(MAKE) -f CMakeFiles/main_test.dir/build.make CMakeFiles/main_test.dir/CpuTimer.cpp.s
-.PHONY : CpuTimer.cpp.s
-
-ED.o: ED.cpp.o
-
-.PHONY : ED.o
+.PHONY : src/ArgParser.o
 
 # target to build an object file
-ED.cpp.o:
-	$(MAKE) -f CMakeFiles/main_test.dir/build.make CMakeFiles/main_test.dir/ED.cpp.o
-.PHONY : ED.cpp.o
+src/ArgParser.cpp.o:
+	$(MAKE) -f CMakeFiles/main_test.dir/build.make CMakeFiles/main_test.dir/src/ArgParser.cpp.o
+.PHONY : src/ArgParser.cpp.o
 
-ED.i: ED.cpp.i
+src/ArgParser.i: src/ArgParser.cpp.i
 
-.PHONY : ED.i
+.PHONY : src/ArgParser.i
 
 # target to preprocess a source file
-ED.cpp.i:
-	$(MAKE) -f CMakeFiles/main_test.dir/build.make CMakeFiles/main_test.dir/ED.cpp.i
-.PHONY : ED.cpp.i
+src/ArgParser.cpp.i:
+	$(MAKE) -f CMakeFiles/main_test.dir/build.make CMakeFiles/main_test.dir/src/ArgParser.cpp.i
+.PHONY : src/ArgParser.cpp.i
 
-ED.s: ED.cpp.s
+src/ArgParser.s: src/ArgParser.cpp.s
 
-.PHONY : ED.s
+.PHONY : src/ArgParser.s
 
 # target to generate assembly for a file
-ED.cpp.s:
-	$(MAKE) -f CMakeFiles/main_test.dir/build.make CMakeFiles/main_test.dir/ED.cpp.s
-.PHONY : ED.cpp.s
+src/ArgParser.cpp.s:
+	$(MAKE) -f CMakeFiles/main_test.dir/build.make CMakeFiles/main_test.dir/src/ArgParser.cpp.s
+.PHONY : src/ArgParser.cpp.s
 
-LaPSO.o: LaPSO.cpp.o
+src/CpuTimer.o: src/CpuTimer.cpp.o
 
-.PHONY : LaPSO.o
+.PHONY : src/CpuTimer.o
 
 # target to build an object file
-LaPSO.cpp.o:
-	$(MAKE) -f CMakeFiles/main_test.dir/build.make CMakeFiles/main_test.dir/LaPSO.cpp.o
-.PHONY : LaPSO.cpp.o
+src/CpuTimer.cpp.o:
+	$(MAKE) -f CMakeFiles/main_test.dir/build.make CMakeFiles/main_test.dir/src/CpuTimer.cpp.o
+.PHONY : src/CpuTimer.cpp.o
 
-LaPSO.i: LaPSO.cpp.i
+src/CpuTimer.i: src/CpuTimer.cpp.i
 
-.PHONY : LaPSO.i
+.PHONY : src/CpuTimer.i
 
 # target to preprocess a source file
-LaPSO.cpp.i:
-	$(MAKE) -f CMakeFiles/main_test.dir/build.make CMakeFiles/main_test.dir/LaPSO.cpp.i
-.PHONY : LaPSO.cpp.i
+src/CpuTimer.cpp.i:
+	$(MAKE) -f CMakeFiles/main_test.dir/build.make CMakeFiles/main_test.dir/src/CpuTimer.cpp.i
+.PHONY : src/CpuTimer.cpp.i
 
-LaPSO.s: LaPSO.cpp.s
+src/CpuTimer.s: src/CpuTimer.cpp.s
 
-.PHONY : LaPSO.s
+.PHONY : src/CpuTimer.s
 
 # target to generate assembly for a file
-LaPSO.cpp.s:
-	$(MAKE) -f CMakeFiles/main_test.dir/build.make CMakeFiles/main_test.dir/LaPSO.cpp.s
-.PHONY : LaPSO.cpp.s
+src/CpuTimer.cpp.s:
+	$(MAKE) -f CMakeFiles/main_test.dir/build.make CMakeFiles/main_test.dir/src/CpuTimer.cpp.s
+.PHONY : src/CpuTimer.cpp.s
 
-VolVolume.o: VolVolume.cpp.o
+src/ED.o: src/ED.cpp.o
 
-.PHONY : VolVolume.o
+.PHONY : src/ED.o
 
 # target to build an object file
-VolVolume.cpp.o:
-	$(MAKE) -f CMakeFiles/main_test.dir/build.make CMakeFiles/main_test.dir/VolVolume.cpp.o
-.PHONY : VolVolume.cpp.o
+src/ED.cpp.o:
+	$(MAKE) -f CMakeFiles/main_test.dir/build.make CMakeFiles/main_test.dir/src/ED.cpp.o
+.PHONY : src/ED.cpp.o
 
-VolVolume.i: VolVolume.cpp.i
+src/ED.i: src/ED.cpp.i
 
-.PHONY : VolVolume.i
+.PHONY : src/ED.i
 
 # target to preprocess a source file
-VolVolume.cpp.i:
-	$(MAKE) -f CMakeFiles/main_test.dir/build.make CMakeFiles/main_test.dir/VolVolume.cpp.i
-.PHONY : VolVolume.cpp.i
+src/ED.cpp.i:
+	$(MAKE) -f CMakeFiles/main_test.dir/build.make CMakeFiles/main_test.dir/src/ED.cpp.i
+.PHONY : src/ED.cpp.i
 
-VolVolume.s: VolVolume.cpp.s
+src/ED.s: src/ED.cpp.s
 
-.PHONY : VolVolume.s
+.PHONY : src/ED.s
 
 # target to generate assembly for a file
-VolVolume.cpp.s:
-	$(MAKE) -f CMakeFiles/main_test.dir/build.make CMakeFiles/main_test.dir/VolVolume.cpp.s
-.PHONY : VolVolume.cpp.s
+src/ED.cpp.s:
+	$(MAKE) -f CMakeFiles/main_test.dir/build.make CMakeFiles/main_test.dir/src/ED.cpp.s
+.PHONY : src/ED.cpp.s
 
-anyoption.o: anyoption.cpp.o
+src/LaPSO.o: src/LaPSO.cpp.o
 
-.PHONY : anyoption.o
+.PHONY : src/LaPSO.o
 
 # target to build an object file
-anyoption.cpp.o:
-	$(MAKE) -f CMakeFiles/main_test.dir/build.make CMakeFiles/main_test.dir/anyoption.cpp.o
-.PHONY : anyoption.cpp.o
+src/LaPSO.cpp.o:
+	$(MAKE) -f CMakeFiles/main_test.dir/build.make CMakeFiles/main_test.dir/src/LaPSO.cpp.o
+.PHONY : src/LaPSO.cpp.o
 
-anyoption.i: anyoption.cpp.i
+src/LaPSO.i: src/LaPSO.cpp.i
 
-.PHONY : anyoption.i
+.PHONY : src/LaPSO.i
 
 # target to preprocess a source file
-anyoption.cpp.i:
-	$(MAKE) -f CMakeFiles/main_test.dir/build.make CMakeFiles/main_test.dir/anyoption.cpp.i
-.PHONY : anyoption.cpp.i
+src/LaPSO.cpp.i:
+	$(MAKE) -f CMakeFiles/main_test.dir/build.make CMakeFiles/main_test.dir/src/LaPSO.cpp.i
+.PHONY : src/LaPSO.cpp.i
 
-anyoption.s: anyoption.cpp.s
+src/LaPSO.s: src/LaPSO.cpp.s
 
-.PHONY : anyoption.s
+.PHONY : src/LaPSO.s
 
 # target to generate assembly for a file
-anyoption.cpp.s:
-	$(MAKE) -f CMakeFiles/main_test.dir/build.make CMakeFiles/main_test.dir/anyoption.cpp.s
-.PHONY : anyoption.cpp.s
+src/LaPSO.cpp.s:
+	$(MAKE) -f CMakeFiles/main_test.dir/build.make CMakeFiles/main_test.dir/src/LaPSO.cpp.s
+.PHONY : src/LaPSO.cpp.s
 
-djikstra.o: djikstra.cpp.o
+src/VolVolume.o: src/VolVolume.cpp.o
 
-.PHONY : djikstra.o
+.PHONY : src/VolVolume.o
 
 # target to build an object file
-djikstra.cpp.o:
-	$(MAKE) -f CMakeFiles/main_test.dir/build.make CMakeFiles/main_test.dir/djikstra.cpp.o
-.PHONY : djikstra.cpp.o
+src/VolVolume.cpp.o:
+	$(MAKE) -f CMakeFiles/main_test.dir/build.make CMakeFiles/main_test.dir/src/VolVolume.cpp.o
+.PHONY : src/VolVolume.cpp.o
 
-djikstra.i: djikstra.cpp.i
+src/VolVolume.i: src/VolVolume.cpp.i
 
-.PHONY : djikstra.i
+.PHONY : src/VolVolume.i
 
 # target to preprocess a source file
-djikstra.cpp.i:
-	$(MAKE) -f CMakeFiles/main_test.dir/build.make CMakeFiles/main_test.dir/djikstra.cpp.i
-.PHONY : djikstra.cpp.i
+src/VolVolume.cpp.i:
+	$(MAKE) -f CMakeFiles/main_test.dir/build.make CMakeFiles/main_test.dir/src/VolVolume.cpp.i
+.PHONY : src/VolVolume.cpp.i
 
-djikstra.s: djikstra.cpp.s
+src/VolVolume.s: src/VolVolume.cpp.s
 
-.PHONY : djikstra.s
+.PHONY : src/VolVolume.s
 
 # target to generate assembly for a file
-djikstra.cpp.s:
-	$(MAKE) -f CMakeFiles/main_test.dir/build.make CMakeFiles/main_test.dir/djikstra.cpp.s
-.PHONY : djikstra.cpp.s
+src/VolVolume.cpp.s:
+	$(MAKE) -f CMakeFiles/main_test.dir/build.make CMakeFiles/main_test.dir/src/VolVolume.cpp.s
+.PHONY : src/VolVolume.cpp.s
 
-main_test.o: main_test.cpp.o
+src/anyoption.o: src/anyoption.cpp.o
 
-.PHONY : main_test.o
+.PHONY : src/anyoption.o
 
 # target to build an object file
-main_test.cpp.o:
-	$(MAKE) -f CMakeFiles/main_test.dir/build.make CMakeFiles/main_test.dir/main_test.cpp.o
-.PHONY : main_test.cpp.o
+src/anyoption.cpp.o:
+	$(MAKE) -f CMakeFiles/main_test.dir/build.make CMakeFiles/main_test.dir/src/anyoption.cpp.o
+.PHONY : src/anyoption.cpp.o
 
-main_test.i: main_test.cpp.i
+src/anyoption.i: src/anyoption.cpp.i
 
-.PHONY : main_test.i
+.PHONY : src/anyoption.i
 
 # target to preprocess a source file
-main_test.cpp.i:
-	$(MAKE) -f CMakeFiles/main_test.dir/build.make CMakeFiles/main_test.dir/main_test.cpp.i
-.PHONY : main_test.cpp.i
+src/anyoption.cpp.i:
+	$(MAKE) -f CMakeFiles/main_test.dir/build.make CMakeFiles/main_test.dir/src/anyoption.cpp.i
+.PHONY : src/anyoption.cpp.i
 
-main_test.s: main_test.cpp.s
+src/anyoption.s: src/anyoption.cpp.s
 
-.PHONY : main_test.s
+.PHONY : src/anyoption.s
 
 # target to generate assembly for a file
-main_test.cpp.s:
-	$(MAKE) -f CMakeFiles/main_test.dir/build.make CMakeFiles/main_test.dir/main_test.cpp.s
-.PHONY : main_test.cpp.s
+src/anyoption.cpp.s:
+	$(MAKE) -f CMakeFiles/main_test.dir/build.make CMakeFiles/main_test.dir/src/anyoption.cpp.s
+.PHONY : src/anyoption.cpp.s
 
-prep_mip.o: prep_mip.cpp.o
+src/djikstra.o: src/djikstra.cpp.o
 
-.PHONY : prep_mip.o
+.PHONY : src/djikstra.o
 
 # target to build an object file
-prep_mip.cpp.o:
-	$(MAKE) -f CMakeFiles/main_test.dir/build.make CMakeFiles/main_test.dir/prep_mip.cpp.o
-.PHONY : prep_mip.cpp.o
+src/djikstra.cpp.o:
+	$(MAKE) -f CMakeFiles/main_test.dir/build.make CMakeFiles/main_test.dir/src/djikstra.cpp.o
+.PHONY : src/djikstra.cpp.o
 
-prep_mip.i: prep_mip.cpp.i
+src/djikstra.i: src/djikstra.cpp.i
 
-.PHONY : prep_mip.i
+.PHONY : src/djikstra.i
 
 # target to preprocess a source file
-prep_mip.cpp.i:
-	$(MAKE) -f CMakeFiles/main_test.dir/build.make CMakeFiles/main_test.dir/prep_mip.cpp.i
-.PHONY : prep_mip.cpp.i
+src/djikstra.cpp.i:
+	$(MAKE) -f CMakeFiles/main_test.dir/build.make CMakeFiles/main_test.dir/src/djikstra.cpp.i
+.PHONY : src/djikstra.cpp.i
 
-prep_mip.s: prep_mip.cpp.s
+src/djikstra.s: src/djikstra.cpp.s
 
-.PHONY : prep_mip.s
+.PHONY : src/djikstra.s
 
 # target to generate assembly for a file
-prep_mip.cpp.s:
-	$(MAKE) -f CMakeFiles/main_test.dir/build.make CMakeFiles/main_test.dir/prep_mip.cpp.s
-.PHONY : prep_mip.cpp.s
+src/djikstra.cpp.s:
+	$(MAKE) -f CMakeFiles/main_test.dir/build.make CMakeFiles/main_test.dir/src/djikstra.cpp.s
+.PHONY : src/djikstra.cpp.s
+
+src/main.o: src/main.cpp.o
+
+.PHONY : src/main.o
+
+# target to build an object file
+src/main.cpp.o:
+	$(MAKE) -f CMakeFiles/main_test.dir/build.make CMakeFiles/main_test.dir/src/main.cpp.o
+.PHONY : src/main.cpp.o
+
+src/main.i: src/main.cpp.i
+
+.PHONY : src/main.i
+
+# target to preprocess a source file
+src/main.cpp.i:
+	$(MAKE) -f CMakeFiles/main_test.dir/build.make CMakeFiles/main_test.dir/src/main.cpp.i
+.PHONY : src/main.cpp.i
+
+src/main.s: src/main.cpp.s
+
+.PHONY : src/main.s
+
+# target to generate assembly for a file
+src/main.cpp.s:
+	$(MAKE) -f CMakeFiles/main_test.dir/build.make CMakeFiles/main_test.dir/src/main.cpp.s
+.PHONY : src/main.cpp.s
+
+src/prep_mip.o: src/prep_mip.cpp.o
+
+.PHONY : src/prep_mip.o
+
+# target to build an object file
+src/prep_mip.cpp.o:
+	$(MAKE) -f CMakeFiles/main_test.dir/build.make CMakeFiles/main_test.dir/src/prep_mip.cpp.o
+.PHONY : src/prep_mip.cpp.o
+
+src/prep_mip.i: src/prep_mip.cpp.i
+
+.PHONY : src/prep_mip.i
+
+# target to preprocess a source file
+src/prep_mip.cpp.i:
+	$(MAKE) -f CMakeFiles/main_test.dir/build.make CMakeFiles/main_test.dir/src/prep_mip.cpp.i
+.PHONY : src/prep_mip.cpp.i
+
+src/prep_mip.s: src/prep_mip.cpp.s
+
+.PHONY : src/prep_mip.s
+
+# target to generate assembly for a file
+src/prep_mip.cpp.s:
+	$(MAKE) -f CMakeFiles/main_test.dir/build.make CMakeFiles/main_test.dir/src/prep_mip.cpp.s
+.PHONY : src/prep_mip.cpp.s
 
 # Help Target
 help:
@@ -348,30 +375,33 @@ help:
 	@echo "... rebuild_cache"
 	@echo "... edit_cache"
 	@echo "... main_test"
-	@echo "... CpuTimer.o"
-	@echo "... CpuTimer.i"
-	@echo "... CpuTimer.s"
-	@echo "... ED.o"
-	@echo "... ED.i"
-	@echo "... ED.s"
-	@echo "... LaPSO.o"
-	@echo "... LaPSO.i"
-	@echo "... LaPSO.s"
-	@echo "... VolVolume.o"
-	@echo "... VolVolume.i"
-	@echo "... VolVolume.s"
-	@echo "... anyoption.o"
-	@echo "... anyoption.i"
-	@echo "... anyoption.s"
-	@echo "... djikstra.o"
-	@echo "... djikstra.i"
-	@echo "... djikstra.s"
-	@echo "... main_test.o"
-	@echo "... main_test.i"
-	@echo "... main_test.s"
-	@echo "... prep_mip.o"
-	@echo "... prep_mip.i"
-	@echo "... prep_mip.s"
+	@echo "... src/ArgParser.o"
+	@echo "... src/ArgParser.i"
+	@echo "... src/ArgParser.s"
+	@echo "... src/CpuTimer.o"
+	@echo "... src/CpuTimer.i"
+	@echo "... src/CpuTimer.s"
+	@echo "... src/ED.o"
+	@echo "... src/ED.i"
+	@echo "... src/ED.s"
+	@echo "... src/LaPSO.o"
+	@echo "... src/LaPSO.i"
+	@echo "... src/LaPSO.s"
+	@echo "... src/VolVolume.o"
+	@echo "... src/VolVolume.i"
+	@echo "... src/VolVolume.s"
+	@echo "... src/anyoption.o"
+	@echo "... src/anyoption.i"
+	@echo "... src/anyoption.s"
+	@echo "... src/djikstra.o"
+	@echo "... src/djikstra.i"
+	@echo "... src/djikstra.s"
+	@echo "... src/main.o"
+	@echo "... src/main.i"
+	@echo "... src/main.s"
+	@echo "... src/prep_mip.o"
+	@echo "... src/prep_mip.i"
+	@echo "... src/prep_mip.s"
 .PHONY : help
 
 

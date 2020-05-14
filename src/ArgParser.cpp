@@ -1,9 +1,10 @@
 #include "ArgParser.h"
 
-
-bool charToBool(char* inputString);
-
 namespace MainArg{
+
+bool charToBool(const char* inputString);
+
+
 
     void ArgParser::parse(int argc, const char** argv){
         AnyOption parser(100);
@@ -31,7 +32,7 @@ namespace MainArg{
         parser.setOption("print_initial_costs");
         
         // String Arguments
-        parser.setOption("graph_file");
+        parser.setOption("graph_filename");
         parser.setOption("pairs_filename");
         parser.setOption("output_filename");
         parser.setOption("edgestats_filename");
@@ -69,8 +70,8 @@ namespace MainArg{
     void ArgParser::parseStrings(AnyOption& parser){
 
         // Input/output files
-        if (parser.getValue("graph_file"))  
-            graph_file = string(parser.getValue("graph_file"));
+        if (parser.getValue("graph_filename"))  
+            graph_filename = string(parser.getValue("graph_filename"));
         if (parser.getValue("pairs_filename"))  
             pairs_filename = string(parser.getValue("pairs_filename"));
         if (parser.getValue("output_filename"))  
@@ -165,29 +166,29 @@ namespace MainArg{
         // edge addition method
         if (parser.getValue("repair_method")){
             if (parser.getValue("repair_add_edge_method") == "pert_repair_0"){
-                RAEM = pert_repair_0;
+                RAEM = MyTypes::pert_repair_0;
             }
             else if(parser.getValue("repair_add_edge_method") == "pert_repair_min"){
-                RAEM = pert_repair_min;
+                RAEM = MyTypes::pert_repair_min;
             }
             else if(parser.getValue("repair_add_edge_method") == "rc_repair"){
-                RAEM = rc_repair;
+                RAEM = MyTypes::rc_repair;
             }
             else if(parser.getValue("repair_add_edge_method") == "arb_repair"){
-                RAEM = arb_repair;
+                RAEM = MyTypes::arb_repair;
             }
         }
 
         // edge removal method
         if (parser.getValue("repair_edge_removal_method")){
-            if (parser.getValue("repair_add_edge_method") == "largest_viol"){
-                RREM = largest_viol;
+            if (parser.getValue("repair_edge_removal_method") == "largest_viol"){
+                RREM = MyTypes::largest_viol;
             }
-            else if(parser.getValue("repair_add_edge_method") == "perturb"){
-                RREM = perturb;
+            else if(parser.getValue("repair_edge_removal_method") == "perturb"){
+                RREM = MyTypes::perturb;
             }
-            else if(parser.getValue("repair_add_edge_method") == " random"){
-                RREM =  random;
+            else if(parser.getValue("repair_edge_removal_method") == " random"){
+                RREM =  MyTypes::random;
             }
            
         }
@@ -202,7 +203,7 @@ namespace MainArg{
 
         bool return_val = false;
         if (inputString!=nullptr){
-            if (inputString == "true"){
+            if (strcmp(inputString, "true") == 0){
                 return_val = true;
             }
         }

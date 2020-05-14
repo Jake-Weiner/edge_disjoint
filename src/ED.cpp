@@ -47,8 +47,8 @@ type_name()
 using namespace boost;
 using namespace std;
 
-ED::ED(string graph_filename, string pairs_filename, bool _printing, bool _randComm, bool _djikstras_naive, repairRemoveEdgeMethod RREM,
-    repairAddEdgeMethod RAEM)
+ED::ED(string graph_filename, string pairs_filename, bool _printing, bool _randComm, bool _djikstras_naive, MyTypes::repairRemoveEdgeMethod RREM,
+    MyTypes::repairAddEdgeMethod RAEM)
     : nEDsolves(0)
     , maxEDsolves(10)
 {
@@ -59,7 +59,7 @@ ED::ED(string graph_filename, string pairs_filename, bool _printing, bool _randC
     printing = _printing;
     randComm = _randComm;
     dN = _djikstras_naive;
-    this->RREM =  RREM;
+    this->RREM = RREM;
     this->RAEM = RAEM;
 }
 
@@ -67,19 +67,22 @@ ED::~ED() {}
 
 void ED::populate_commodities(string filename)
 {
-    int idx = 0;
+    int comm_idx = 0;
     ifstream input(filename);
     split_vector_type SplitVec;
     if (input.is_open()) {
+        string line;
+        getline(input, line);
         while (!input.eof()) {
-            string line;
-            getline(input, line);
             split(SplitVec, line, is_any_of(" \t"), token_compress_on);
             if (SplitVec.size() > 1) {
-                commodities.push_back(Commodity{ stoi(SplitVec[0]), stoi(SplitVec[1]), {}, {},0.0, idx });
-                idx++;
-            } else
-                break;
+                cout << line << endl;
+                int origin_node = stoi(SplitVec[0]);
+                int dest_node = stoi(SplitVec[1]);
+                commodities.push_back(Commodity{origin_node, dest_node, {}, {}, 0.0, comm_idx});
+                comm_idx++;
+                getline(input, line);
+            }
         }
     }
 }
@@ -102,7 +105,6 @@ void ED::populate_graph(string filename)
             split(SplitVec, line, is_any_of(" \t"), token_compress_on); 
             if (line_count == 0) {
                 num_nodes = stoi(SplitVec[0]) + 1; // in case the data is indexed from 1..n
-               
                 node_neighbours.resize(num_nodes);
                 line_count++;
                 continue;
@@ -256,12 +258,12 @@ Status ED::solveSubproblem(Particle& p_)
     p.lb = 0;
     double max_perturb = 0.0;
 
+    // find max perturbation
     for (size_t i = 0; i < p.perturb.size(); i++) {
         if (p.perturb[i] > max_perturb) {
             max_perturb = p.perturb[i];
-            continue;
         }
-        if (-1 * p.perturb[i] > max_perturb)
+        else if (-1 * p.perturb[i] > max_perturb)
             max_perturb = -1 * p.perturb[i];
     }
 
@@ -456,7 +458,7 @@ Status ED::heuristics(Particle& p_)
         if (printing == true)
             cout << "\tviol sum is " << viol.sum() << endl;
 
-        if (RREM == random ) {
+        if (RREM == MyTypes::random ) {
             cout << "using random repair" << endl;
             vector<int> random_indices;
             for (int i = 0; i < p.commodities.size(); i++) {
@@ -544,7 +546,7 @@ Status ED::heuristics(Particle& p_)
                     }
                 }
                 // using remove perturb method
-            } else if (RREM  == perturb) {
+            } else if (RREM  == MyTypes::perturb) {
                 //remove with highest perturbation value (this commodity is least likely to use this edge)
                 for (auto it = p.commodities.begin(); it != p.commodities.end(); it++) {
                     if (p.x[primalIdx(largest_viol_idx, it->comm_idx)] > 1.0e-6) { // the commodity contains this edge
@@ -583,14 +585,14 @@ Status ED::heuristics(Particle& p_)
 
 
             for (int i = 0; i < p.rc.size(); i++) {
-                if (RAEM == pert_repair_0) {
+                if (RAEM == MyTypes::pert_repair_0) {
                     temp_rc[i] = (viol[edgeIdx(i)] == 1) ? scale * p.perturb[i] : 1;
-                } else if (RAEM == pert_repair_min) {
+                } else if (RAEM == MyTypes::pert_repair_min) {
                     temp_rc[i] = (viol[edgeIdx(i)] == 1) ? scale * (p.perturb[i] - min_perturb) : 1;
 
-                } else if (RAEM == rc_repair) {
+                } else if (RAEM == MyTypes::rc_repair) {
                     temp_rc[i] = (viol[edgeIdx(i)] == 1) ? std::min(1.0 / num_nodes, p.rc[i] / num_nodes) : 1;
-                } else if (RAEM == arb_repair) {
+                } else if (RAEM == MyTypes::arb_repair) {
                     temp_rc[i] = (viol[edgeIdx(i)] == 1) ? 1.0 / num_nodes : 1.0;
                 } else {
                     cout << "repair method - add edge not set properly" << endl;

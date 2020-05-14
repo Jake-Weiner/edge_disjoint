@@ -21,8 +21,8 @@ link_directories("/home/jake/PhD/Coding_Libraries/cplex/lib/x86-64_linux/static_
 link_directories("/home/jake/PhD/Coding_Libraries/concert/lib/x86-64_linux/static_pic")
 link_directories("/home/jake/PhD/Edge_Disjoint/c++/boost_1_67_0/Build/lib")
 
-FILE(GLOB_RECURSE SOURCES RELATIVE MyCppSources src/*.cpp)
+#FILE(GLOB_RECURSE SOURCES RELATIVE MyCppSources src/*.cpp)
 
-add_executable(main_test main_test.cpp ED.cpp LaPSO.cpp CpuTimer.cpp anyoption.cpp VolVolume.cpp prep_mip.cpp djikstra.cpp)
+add_executable(main_test src/main.cpp src/ED.cpp src/LaPSO.cpp src/CpuTimer.cpp src/ArgParser.cpp src/anyoption.cpp src/VolVolume.cpp src/prep_mip.cpp src/djikstra.cpp)
 
 target_link_libraries(main_test concert ilocplex cplex m pthread dl)

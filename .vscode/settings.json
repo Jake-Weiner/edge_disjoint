@@ -52,6 +52,7 @@
         "utility": "cpp",
         "queue": "cpp",
         "stack": "cpp",
-        "strstream": "cpp"
+        "strstream": "cpp",
+        "string": "cpp"
     }
 }

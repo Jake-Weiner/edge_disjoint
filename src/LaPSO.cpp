@@ -243,7 +243,7 @@ void Problem::solve(UserHooks& hooks)
                 break;
             }
         }
-        if (param.convergence_test == true) {
+        if (param.iteration_checks == true) {
             double sum_lb = 0;
             int sum_ub = 0;
             int sum_viol = 0;
@@ -458,7 +458,7 @@ void Problem::solve(UserHooks& hooks)
         if (param.printLevel && nIter % param.printFreq == 0)
             printf("%2d: LB=%.2f UB=%.2f\n", nIter, best.lb, best.ub);
     }
-    if (param.convergence_test == true) {
+    if (param.iteration_checks == true) {
         double sum_lb = 0;
         int sum_ub = 0;
         int sum_viol = 0;

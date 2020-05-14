@@ -57,135 +57,150 @@ include CMakeFiles/main_test.dir/progress.make
 # Include the compile flags for this target's objects.
 include CMakeFiles/main_test.dir/flags.make
 
-CMakeFiles/main_test.dir/main_test.cpp.o: CMakeFiles/main_test.dir/flags.make
-CMakeFiles/main_test.dir/main_test.cpp.o: main_test.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/main_test.dir/main_test.cpp.o"
-	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/main_test.dir/main_test.cpp.o -c /home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/main_test.cpp
+CMakeFiles/main_test.dir/src/main.cpp.o: CMakeFiles/main_test.dir/flags.make
+CMakeFiles/main_test.dir/src/main.cpp.o: src/main.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/main_test.dir/src/main.cpp.o"
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/main_test.dir/src/main.cpp.o -c /home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/src/main.cpp
 
-CMakeFiles/main_test.dir/main_test.cpp.i: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/main_test.dir/main_test.cpp.i"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/main_test.cpp > CMakeFiles/main_test.dir/main_test.cpp.i
+CMakeFiles/main_test.dir/src/main.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/main_test.dir/src/main.cpp.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/src/main.cpp > CMakeFiles/main_test.dir/src/main.cpp.i
 
-CMakeFiles/main_test.dir/main_test.cpp.s: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/main_test.dir/main_test.cpp.s"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/main_test.cpp -o CMakeFiles/main_test.dir/main_test.cpp.s
+CMakeFiles/main_test.dir/src/main.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/main_test.dir/src/main.cpp.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/src/main.cpp -o CMakeFiles/main_test.dir/src/main.cpp.s
 
-CMakeFiles/main_test.dir/ED.cpp.o: CMakeFiles/main_test.dir/flags.make
-CMakeFiles/main_test.dir/ED.cpp.o: ED.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Building CXX object CMakeFiles/main_test.dir/ED.cpp.o"
-	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/main_test.dir/ED.cpp.o -c /home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/ED.cpp
+CMakeFiles/main_test.dir/src/ED.cpp.o: CMakeFiles/main_test.dir/flags.make
+CMakeFiles/main_test.dir/src/ED.cpp.o: src/ED.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Building CXX object CMakeFiles/main_test.dir/src/ED.cpp.o"
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/main_test.dir/src/ED.cpp.o -c /home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/src/ED.cpp
 
-CMakeFiles/main_test.dir/ED.cpp.i: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/main_test.dir/ED.cpp.i"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/ED.cpp > CMakeFiles/main_test.dir/ED.cpp.i
+CMakeFiles/main_test.dir/src/ED.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/main_test.dir/src/ED.cpp.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/src/ED.cpp > CMakeFiles/main_test.dir/src/ED.cpp.i
 
-CMakeFiles/main_test.dir/ED.cpp.s: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/main_test.dir/ED.cpp.s"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/ED.cpp -o CMakeFiles/main_test.dir/ED.cpp.s
+CMakeFiles/main_test.dir/src/ED.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/main_test.dir/src/ED.cpp.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/src/ED.cpp -o CMakeFiles/main_test.dir/src/ED.cpp.s
 
-CMakeFiles/main_test.dir/LaPSO.cpp.o: CMakeFiles/main_test.dir/flags.make
-CMakeFiles/main_test.dir/LaPSO.cpp.o: LaPSO.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building CXX object CMakeFiles/main_test.dir/LaPSO.cpp.o"
-	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/main_test.dir/LaPSO.cpp.o -c /home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/LaPSO.cpp
+CMakeFiles/main_test.dir/src/LaPSO.cpp.o: CMakeFiles/main_test.dir/flags.make
+CMakeFiles/main_test.dir/src/LaPSO.cpp.o: src/LaPSO.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building CXX object CMakeFiles/main_test.dir/src/LaPSO.cpp.o"
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/main_test.dir/src/LaPSO.cpp.o -c /home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/src/LaPSO.cpp
 
-CMakeFiles/main_test.dir/LaPSO.cpp.i: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/main_test.dir/LaPSO.cpp.i"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/LaPSO.cpp > CMakeFiles/main_test.dir/LaPSO.cpp.i
+CMakeFiles/main_test.dir/src/LaPSO.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/main_test.dir/src/LaPSO.cpp.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/src/LaPSO.cpp > CMakeFiles/main_test.dir/src/LaPSO.cpp.i
 
-CMakeFiles/main_test.dir/LaPSO.cpp.s: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/main_test.dir/LaPSO.cpp.s"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/LaPSO.cpp -o CMakeFiles/main_test.dir/LaPSO.cpp.s
+CMakeFiles/main_test.dir/src/LaPSO.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/main_test.dir/src/LaPSO.cpp.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/src/LaPSO.cpp -o CMakeFiles/main_test.dir/src/LaPSO.cpp.s
 
-CMakeFiles/main_test.dir/CpuTimer.cpp.o: CMakeFiles/main_test.dir/flags.make
-CMakeFiles/main_test.dir/CpuTimer.cpp.o: CpuTimer.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Building CXX object CMakeFiles/main_test.dir/CpuTimer.cpp.o"
-	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/main_test.dir/CpuTimer.cpp.o -c /home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/CpuTimer.cpp
+CMakeFiles/main_test.dir/src/CpuTimer.cpp.o: CMakeFiles/main_test.dir/flags.make
+CMakeFiles/main_test.dir/src/CpuTimer.cpp.o: src/CpuTimer.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Building CXX object CMakeFiles/main_test.dir/src/CpuTimer.cpp.o"
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/main_test.dir/src/CpuTimer.cpp.o -c /home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/src/CpuTimer.cpp
 
-CMakeFiles/main_test.dir/CpuTimer.cpp.i: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/main_test.dir/CpuTimer.cpp.i"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/CpuTimer.cpp > CMakeFiles/main_test.dir/CpuTimer.cpp.i
+CMakeFiles/main_test.dir/src/CpuTimer.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/main_test.dir/src/CpuTimer.cpp.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/src/CpuTimer.cpp > CMakeFiles/main_test.dir/src/CpuTimer.cpp.i
 
-CMakeFiles/main_test.dir/CpuTimer.cpp.s: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/main_test.dir/CpuTimer.cpp.s"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/CpuTimer.cpp -o CMakeFiles/main_test.dir/CpuTimer.cpp.s
+CMakeFiles/main_test.dir/src/CpuTimer.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/main_test.dir/src/CpuTimer.cpp.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/src/CpuTimer.cpp -o CMakeFiles/main_test.dir/src/CpuTimer.cpp.s
 
-CMakeFiles/main_test.dir/anyoption.cpp.o: CMakeFiles/main_test.dir/flags.make
-CMakeFiles/main_test.dir/anyoption.cpp.o: anyoption.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Building CXX object CMakeFiles/main_test.dir/anyoption.cpp.o"
-	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/main_test.dir/anyoption.cpp.o -c /home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/anyoption.cpp
+CMakeFiles/main_test.dir/src/ArgParser.cpp.o: CMakeFiles/main_test.dir/flags.make
+CMakeFiles/main_test.dir/src/ArgParser.cpp.o: src/ArgParser.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Building CXX object CMakeFiles/main_test.dir/src/ArgParser.cpp.o"
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/main_test.dir/src/ArgParser.cpp.o -c /home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/src/ArgParser.cpp
 
-CMakeFiles/main_test.dir/anyoption.cpp.i: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/main_test.dir/anyoption.cpp.i"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/anyoption.cpp > CMakeFiles/main_test.dir/anyoption.cpp.i
+CMakeFiles/main_test.dir/src/ArgParser.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/main_test.dir/src/ArgParser.cpp.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/src/ArgParser.cpp > CMakeFiles/main_test.dir/src/ArgParser.cpp.i
 
-CMakeFiles/main_test.dir/anyoption.cpp.s: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/main_test.dir/anyoption.cpp.s"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/anyoption.cpp -o CMakeFiles/main_test.dir/anyoption.cpp.s
+CMakeFiles/main_test.dir/src/ArgParser.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/main_test.dir/src/ArgParser.cpp.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/src/ArgParser.cpp -o CMakeFiles/main_test.dir/src/ArgParser.cpp.s
 
-CMakeFiles/main_test.dir/VolVolume.cpp.o: CMakeFiles/main_test.dir/flags.make
-CMakeFiles/main_test.dir/VolVolume.cpp.o: VolVolume.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/CMakeFiles --progress-num=$(CMAKE_PROGRESS_6) "Building CXX object CMakeFiles/main_test.dir/VolVolume.cpp.o"
-	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/main_test.dir/VolVolume.cpp.o -c /home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/VolVolume.cpp
+CMakeFiles/main_test.dir/src/anyoption.cpp.o: CMakeFiles/main_test.dir/flags.make
+CMakeFiles/main_test.dir/src/anyoption.cpp.o: src/anyoption.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/CMakeFiles --progress-num=$(CMAKE_PROGRESS_6) "Building CXX object CMakeFiles/main_test.dir/src/anyoption.cpp.o"
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/main_test.dir/src/anyoption.cpp.o -c /home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/src/anyoption.cpp
 
-CMakeFiles/main_test.dir/VolVolume.cpp.i: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/main_test.dir/VolVolume.cpp.i"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/VolVolume.cpp > CMakeFiles/main_test.dir/VolVolume.cpp.i
+CMakeFiles/main_test.dir/src/anyoption.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/main_test.dir/src/anyoption.cpp.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/src/anyoption.cpp > CMakeFiles/main_test.dir/src/anyoption.cpp.i
 
-CMakeFiles/main_test.dir/VolVolume.cpp.s: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/main_test.dir/VolVolume.cpp.s"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/VolVolume.cpp -o CMakeFiles/main_test.dir/VolVolume.cpp.s
+CMakeFiles/main_test.dir/src/anyoption.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/main_test.dir/src/anyoption.cpp.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/src/anyoption.cpp -o CMakeFiles/main_test.dir/src/anyoption.cpp.s
 
-CMakeFiles/main_test.dir/prep_mip.cpp.o: CMakeFiles/main_test.dir/flags.make
-CMakeFiles/main_test.dir/prep_mip.cpp.o: prep_mip.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/CMakeFiles --progress-num=$(CMAKE_PROGRESS_7) "Building CXX object CMakeFiles/main_test.dir/prep_mip.cpp.o"
-	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/main_test.dir/prep_mip.cpp.o -c /home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/prep_mip.cpp
+CMakeFiles/main_test.dir/src/VolVolume.cpp.o: CMakeFiles/main_test.dir/flags.make
+CMakeFiles/main_test.dir/src/VolVolume.cpp.o: src/VolVolume.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/CMakeFiles --progress-num=$(CMAKE_PROGRESS_7) "Building CXX object CMakeFiles/main_test.dir/src/VolVolume.cpp.o"
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/main_test.dir/src/VolVolume.cpp.o -c /home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/src/VolVolume.cpp
 
-CMakeFiles/main_test.dir/prep_mip.cpp.i: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/main_test.dir/prep_mip.cpp.i"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/prep_mip.cpp > CMakeFiles/main_test.dir/prep_mip.cpp.i
+CMakeFiles/main_test.dir/src/VolVolume.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/main_test.dir/src/VolVolume.cpp.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/src/VolVolume.cpp > CMakeFiles/main_test.dir/src/VolVolume.cpp.i
 
-CMakeFiles/main_test.dir/prep_mip.cpp.s: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/main_test.dir/prep_mip.cpp.s"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/prep_mip.cpp -o CMakeFiles/main_test.dir/prep_mip.cpp.s
+CMakeFiles/main_test.dir/src/VolVolume.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/main_test.dir/src/VolVolume.cpp.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/src/VolVolume.cpp -o CMakeFiles/main_test.dir/src/VolVolume.cpp.s
 
-CMakeFiles/main_test.dir/djikstra.cpp.o: CMakeFiles/main_test.dir/flags.make
-CMakeFiles/main_test.dir/djikstra.cpp.o: djikstra.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/CMakeFiles --progress-num=$(CMAKE_PROGRESS_8) "Building CXX object CMakeFiles/main_test.dir/djikstra.cpp.o"
-	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/main_test.dir/djikstra.cpp.o -c /home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/djikstra.cpp
+CMakeFiles/main_test.dir/src/prep_mip.cpp.o: CMakeFiles/main_test.dir/flags.make
+CMakeFiles/main_test.dir/src/prep_mip.cpp.o: src/prep_mip.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/CMakeFiles --progress-num=$(CMAKE_PROGRESS_8) "Building CXX object CMakeFiles/main_test.dir/src/prep_mip.cpp.o"
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/main_test.dir/src/prep_mip.cpp.o -c /home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/src/prep_mip.cpp
 
-CMakeFiles/main_test.dir/djikstra.cpp.i: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/main_test.dir/djikstra.cpp.i"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/djikstra.cpp > CMakeFiles/main_test.dir/djikstra.cpp.i
+CMakeFiles/main_test.dir/src/prep_mip.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/main_test.dir/src/prep_mip.cpp.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/src/prep_mip.cpp > CMakeFiles/main_test.dir/src/prep_mip.cpp.i
 
-CMakeFiles/main_test.dir/djikstra.cpp.s: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/main_test.dir/djikstra.cpp.s"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/djikstra.cpp -o CMakeFiles/main_test.dir/djikstra.cpp.s
+CMakeFiles/main_test.dir/src/prep_mip.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/main_test.dir/src/prep_mip.cpp.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/src/prep_mip.cpp -o CMakeFiles/main_test.dir/src/prep_mip.cpp.s
+
+CMakeFiles/main_test.dir/src/djikstra.cpp.o: CMakeFiles/main_test.dir/flags.make
+CMakeFiles/main_test.dir/src/djikstra.cpp.o: src/djikstra.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/CMakeFiles --progress-num=$(CMAKE_PROGRESS_9) "Building CXX object CMakeFiles/main_test.dir/src/djikstra.cpp.o"
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/main_test.dir/src/djikstra.cpp.o -c /home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/src/djikstra.cpp
+
+CMakeFiles/main_test.dir/src/djikstra.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/main_test.dir/src/djikstra.cpp.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/src/djikstra.cpp > CMakeFiles/main_test.dir/src/djikstra.cpp.i
+
+CMakeFiles/main_test.dir/src/djikstra.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/main_test.dir/src/djikstra.cpp.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/src/djikstra.cpp -o CMakeFiles/main_test.dir/src/djikstra.cpp.s
 
 # Object files for target main_test
 main_test_OBJECTS = \
-"CMakeFiles/main_test.dir/main_test.cpp.o" \
-"CMakeFiles/main_test.dir/ED.cpp.o" \
-"CMakeFiles/main_test.dir/LaPSO.cpp.o" \
-"CMakeFiles/main_test.dir/CpuTimer.cpp.o" \
-"CMakeFiles/main_test.dir/anyoption.cpp.o" \
-"CMakeFiles/main_test.dir/VolVolume.cpp.o" \
-"CMakeFiles/main_test.dir/prep_mip.cpp.o" \
-"CMakeFiles/main_test.dir/djikstra.cpp.o"
+"CMakeFiles/main_test.dir/src/main.cpp.o" \
+"CMakeFiles/main_test.dir/src/ED.cpp.o" \
+"CMakeFiles/main_test.dir/src/LaPSO.cpp.o" \
+"CMakeFiles/main_test.dir/src/CpuTimer.cpp.o" \
+"CMakeFiles/main_test.dir/src/ArgParser.cpp.o" \
+"CMakeFiles/main_test.dir/src/anyoption.cpp.o" \
+"CMakeFiles/main_test.dir/src/VolVolume.cpp.o" \
+"CMakeFiles/main_test.dir/src/prep_mip.cpp.o" \
+"CMakeFiles/main_test.dir/src/djikstra.cpp.o"
 
 # External object files for target main_test
 main_test_EXTERNAL_OBJECTS =
 
-main_test: CMakeFiles/main_test.dir/main_test.cpp.o
-main_test: CMakeFiles/main_test.dir/ED.cpp.o
-main_test: CMakeFiles/main_test.dir/LaPSO.cpp.o
-main_test: CMakeFiles/main_test.dir/CpuTimer.cpp.o
-main_test: CMakeFiles/main_test.dir/anyoption.cpp.o
-main_test: CMakeFiles/main_test.dir/VolVolume.cpp.o
-main_test: CMakeFiles/main_test.dir/prep_mip.cpp.o
-main_test: CMakeFiles/main_test.dir/djikstra.cpp.o
+main_test: CMakeFiles/main_test.dir/src/main.cpp.o
+main_test: CMakeFiles/main_test.dir/src/ED.cpp.o
+main_test: CMakeFiles/main_test.dir/src/LaPSO.cpp.o
+main_test: CMakeFiles/main_test.dir/src/CpuTimer.cpp.o
+main_test: CMakeFiles/main_test.dir/src/ArgParser.cpp.o
+main_test: CMakeFiles/main_test.dir/src/anyoption.cpp.o
+main_test: CMakeFiles/main_test.dir/src/VolVolume.cpp.o
+main_test: CMakeFiles/main_test.dir/src/prep_mip.cpp.o
+main_test: CMakeFiles/main_test.dir/src/djikstra.cpp.o
 main_test: CMakeFiles/main_test.dir/build.make
 main_test: CMakeFiles/main_test.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/CMakeFiles --progress-num=$(CMAKE_PROGRESS_9) "Linking CXX executable main_test"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/CMakeFiles --progress-num=$(CMAKE_PROGRESS_10) "Linking CXX executable main_test"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/main_test.dir/link.txt --verbose=$(VERBOSE)
 
 # Rule to build all files generated by this target.

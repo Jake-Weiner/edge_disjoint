@@ -8,6 +8,7 @@
 #include <limits>
 #include "types.h"
 #include <string>
+#include <string.h>
 #include "anyoption.h"
 
 using std::string;
@@ -58,13 +59,12 @@ class ArgParser {
         double initial_dual_max = 0.1;
 
         // Strings
-        string graph_file = "";
+        string graph_filename = "";
         string pairs_filename = "";
         string output_filename = "";
         string edgestats_filename = "";
         string dual_euclid_filename = "";
         string perturb_euclid_filename = "";
-        string best_lb_filename = "";
         string lb_time_comparisons_filename = "";
         string best_lb_filename = "";
         string best_ub_filename = "";
@@ -78,8 +78,8 @@ class ArgParser {
         string repair_add_edge_method = "";
         string repair_edge_removal_method = "";
 
-        repairAddEdgeMethod RAEM;
-        repairRemoveEdgeMethod RREM;
+        MyTypes::repairAddEdgeMethod RAEM;
+        MyTypes::repairRemoveEdgeMethod RREM;
 
         
 

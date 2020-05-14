@@ -3,6 +3,7 @@
 
 #include <vector>
 
+namespace MyTypes{
 
 // repair methods availabe - TODO Include descriptions of each
 enum repairAddEdgeMethod{
@@ -13,5 +14,6 @@ enum repairRemoveEdgeMethod{
   largest_viol, perturb, random
 };
 
+};
 
 #endif
