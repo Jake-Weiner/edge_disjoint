@@ -68,8 +68,12 @@ double djikstras(double max_perturb, const Edge_Int_Map& EIM,
         }
         
         Q.pop();
-	if(visited[current_node.idx]) continue;
-        visited[current_node.idx] = true;
+	if(visited[current_node.idx]) {
+        continue;
+    }
+    else{
+         visited[current_node.idx] = true;
+    }
         //cout << "node " << current_node.idx << " popped" << endl;
         //iterate through neighbours of current_node 
 	for(const NodeEdgePair adj : node_neighbours[current_node.idx] ){

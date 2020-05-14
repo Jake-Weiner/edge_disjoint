@@ -173,6 +173,7 @@ private:
     MyTypes::repairRemoveEdgeMethod RREM;
     MyTypes::repairAddEdgeMethod RAEM;
     
+    // For each node_idx, node_neighbours contains NodeEdgePair --> {neighbour node_idx , edge_idx}
     vector<vector<NodeEdgePair>> node_neighbours;
     void remove_commodity(EDParticle& p, IntVec& viol, int commodity_index);
     void add_commodity(EDParticle& p, IntVec& viol, vector<int>& parents, int start, int end, int commodity_index);

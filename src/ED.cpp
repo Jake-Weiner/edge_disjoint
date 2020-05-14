@@ -188,8 +188,10 @@ void ED::storePath(EDParticle& p, int comm, int start, int end, const vector<Nod
             cerr << "issue storingPath - parents array incorrect" << endl;
         }
         const int eidx = parents[current].second;
+
         p.x[primalIdx(eidx, comm)] += 1;
         // solution is stored in reverse at here
+
         p.commodities[comm].solution_edges.push_back(eidx);
         
         int parent_node = parents[current].first;
@@ -241,6 +243,7 @@ void ED::storePath(EDParticle& p, int comm, int start, int end, const vector<Nod
 Status ED::solveSubproblem(Particle& p_)
 {
 
+    // updated randomshuffle
     ++nEDsolves;
     EDParticle& p(static_cast<EDParticle&>(p_));
     //clear previous primal sol
@@ -267,91 +270,58 @@ Status ED::solveSubproblem(Particle& p_)
             max_perturb = -1 * p.perturb[i];
     }
 
-    //solve subproblem selecting commodity iteration order randomly
-    if (randComm) {
-        // randomise order of commodities
-        vector<int> random_indices;
-        for (int i = 0; i < p.commodities.size(); i++) {
-            random_indices.push_back(i);
-        }
-        random_shuffle(random_indices.begin(), random_indices.end());
-
-        // loop through commodities
-        for (int i = 0; i < random_indices.size(); i++) {
-
-            int random_index = random_indices[i];
-
-            //solve SP
-            p.commodities[random_index].solution_edges.clear();
-            p.commodities[random_index].solution_edges_nodes.clear();
-
-            start = p.commodities[random_index].origin;
-            end = p.commodities[random_index].dest;
-            double SP;
-
-            //ensure no negative edge weights
-            for (int i = 0; i < p.rc.size(); i++) {
-                if (p.rc[i] < 0) {
-                    p.rc[i] = 0;
-                }
-            }
-            if (dN) { // djikstras without violation consideration
-                SP = djikstras_naive(EIM, node_neighbours, start, end, parents, num_nodes, num_edges,
-                    p.rc, p.x, p.commodities[random_index].comm_idx, commodities.size(), 1.0);
-            } else { // Threshold = 1.0 means don't return paths longer than 1.0
-                SP = djikstras(max_perturb, EIM, node_neighbours, start, end, parents, num_nodes, num_edges,
-                    p.rc, p.x, p.commodities[random_index].comm_idx, commodities.size(), 1.0);
-            }
-            if (SP == -1) {
-                cerr << "error with djikstras" << endl;
-                exit(2);
-            }
-
-            const Commodity_SP sp = {
-                start, end, parents
-            };
-            //update solution for current commodity
-            //shortest path info required to update solutions
-            p.commodity_shortest_paths[p.commodities[random_index].comm_idx] = sp;
-            // p.c is cost of path -- used in MIP solver
-            p.c[p.commodities[random_index].comm_idx] = SP;
-            //update_comm_sol(p, SP, parents, total_paths_cost, random_index, start, end, printing);
-        }
+    vector<int> commodity_order;
+    for (int i = 0; i < p.commodities.size(); i++) {
+        commodity_order.push_back(i);
     }
+    // shuffle order if random selection selected
+    if (randComm){
+        random_shuffle(commodity_order.begin(), commodity_order.end());
+    }    
 
-    //iterate through commodities in standard order
-    else {
-        for (int loop_idx = 0; loop_idx < p.commodities.size(); ++loop_idx) {
-            //solve SP
-            p.commodities[loop_idx].solution_edges.clear();
-            p.commodities[loop_idx].solution_edges_nodes.clear();
-            start = p.commodities[loop_idx].origin;
-            end = p.commodities[loop_idx].dest;
-            double SP;
-            if (dN) { // djikstras without violation consideration
-                SP = djikstras_naive(EIM, node_neighbours, start, end, parents, num_nodes, num_edges,
-                    p.rc, p.x, p.commodities[loop_idx].comm_idx, commodities.size(), 1.0);
-            } else {
-                SP = djikstras(max_perturb, EIM, node_neighbours, start, end, parents, num_nodes, num_edges,
-                    p.rc, p.x, p.commodities[loop_idx].comm_idx, commodities.size(), 1.0);
-            }
+    // loop through commodities to solve shortest path problems
+    for (int loop_idx = 0; loop_idx < commodity_order.size(); loop_idx++) {
+        int comm_index = commodity_order[loop_idx];
+        //solve SP
+        p.commodities[comm_index].solution_edges.clear();
+        p.commodities[comm_index].solution_edges_nodes.clear();
+        start = p.commodities[comm_index].origin;
+        end = p.commodities[comm_index].dest;
+        double SP;
 
-            if (SP == -1) {
-                cerr << "error with djikstras" << endl;
-                exit(2);
+        //ensure no negative edge weights
+        for (int i = 0; i < p.rc.size(); i++) {
+            if (p.rc[i] < 0) {
+                // cout << "edge weight is " << p.rc[i] << endl;
+                // cout << "error, negative edge weights detected " << endl;
+                // exit(1);
+                p.rc[i] = 0;
             }
-            const Commodity_SP sp = {
-                start, end, parents
-            };
-            //update solution for current commodity
-            //shortest path info required to update solutions
-            p.commodity_shortest_paths[loop_idx] = sp;
-            // p.c is cost of path -- used in MIP solver
-            p.c[loop_idx] = SP;
-            //update_comm_sol(p, SP, parents, total_paths_cost, loop_idx, start, end, printing);
         }
-    }
 
+        if (dN) { // djikstras without violation consideration
+            SP = djikstras_naive(EIM, node_neighbours, start, end, parents, num_nodes, num_edges,
+                p.rc, p.x, p.commodities[comm_index].comm_idx, commodities.size(), 1.0);
+        } else { // Threshold = 1.0 means don't return paths longer than 1.0
+            SP = djikstras(max_perturb, EIM, node_neighbours, start, end, parents, num_nodes, num_edges,
+                p.rc, p.x, p.commodities[comm_index].comm_idx, commodities.size(), 1.0);
+        }
+        if (SP == -1) {
+            cerr << "error with djikstras" << endl;
+            exit(2);
+        }
+
+        const Commodity_SP sp = {
+            start, end, parents
+        };
+        //update solution for current commodity
+        //shortest path info required to update solutions
+        p.commodity_shortest_paths[p.commodities[comm_index].comm_idx] = sp;
+        // p.c is cost of path -- used in MIP solver
+        p.c[p.commodities[comm_index].comm_idx] = SP;
+        //update_comm_sol(p, SP, parents, total_paths_cost, random_index, start, end, printing);
+    }
+    
     for (int i = 0; i < p.c.size(); i++) {
         const vector<NodeEdgePair>& parents = p.commodity_shortest_paths[i].parents;
         int start = p.commodity_shortest_paths[i].start;
@@ -433,10 +403,6 @@ Status ED::heuristics(Particle& p_)
     int largest_viol = 0;
     int current_viol = 0;
 
-    vector<int> cut_set_commodities;
-    int cut_set_edges;
-    vector<int> potential_cutset;
-    vector<bool> S_cutSet;
     IntVec viol(p.viol.size(), 1);
     p.x = 0;
     int viol_sum = 0;
