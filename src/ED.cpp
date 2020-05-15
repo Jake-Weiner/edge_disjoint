@@ -190,6 +190,10 @@ void ED::storePath(EDParticle& p, int comm, int start, int end, const vector<Nod
         const int eidx = parents[current].second;
 
         p.x[primalIdx(eidx, comm)] += 1;
+
+        // for repair method, keep track of violations
+        if ( viol != 0)
+            (*viol)[eidx] -= 1;
         // solution is stored in reverse at here
 
         p.commodities[comm].solution_edges.push_back(eidx);
@@ -202,22 +206,25 @@ void ED::storePath(EDParticle& p, int comm, int start, int end, const vector<Nod
         if (p.commodities[comm].solution_edges_nodes.empty()){
             p.commodities[comm].solution_edges_nodes.push_back({parent_node,current});
         }
-        else{
-            Edge last_edge = p.commodities[comm].solution_edges_nodes.back();
 
-            if(current == last_edge.second){
-                p.commodities[comm].solution_edges_nodes.push_back({current,parent_node});
-            }
-            else if(parent_node ==  last_edge.second){
-                p.commodities[comm].solution_edges_nodes.push_back({parent_node,current});
-            }
-            else if(current == last_edge.first){
-                p.commodities[comm].solution_edges_nodes.push_back({parent_node,current});
-            }
-            else{
-                p.commodities[comm].solution_edges_nodes.push_back({current,parent_node});
-            }
-        }
+       
+
+        // else{
+        //     Edge last_edge = p.commodities[comm].solution_edges_nodes.back();
+
+        //     if(current == last_edge.second){
+        //         p.commodities[comm].solution_edges_nodes.push_back({current,parent_node});
+        //     }
+        //     else if(parent_node ==  last_edge.second){
+        //         p.commodities[comm].solution_edges_nodes.push_back({parent_node,current});
+        //     }
+        //     else if(current == last_edge.first){
+        //         p.commodities[comm].solution_edges_nodes.push_back({parent_node,current});
+        //     }
+        //     else{
+        //         p.commodities[comm].solution_edges_nodes.push_back({current,parent_node});
+        //     }
+        // }
         
        
         // else if (current == p.commodities[comm].origin){
@@ -233,8 +240,7 @@ void ED::storePath(EDParticle& p, int comm, int start, int end, const vector<Nod
  
         
         //cout << parents[current].first << " " << current << endl;
-        if ( viol != 0)
-            (*viol)[eidx] -= 1;
+       
     }
     // reversing each time is not really necessary but nice
     //reverse(p.commodities[comm].solution_edges_nodes.begin(), p.commodities[comm].solution_edges_nodes.end());
@@ -391,7 +397,6 @@ Status ED::fixConstraint(const int constraint,
 
 Status ED::heuristics(Particle& p_)
 {
-
     EDParticle& p(static_cast<EDParticle&>(p_));
     if (p.isFeasible) {
         if (printing)
@@ -420,11 +425,15 @@ Status ED::heuristics(Particle& p_)
     }
     p.viol_sum = viol_sum;
 
+    // keep removing paths until feasible solution found
     while (viol.min() < 0) {
         if (printing == true)
             cout << "\tviol sum is " << viol.sum() << endl;
 
-        if (RREM == MyTypes::random ) {
+        // remove commodities based on random selection
+
+        //
+        if (RREM == MyTypes::random) {
             cout << "using random repair" << endl;
             vector<int> random_indices;
             for (int i = 0; i < p.commodities.size(); i++) {
@@ -577,8 +586,8 @@ Status ED::heuristics(Particle& p_)
             // if no feasible sp exists between orig and dest nodes
 
             const double thresh = 1.0;
-            double SP = djikstras_naive_cutSet(EIM, node_neighbours, start, end, parents, num_nodes, num_edges,
-                temp_rc, p.x, p.commodities[largest_com_idx].comm_idx, commodities.size(), S_cutSet, thresh);
+            double SP = djikstras_naive(EIM, node_neighbours, start, end, parents, num_nodes, num_edges,
+                temp_rc, p.x, p.commodities[largest_com_idx].comm_idx, commodities.size(), thresh);
 
             if (SP < thresh) {
                 storePath(p, largest_com_idx, start, end, parents, &viol);
@@ -642,7 +651,13 @@ Status ED::heuristics(Particle& p_)
     //     }
     // }
 
-    
+    // Final feasibility check
+    for (int i=0; i<p.x.size();i++){
+        if (p.x[i] > 1){
+            cout <<"error, infeasible solution found" << endl;
+            exit(1);
+        }
+    }
     p.ub = 0;
 
     for (auto it = p.commodities.begin(); it != p.commodities.end(); it++) {
