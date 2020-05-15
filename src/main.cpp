@@ -26,6 +26,7 @@ int main(int argc,const char** argv)
     ap.parse(argc, argv);
 
     cout << "ap.printing is" << ap.printing << endl;
+    cout << "ap.RAEM is" << ap.RAEM << endl;
     std::cout << "Running " << (ap.useVol ? "Volume" : "LaPSO") << " for disjoint paths problem with "
               << ap.graph_filename << " & " << ap.pairs_filename << std::endl;
     ED ed(ap.graph_filename, ap.pairs_filename, ap.printing, ap.randComm, ap.djikstras_naive, ap.RREM, ap.RAEM);

@@ -172,7 +172,7 @@ private:
     map<vector<int>,int> constraint_map;
     MyTypes::repairRemoveEdgeMethod RREM;
     MyTypes::repairAddEdgeMethod RAEM;
-    
+    void removeCommodity(EDParticle& p, IntVec& viol, int comm_idx_to_remove);
     // For each node_idx, node_neighbours contains NodeEdgePair --> {neighbour node_idx , edge_idx}
     vector<vector<NodeEdgePair>> node_neighbours;
     void remove_commodity(EDParticle& p, IntVec& viol, int commodity_index);

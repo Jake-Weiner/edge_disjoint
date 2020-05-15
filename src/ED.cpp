@@ -79,7 +79,7 @@ void ED::populate_commodities(string filename)
                 cout << line << endl;
                 int origin_node = stoi(SplitVec[0]);
                 int dest_node = stoi(SplitVec[1]);
-                commodities.push_back(Commodity{origin_node, dest_node, {}, {}, 0.0, comm_idx});
+                commodities.push_back(Commodity{ origin_node, dest_node, {}, {}, 0.0, comm_idx });
                 comm_idx++;
                 getline(input, line);
             }
@@ -102,7 +102,7 @@ void ED::populate_graph(string filename)
         while (!input.eof()) {
             string line;
             getline(input, line); //read number
-            split(SplitVec, line, is_any_of(" \t"), token_compress_on); 
+            split(SplitVec, line, is_any_of(" \t"), token_compress_on);
             if (line_count == 0) {
                 num_nodes = stoi(SplitVec[0]) + 1; // in case the data is indexed from 1..n
                 node_neighbours.resize(num_nodes);
@@ -119,7 +119,7 @@ void ED::populate_graph(string filename)
                               << current_edge.first << " & " << current_edge.second
                               << " - duplicates accepted\n"; // this may give us
                 }
-                
+
                 graph_edges.push_back(current_edge);
                 EIM[current_edge] = edge_number;
                 IEM[edge_number] = current_edge;
@@ -191,23 +191,20 @@ void ED::storePath(EDParticle& p, int comm, int start, int end, const vector<Nod
 
         p.x[primalIdx(eidx, comm)] += 1;
 
-        // for repair method, keep track of violations
-        if ( viol != 0)
-            (*viol)[eidx] -= 1;
+       
         // solution is stored in reverse at here
 
         p.commodities[comm].solution_edges.push_back(eidx);
-        
-        int parent_node = parents[current].first;
-        
-        // ensure correct edge directions for mip solver 
-       // p.commodities[comm].solution_edges_nodes.
 
-        if (p.commodities[comm].solution_edges_nodes.empty()){
-            p.commodities[comm].solution_edges_nodes.push_back({parent_node,current});
+        int parent_node = parents[current].first;
+
+        // ensure correct edge directions for mip solver
+        // p.commodities[comm].solution_edges_nodes.
+
+        if (p.commodities[comm].solution_edges_nodes.empty()) {
+            p.commodities[comm].solution_edges_nodes.push_back({ parent_node, current });
         }
 
-       
 
         // else{
         //     Edge last_edge = p.commodities[comm].solution_edges_nodes.back();
@@ -225,8 +222,12 @@ void ED::storePath(EDParticle& p, int comm, int start, int end, const vector<Nod
         //         p.commodities[comm].solution_edges_nodes.push_back({current,parent_node});
         //     }
         // }
-        
-       
+
+        // for repair method, keep track of violations
+        if (viol != nullptr)
+            (*viol)[eidx] -= 1;
+
+
         // else if (current == p.commodities[comm].origin){
         //     p.commodities[comm].solution_edges_nodes.push_back({current,parent_node});
         // }
@@ -237,10 +238,8 @@ void ED::storePath(EDParticle& p, int comm, int start, int end, const vector<Nod
         // else {
         //     p.commodities[comm].solution_edges_nodes.push_back({current,parent_node});
         // }
- 
-        
+
         //cout << parents[current].first << " " << current << endl;
-       
     }
     // reversing each time is not really necessary but nice
     //reverse(p.commodities[comm].solution_edges_nodes.begin(), p.commodities[comm].solution_edges_nodes.end());
@@ -271,8 +270,7 @@ Status ED::solveSubproblem(Particle& p_)
     for (size_t i = 0; i < p.perturb.size(); i++) {
         if (p.perturb[i] > max_perturb) {
             max_perturb = p.perturb[i];
-        }
-        else if (-1 * p.perturb[i] > max_perturb)
+        } else if (-1 * p.perturb[i] > max_perturb)
             max_perturb = -1 * p.perturb[i];
     }
 
@@ -281,9 +279,9 @@ Status ED::solveSubproblem(Particle& p_)
         commodity_order.push_back(i);
     }
     // shuffle order if random selection selected
-    if (randComm){
+    if (randComm) {
         random_shuffle(commodity_order.begin(), commodity_order.end());
-    }    
+    }
 
     // loop through commodities to solve shortest path problems
     for (int loop_idx = 0; loop_idx < commodity_order.size(); loop_idx++) {
@@ -327,12 +325,12 @@ Status ED::solveSubproblem(Particle& p_)
         p.c[p.commodities[comm_index].comm_idx] = SP;
         //update_comm_sol(p, SP, parents, total_paths_cost, random_index, start, end, printing);
     }
-    
+
     for (int i = 0; i < p.c.size(); i++) {
         const vector<NodeEdgePair>& parents = p.commodity_shortest_paths[i].parents;
         int start = p.commodity_shortest_paths[i].start;
         int end = p.commodity_shortest_paths[i].end;
-        
+
         double SP = p.c[i];
         update_comm_sol(p, SP, parents, total_paths_cost, i, start, end, printing);
     }
@@ -430,9 +428,10 @@ Status ED::heuristics(Particle& p_)
         if (printing == true)
             cout << "\tviol sum is " << viol.sum() << endl;
 
-        // remove commodities based on random selection
+        
+        int comm_idx_to_remove = -1;
 
-        //
+        // remove commodities based on random selection
         if (RREM == MyTypes::random) {
             cout << "using random repair" << endl;
             vector<int> random_indices;
@@ -440,58 +439,24 @@ Status ED::heuristics(Particle& p_)
                 random_indices.push_back(i);
             }
             random_shuffle(random_indices.begin(), random_indices.end());
-
-            // loop through commodities randomly
-            for (int i = 0; i < random_indices.size(); i++) {
-                int random_index = random_indices[i];
-                bool remove_path = false;
+            bool remove_path = false;
+            int loop_idx = 0;
+            while (remove_path == false) {
+                // loop through commodities randomly until a commodity with a violation is found
+                int random_index = random_indices[loop_idx];
                 if (!(p.commodities[random_index].solution_edges.empty())) {
                     for (const int e : p.commodities[random_index].solution_edges) {
                         //contains an edge which is violated
                         if (viol[e] < 0) {
                             remove_path = true;
-                            break;
+                            comm_idx_to_remove = random_index;
                         }
                     }
                 }
-                if (remove_path == true) {
-                    for (const int e : p.commodities[random_index].solution_edges) {
-                        p.x[primalIdx(e, p.commodities[random_index].comm_idx)] -= 1;
-                        viol[e] += 1;
-                    }
-                    p.commodities[random_index].solution_edges.clear();
-                    p.commodities[random_index].solution_edges_nodes.clear();
-
-                    //try and re-add in path
-                    const double thresh = num_nodes; // max path length = num_nodes-1
-                    DblVec temp_rc;
-                    temp_rc.resize(p.rc.size());
-                    for (int i = 0; i < p.rc.size(); i++) {
-                        temp_rc[i] = (viol[edgeIdx(i)] == 1) ? 1 : num_edges;
-                    }
-
-                    vector<NodeEdgePair> parents;
-                    int start = p.commodities[random_index].origin;
-                    int end = p.commodities[random_index].dest;
-                    int current;
-                    double SP = djikstras_naive(EIM, node_neighbours, start, end, parents, num_nodes, num_edges,
-                        temp_rc, p.x, p.commodities[random_index].comm_idx, commodities.size(), thresh);
-                    // if no feasible sp exists between orig and dest nodes
-
-                    if (SP < thresh) {
-                        //if (SP < 1) {
-                        storePath(p, random_index, start, end, parents, &viol);
-                        if (printing == true) {
-                            cout << "\t\trandom repaired path for commodity " << random_index << endl;
-                        }
-                    }
-                }
+                loop_idx++;
             }
-
-        }
-
-        else {
-
+            // remove paths based on the which paths have the most amount of violations
+        } else if (RREM == MyTypes::largest_viol) {
             auto largest_edge_violation = std::min_element(viol.begin(), viol.end());
             // identify edge_idx with the largest violation
             int largest_viol_idx = distance(viol.begin(), largest_edge_violation);
@@ -500,164 +465,101 @@ Status ED::heuristics(Particle& p_)
                      << " with value " << viol[largest_viol_idx] << endl;
             }
 
-            largest_viol = 0;
+            int largest_viol = 0;
+            // identify which commodity uses this edge idx and remove the commodity with the largest number of violations
+            for (auto it = p.commodities.begin(); it != p.commodities.end(); it++) {
+                if (p.x[primalIdx(largest_viol_idx, it->comm_idx)] > 0) { // the commodity contains this edge
+                    current_viol = 0;
+                    for (size_t i = 0; i < it->solution_edges.size(); i++) { // sum up violations this commodity has
+                        if (viol[edgeIdx(it->solution_edges[i])] < 1.0e-6) {
+                            current_viol += viol[edgeIdx(it->solution_edges[i])];
+                        }
+                        if (current_viol < largest_viol) {
+                            comm_idx_to_remove = it->comm_idx;
+                            largest_viol = current_viol;
+                        }
+                    }
+                }
+            }
+            // remove paths based on the perturbation values which the paths have for the edge with the largest viol
+        } else if (RREM == MyTypes::perturb) {
+            auto largest_edge_violation = std::min_element(viol.begin(), viol.end());
+            // identify edge_idx with the largest violation
+            int largest_viol_idx = distance(viol.begin(), largest_edge_violation);
+            if (printing == true) {
+                cout << "\tmin viol is at index " << largest_viol_idx
+                     << " with value " << viol[largest_viol_idx] << endl;
+            }
             double largest_perturb = -1;
-
-            // Using remove largest viol method
-            if (RREM  == largest_viol) {
-                //find commodity with the largest violation, that contains this edge
-                for (auto it = p.commodities.begin(); it != p.commodities.end(); it++) {
-                    if (p.x[primalIdx(largest_viol_idx, it->comm_idx)] > 0) { // the commodity contains this edge
-                        current_viol = 0;
-                        for (size_t i = 0; i < it->solution_edges.size(); i++) { // sum up violations this commodity has
-                            if (viol[edgeIdx(it->solution_edges[i])] < 1.0e-6) {
-                                current_viol += viol[edgeIdx(it->solution_edges[i])];
-                            }
-                            if (current_viol < largest_viol) {
-                                largest_com_idx = it->comm_idx;
-                                largest_viol = current_viol;
-                            }
-                        }
-                    }
-                }
-                // using remove perturb method
-            } else if (RREM  == MyTypes::perturb) {
-                //remove with highest perturbation value (this commodity is least likely to use this edge)
-                for (auto it = p.commodities.begin(); it != p.commodities.end(); it++) {
-                    if (p.x[primalIdx(largest_viol_idx, it->comm_idx)] > 1.0e-6) { // the commodity contains this edge
-
-                        if (p.perturb[primalIdx(largest_viol_idx, it->comm_idx)] > largest_perturb) {
-                            largest_perturb = p.perturb[primalIdx(largest_viol_idx, it->comm_idx)];
-                            largest_com_idx = it->comm_idx;
-                        }
+            //remove with highest perturbation value (this commodity is least likely to use this edge)
+            for (auto it = p.commodities.begin(); it != p.commodities.end(); it++) {
+                if (p.x[primalIdx(largest_viol_idx, it->comm_idx)] > 1.0e-6) { // the commodity contains this edge
+                    if (p.perturb[primalIdx(largest_viol_idx, it->comm_idx)] > largest_perturb) {
+                        largest_perturb = p.perturb[primalIdx(largest_viol_idx, it->comm_idx)];
+                        comm_idx_to_remove = it->comm_idx;
                     }
                 }
             }
+        }
 
-            else {
-                cout << "repair method not set properly" << endl;
-                exit(1);
+        // remove commodity chosen
+        removeCommodity(p, viol, comm_idx_to_remove);
+
+        // try find a new path for this removed commodity using either perturbations, reduced costs or arbitrary values
+        DblVec temp_rc;
+        temp_rc.resize(p.rc.size());
+        const double min_perturb = std::min(0.0, p.perturb.min());
+        const double max_perturb = std::max(0.0, p.perturb.max());
+        const double scale = 1.0 / num_nodes * 1.0 / (max_perturb - min_perturb + 1e-5);
+        for (int i = 0; i < p.rc.size(); i++) {
+            // using perturbations where negative values are shifted to 0
+            if (RAEM == MyTypes::pert_repair_0) {
+                temp_rc[i] = (viol[edgeIdx(i)] == 1) ? scale * p.perturb[i] : 1;
+            } // using perturbations where negative values are up by min perturb value
+            else if (RAEM == MyTypes::pert_repair_min) {
+                temp_rc[i] = (viol[edgeIdx(i)] == 1) ? scale * (p.perturb[i] - min_perturb) : 1;
+            } // using the reduced costs as repair guide
+            else if (RAEM == MyTypes::rc_repair) {
+                temp_rc[i] = (viol[edgeIdx(i)] == 1) ? std::min(1.0 / num_nodes, p.rc[i] / num_nodes) : 1;
+            } // every available edge has the same edge weight
+            else if (RAEM == MyTypes::arb_repair) {
+                temp_rc[i] = (viol[edgeIdx(i)] == 1) ? 1.0 / num_nodes : 1.0;
+            } else {
+                cout << "repair method - add edge not set properly" << endl;
             }
 
+            if (temp_rc[i] < 0) { // rounding error
+                temp_rc[i] = 0.0;
+            }
+            //temp_rc[i] = (viol[edgeIdx(i)] == 1) ? p.rc[i] : 1;
+        }
+
+        vector<NodeEdgePair> parents;
+        int start = p.commodities[comm_idx_to_remove].origin;
+        int end = p.commodities[comm_idx_to_remove].dest;
+
+        // // if no feasible sp exists between orig and dest nodes
+
+        const double thresh = 1.0;
+        double SP = djikstras_naive(EIM, node_neighbours, start, end, parents, num_nodes, num_edges,
+            temp_rc, p.x, p.commodities[comm_idx_to_remove].comm_idx, commodities.size(), thresh);
+
+        if (SP < thresh) {
+            storePath(p, comm_idx_to_remove, start, end, parents, &viol);
             if (printing == true)
-                cout << "\tlargest comm idx " << largest_com_idx << " with " << -largest_viol << endl;
-            // remove this path from both x AND from the solution_edges
-            for (const int e : p.commodities[largest_com_idx].solution_edges) {
-                p.x[primalIdx(e, largest_com_idx)] -= 1;
-                viol[e] += 1;
-            }
-            p.commodities[largest_com_idx].solution_edges.clear();
-            p.commodities[largest_com_idx].solution_edges_nodes.clear();
-
-            // try find a new path for this OD-PAIR, using perturbations
-
-            IntVec distances_heur(num_nodes); // integer distances
-            DblVec temp_rc;
-            temp_rc.resize(p.rc.size());
-            const double min_perturb = std::min(0.0, p.perturb.min());
-            const double max_perturb = std::max(0.0, p.perturb.max());
-            const double scale = 1.0 / num_nodes * 1.0 / (max_perturb - min_perturb + 1e-5);
-
-
-            for (int i = 0; i < p.rc.size(); i++) {
-                if (RAEM == MyTypes::pert_repair_0) {
-                    temp_rc[i] = (viol[edgeIdx(i)] == 1) ? scale * p.perturb[i] : 1;
-                } else if (RAEM == MyTypes::pert_repair_min) {
-                    temp_rc[i] = (viol[edgeIdx(i)] == 1) ? scale * (p.perturb[i] - min_perturb) : 1;
-
-                } else if (RAEM == MyTypes::rc_repair) {
-                    temp_rc[i] = (viol[edgeIdx(i)] == 1) ? std::min(1.0 / num_nodes, p.rc[i] / num_nodes) : 1;
-                } else if (RAEM == MyTypes::arb_repair) {
-                    temp_rc[i] = (viol[edgeIdx(i)] == 1) ? 1.0 / num_nodes : 1.0;
-                } else {
-                    cout << "repair method - add edge not set properly" << endl;
-                }
-
-                if (temp_rc[i] < 0) { // rounding error
-                    temp_rc[i] = 0.0;
-                }
-                //temp_rc[i] = (viol[edgeIdx(i)] == 1) ? p.rc[i] : 1;
-            }
-
-            vector<NodeEdgePair> parents;
-            int start = p.commodities[largest_com_idx].origin;
-            int end = p.commodities[largest_com_idx].dest;
-
-            // if no feasible sp exists between orig and dest nodes
-
-            const double thresh = 1.0;
-            double SP = djikstras_naive(EIM, node_neighbours, start, end, parents, num_nodes, num_edges,
-                temp_rc, p.x, p.commodities[largest_com_idx].comm_idx, commodities.size(), thresh);
-
-            if (SP < thresh) {
-                storePath(p, largest_com_idx, start, end, parents, &viol);
-                if (printing == true)
-                    cout << "\t\trepaired path" << endl;
-            }
-
+                cout << "\t\trepaired path" << endl;
         }
     }
 
-    // if (p.repair_iter % 3 == 0) {
-    //     vector<Commodity> commodities_to_add;
-    //     for (auto it = p.commodities.begin(); it != p.commodities.end(); it++) {
-    //         // commodity checks and reset p.x
-    //         if (it->solution_edges.empty()) {
-    //             commodities_to_add.push_back(*it);
-    //         }
-    //     }
-    //     DblVec temp_rc;
-    //     temp_rc.resize(p.rc.size());
-    //     for (auto it = commodities_to_add.begin(); it != commodities_to_add.end(); it++) {
-    //         int comm_idx = it->comm_idx;
-    //         const double min_perturb = std::min(0.0, p.perturb.min());
-    //         const double max_perturb = std::max(0.0, p.perturb.max());
-    //         const double scale = 1.0 / num_nodes * 1.0 / (max_perturb - min_perturb + 1e-5);
-    //         for (int i = 0; i < p.rc.size(); i++) {
-    //             if (repair_add_edge.compare("pert_repair_0") == 0) {
-    //                 temp_rc[i] = (viol[edgeIdx(i)] == 1) ? scale * p.perturb[i] : 1;
-    //             } else if (repair_add_edge.compare("pert_repair_min") == 0) {
-    //                 temp_rc[i] = (viol[edgeIdx(i)] == 1) ? scale * (p.perturb[i] - min_perturb) : 1;
-
-    //             } else if (repair_add_edge.compare("rc_repair") == 0) {
-    //                 temp_rc[i] = (viol[edgeIdx(i)] == 1) ? std::min(1.0 / num_nodes, p.rc[i] / num_nodes) : 1;
-    //             } else if (repair_add_edge.compare("arb_repair") == 0) {
-    //                 temp_rc[i] = (viol[edgeIdx(i)] == 1) ? 1.0 / num_nodes : 1.0;
-    //             } else {
-    //                 cout << "repair method - add edge not set properly" << endl;
-    //             }
-
-    //             if (temp_rc[i] < 0) { // rounding error
-    //                 temp_rc[i] = 0.0;
-    //             }
-    //         }
-
-    //         // calculate theshold that paths require for successful path connection
-    //         const double thresh = 1.0;
-    //         vector<NodeEdgePair> parents;
-    //         int start = it->origin;
-    //         int end = it->dest;
-    //         int current;
-    //         vector<int> cutset;
-    //         double SP = djikstras_naive_cutSet(EIM, node_neighbours, start, end, parents, num_nodes, num_edges,
-    //             temp_rc, p.x, comm_idx, commodities.size(), S_cutSet, thresh);
-
-    //         if (SP < thresh) {
-    //             storePath(p, comm_idx, start, end, parents, &viol);
-    //             if (printing == true)
-    //                 cout << "\t\trepaired path" << endl;
-
-    //         } 
-    //     }
-    // }
-
     // Final feasibility check
-    for (int i=0; i<p.x.size();i++){
-        if (p.x[i] > 1){
-            cout <<"error, infeasible solution found" << endl;
+    for (int i = 0; i < p.x.size(); i++) {
+        if (p.x[i] > 1) {
+            cout << "error, infeasible solution found" << endl;
             exit(1);
         }
     }
+
+    p.isFeasible = true;
     p.ub = 0;
 
     for (auto it = p.commodities.begin(); it != p.commodities.end(); it++) {
@@ -665,7 +567,7 @@ Status ED::heuristics(Particle& p_)
             p.ub += 1;
     }
 
-    p.isFeasible = true;
+    
     if (printing == true)
         cout << "Heuristic found solution with " << p.ub << " missing paths\n";
 
@@ -693,6 +595,17 @@ Status ED::updateBest(Particle& p_)
     if (printing == true)
         cout << "################## " << solution_cost << " ############\n";
     return OK;
+}
+
+void ED::removeCommodity(EDParticle& p, IntVec& viol, int comm_idx_to_remove)
+{
+
+    for (const int e : p.commodities[comm_idx_to_remove].solution_edges) {
+        p.x[primalIdx(e, p.commodities[comm_idx_to_remove].comm_idx)] -= 1;
+        viol[e] += 1;
+    }
+    p.commodities[comm_idx_to_remove].solution_edges.clear();
+    p.commodities[comm_idx_to_remove].solution_edges_nodes.clear();
 }
 
 void ED::localSearch(Particle& p_)
@@ -867,49 +780,46 @@ vector<int> EDParticle::solve_mip(map<vector<int>, int>& constraint_map)
 {
 
     // K=Set( k for k in keys(od_pairs) if od_pairs[k][source] in vertices && od_pairs[k][sink] in vertices)
-	// @variable(mip,x[i=vertices,j=neighbours[i],k=K],Bin, start=0)
-	// @variable(mip,z[k=K],Bin, start = 0) # is this commodity used?
-	// # for k in keys(od_pairs)
-	// # 	setvalue(z[k],0)
-	// # for key in neighbours
-	// # 	setvalue(x[key,neighbours[key]])
-	
+    // @variable(mip,x[i=vertices,j=neighbours[i],k=K],Bin, start=0)
+    // @variable(mip,z[k=K],Bin, start = 0) # is this commodity used?
+    // # for k in keys(od_pairs)
+    // # 	setvalue(z[k],0)
+    // # for key in neighbours
+    // # 	setvalue(x[key,neighbours[key]])
 
-	// open(reduced_edges_file) do reduced_edge_input
-	// 	for (index, data) in enumerate(eachline(reduced_edge_input))
-	// 		a = split(data)
-	// 		first_node = parse(Int16,a[1])
-	// 		second_node = parse(Int16,a[2])
-	// 		commodity_number = parse(Int16,a[3]) + 1
-			
-	// 		setlowerbound(x[first_node,second_node ,commodity_number],0)
-	// 		setlowerbound(x[second_node,first_node ,commodity_number],0)
-	// 		setupperbound(x[first_node,second_node ,commodity_number],0)
-	// 		setupperbound(x[second_node,first_node ,commodity_number],0)
-	// 		# x[first_node,second_node ,commodity_number] == 0
-	// 		# x[second_node,first_node ,commodity_number] == 0
+    // open(reduced_edges_file) do reduced_edge_input
+    // 	for (index, data) in enumerate(eachline(reduced_edge_input))
+    // 		a = split(data)
+    // 		first_node = parse(Int16,a[1])
+    // 		second_node = parse(Int16,a[2])
+    // 		commodity_number = parse(Int16,a[3]) + 1
 
-	// 	end
-	// end
+    // 		setlowerbound(x[first_node,second_node ,commodity_number],0)
+    // 		setlowerbound(x[second_node,first_node ,commodity_number],0)
+    // 		setupperbound(x[first_node,second_node ,commodity_number],0)
+    // 		setupperbound(x[second_node,first_node ,commodity_number],0)
+    // 		# x[first_node,second_node ,commodity_number] == 0
+    // 		# x[second_node,first_node ,commodity_number] == 0
 
-	// for obj in warm_start_edges
-	// 	setupperbound(x[obj[1],obj[2],obj[3]],1)
-	//  	setvalue(x[obj[1],obj[2],obj[3]], 1)
-	//  	setvalue(z[obj[3]], 1)
-	// end
+    // 	end
+    // end
 
-	// @objective(mip,Max,sum( z[k] for k=K ))
+    // for obj in warm_start_edges
+    // 	setupperbound(x[obj[1],obj[2],obj[3]],1)
+    //  	setvalue(x[obj[1],obj[2],obj[3]], 1)
+    //  	setvalue(z[obj[3]], 1)
+    // end
 
+    // @objective(mip,Max,sum( z[k] for k=K ))
 
-	// @constraint(mip,flow[i=vertices,k=K], sum(x[i,j,k] for j in neighbours[i]) - sum( x[j,i,k] for j in neighbours[i] ) ==
-	//                                               ((i==od_pairs[k][source] ? z[k] : 0) + (i==od_pairs[k][sink] ? -z[k] : 0)))
-	// # @constraint(mip,test_flow[k=K], )                                     
+    // @constraint(mip,flow[i=vertices,k=K], sum(x[i,j,k] for j in neighbours[i]) - sum( x[j,i,k] for j in neighbours[i] ) ==
+    //                                               ((i==od_pairs[k][source] ? z[k] : 0) + (i==od_pairs[k][sink] ? -z[k] : 0)))
+    // # @constraint(mip,test_flow[k=K], )
 
-	// @constraint(mip,cap[i=vertices,j=neighbours[i];i<j], sum(x[i,j,k]+x[j,i,k] for k=K) <= 1)
-
+    // @constraint(mip,cap[i=vertices,j=neighbours[i];i<j], sum(x[i,j,k]+x[j,i,k] for k=K) <= 1)
 
     vector<int> y;
-    
+
     y.resize(c.size(), 0);
     IloEnv env;
     IloModel model(env);
@@ -986,10 +896,11 @@ vector<int> EDParticle::solve_mip(map<vector<int>, int>& constraint_map)
 
         //cout << "Values        = " << vals << endl;
 
-        double improvement =0;
+        double improvement = 0;
         for (int i = 0; i < vals.getSize(); i++) {
-            y[i] = floor(vals[i]+0.1); // make sure we don't get rounding error
-			if(c[i] < 1) improvement += (1-vals[i])*(1-c[i]);
+            y[i] = floor(vals[i] + 0.1); // make sure we don't get rounding error
+            if (c[i] < 1)
+                improvement += (1 - vals[i]) * (1 - c[i]);
             //cout << "i = " << i << " vals[i] = " << vals[i] << endl;
         }
 

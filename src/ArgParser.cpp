@@ -49,8 +49,8 @@ bool charToBool(const char* inputString);
         parser.setOption("average_path_saved_filename");
         parser.setOption("dual_0_filename");
         parser.setOption("convergence_filename");
-        parser.setOption("repair_add_edge");
-        parser.setOption("repair_edge_removal");
+        parser.setOption("repair_add_edge_method");
+        parser.setOption("repair_edge_removal_method");
         
         // doubles 
         parser.setOption("initial_dual_max");
@@ -164,21 +164,24 @@ bool charToBool(const char* inputString);
     void ArgParser::parseRepairMethod(AnyOption& parser){
 
         // edge addition method
-        if (parser.getValue("repair_method")){
-            if (parser.getValue("repair_add_edge_method") == "pert_repair_0"){
+        if (parser.getValue("repair_add_edge_method")){
+            if (strcmp(parser.getValue("repair_add_edge_method"), "pert_repair_0") == 0){
                 RAEM = MyTypes::pert_repair_0;
+                cout << "pert_repair_0 selected" << endl;
             }
-            else if(parser.getValue("repair_add_edge_method") == "pert_repair_min"){
+            else if(strcmp(parser.getValue("repair_add_edge_method"),"pert_repair_min") == 0){
                 RAEM = MyTypes::pert_repair_min;
+                cout << "pert_repair_min selected" << endl;
             }
-            else if(parser.getValue("repair_add_edge_method") == "rc_repair"){
+            else if(strcmp(parser.getValue("repair_add_edge_method"), "rc_repair")  == 0){
                 RAEM = MyTypes::rc_repair;
             }
-            else if(parser.getValue("repair_add_edge_method") == "arb_repair"){
+            else if(strcmp(parser.getValue("repair_add_edge_method"),"arb_repair") == 0){
                 RAEM = MyTypes::arb_repair;
             }
         }
 
+        
         // edge removal method
         if (parser.getValue("repair_edge_removal_method")){
             if (parser.getValue("repair_edge_removal_method") == "largest_viol"){
