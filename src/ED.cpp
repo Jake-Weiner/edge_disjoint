@@ -562,6 +562,7 @@ Status ED::heuristics(Particle& p_)
     p.isFeasible = true;
     p.ub = 0;
 
+    // missing paths, ub +=1. For true LB to original problem, this should be num_commodities - ub
     for (auto it = p.commodities.begin(); it != p.commodities.end(); it++) {
         if (it->solution_edges.empty())
             p.ub += 1;
