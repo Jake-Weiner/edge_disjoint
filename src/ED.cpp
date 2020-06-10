@@ -95,6 +95,8 @@ void ED::populate_graph(string filename)
     size_t edge_number = 0;
     //double weight_init = 0;
     Edge current_edge;
+    const int start_node_idx = 0;
+    const int end_node_idx = 1;
     int start_node;
     int end_node;
     if (input.is_open()) {
@@ -102,24 +104,38 @@ void ED::populate_graph(string filename)
         while (!input.eof()) {
             string line;
             getline(input, line); //read number
+            // split the line based on \t and whitespace
             split(SplitVec, line, is_any_of(" \t"), token_compress_on);
+            // first line contains the number of nodes
             if (line_count == 0) {
                 num_nodes = stoi(SplitVec[0]) + 1; // in case the data is indexed from 1..n
                 node_neighbours.resize(num_nodes);
-                line_count++;
+                ++line_count;
                 continue;
             }
-
+            // second line contains the number of edges
+            else if(line_count == 1){
+                ++line_count;
+                continue;
+            }
+            // edges are written as Node1 Node2 Weight
             if (SplitVec.size() >= 3) {
-                start_node = stoi(SplitVec[0]);
-                end_node = stoi(SplitVec[1]);
+                try{
+                    start_node = stoi(SplitVec[start_node_idx]);
+                    end_node = stoi(SplitVec[end_node_idx]);
+                }
+                catch(...){
+                    cout << "error in converting string to int in populate_graph()" << endl;
+                    exit(1);
+                }
+
+                // ask andreas about duplicate edge check?
                 current_edge = Edge(start_node, end_node);
                 if (EIM.find(current_edge) != EIM.end()) {
                     std::cout << "WARNING: " << filename << " contains 2 edges between "
                               << current_edge.first << " & " << current_edge.second
                               << " - duplicates accepted\n"; // this may give us
                 }
-
                 graph_edges.push_back(current_edge);
                 EIM[current_edge] = edge_number;
                 IEM[edge_number] = current_edge;
@@ -135,6 +151,8 @@ void ED::populate_graph(string filename)
             }
         }
     }
+
+    // check for 0/1 indexing...
     if (node_neighbours[num_nodes - 1].empty())
         node_neighbours.resize(--num_nodes);
 
