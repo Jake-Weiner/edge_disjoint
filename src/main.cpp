@@ -27,6 +27,7 @@ int main(int argc,const char** argv)
 
     cout << "ap.printing is" << ap.printing << endl;
     cout << "ap.RAEM is" << ap.RAEM << endl;
+    cout << "iterations checks is " << ap.iteration_checks << endl;
     std::cout << "Running " << (ap.useVol ? "Volume" : "LaPSO") << " for disjoint paths problem with "
               << ap.graph_filename << " & " << ap.pairs_filename << std::endl;
     ED ed(ap.graph_filename, ap.pairs_filename, ap.printing, ap.randComm, ap.djikstras_naive, ap.RREM, ap.RAEM);
@@ -94,7 +95,8 @@ int main(int argc,const char** argv)
               << " dual cpu time " << solver.dual_cpu_time
               << std::endl;
 
-    if (ap.write_outputs) {
+    // if output_file given
+    if (ap.output_filename.compare("") != 0) {
         // if (!ap.parameter_output_file.empty())
         //     ap.output_filename = ap.parameter_output_file;
         try {
@@ -115,7 +117,9 @@ int main(int argc,const char** argv)
         }
     }
 
-    // Output tracking
+    // Output iteration tracking
+
+    if (ap.iteration_checks){
     // dual euclid
     write_iteration_checks(ap.dual_euclid_filename, solver.dual_euclid);
     // perturb euclid
@@ -134,6 +138,7 @@ int main(int argc,const char** argv)
     write_iteration_checks(ap.average_ub_filename, solver.average_ub_tracking);
     //dual_0
     write_iteration_checks(ap.dual_0_filename, solver.dual_0_tracking);
+    }
     
     return 0;
 }
@@ -153,9 +158,13 @@ void initLaPSOParameters(MainArg::ArgParser& ap, LaPSO::Problem& solver)
     solver.param.particle_tracking = ap.particle_tracking;
     solver.param.localSearch = ap._localSearch;
     solver.param.iteration_checks = ap.iteration_checks;
+    cout << "iteration_checks is " << ap.iteration_checks << endl;
+    solver.param.time_limit_checks = ap.time_limit_checks;
     solver.param.convergence_output = ap.convergence_filename;
 }
 
+
+// plots iteration number against quantity recorded
 template <typename T>
 void write_iteration_checks(string filename, vector<T>& input_vec)
 {

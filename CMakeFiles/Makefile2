@@ -65,39 +65,39 @@ CMAKE_SOURCE_DIR = /home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git
 CMAKE_BINARY_DIR = /home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git
 
 #=============================================================================
-# Target rules for target CMakeFiles/main_test.dir
+# Target rules for target CMakeFiles/EJOR_Larger_Graphs.dir
 
 # All Build rule for target.
-CMakeFiles/main_test.dir/all:
-	$(MAKE) -f CMakeFiles/main_test.dir/build.make CMakeFiles/main_test.dir/depend
-	$(MAKE) -f CMakeFiles/main_test.dir/build.make CMakeFiles/main_test.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/CMakeFiles --progress-num=1,2,3,4,5,6,7,8,9,10 "Built target main_test"
-.PHONY : CMakeFiles/main_test.dir/all
+CMakeFiles/EJOR_Larger_Graphs.dir/all:
+	$(MAKE) -f CMakeFiles/EJOR_Larger_Graphs.dir/build.make CMakeFiles/EJOR_Larger_Graphs.dir/depend
+	$(MAKE) -f CMakeFiles/EJOR_Larger_Graphs.dir/build.make CMakeFiles/EJOR_Larger_Graphs.dir/build
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/CMakeFiles --progress-num=1,2,3,4,5,6,7,8,9,10 "Built target EJOR_Larger_Graphs"
+.PHONY : CMakeFiles/EJOR_Larger_Graphs.dir/all
 
 # Include target in all.
-all: CMakeFiles/main_test.dir/all
+all: CMakeFiles/EJOR_Larger_Graphs.dir/all
 
 .PHONY : all
 
 # Build rule for subdir invocation for target.
-CMakeFiles/main_test.dir/rule: cmake_check_build_system
+CMakeFiles/EJOR_Larger_Graphs.dir/rule: cmake_check_build_system
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/CMakeFiles 10
-	$(MAKE) -f CMakeFiles/Makefile2 CMakeFiles/main_test.dir/all
+	$(MAKE) -f CMakeFiles/Makefile2 CMakeFiles/EJOR_Larger_Graphs.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/jake/PhD/Edge_Disjoint/c++/Lagrangian_Relax/git/CMakeFiles 0
-.PHONY : CMakeFiles/main_test.dir/rule
+.PHONY : CMakeFiles/EJOR_Larger_Graphs.dir/rule
 
 # Convenience name for target.
-main_test: CMakeFiles/main_test.dir/rule
+EJOR_Larger_Graphs: CMakeFiles/EJOR_Larger_Graphs.dir/rule
 
-.PHONY : main_test
-
-# clean rule for target.
-CMakeFiles/main_test.dir/clean:
-	$(MAKE) -f CMakeFiles/main_test.dir/build.make CMakeFiles/main_test.dir/clean
-.PHONY : CMakeFiles/main_test.dir/clean
+.PHONY : EJOR_Larger_Graphs
 
 # clean rule for target.
-clean: CMakeFiles/main_test.dir/clean
+CMakeFiles/EJOR_Larger_Graphs.dir/clean:
+	$(MAKE) -f CMakeFiles/EJOR_Larger_Graphs.dir/build.make CMakeFiles/EJOR_Larger_Graphs.dir/clean
+.PHONY : CMakeFiles/EJOR_Larger_Graphs.dir/clean
+
+# clean rule for target.
+clean: CMakeFiles/EJOR_Larger_Graphs.dir/clean
 
 .PHONY : clean
 

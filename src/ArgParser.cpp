@@ -29,6 +29,8 @@ bool charToBool(const char* inputString);
         parser.setOption("djikstras_naive");
         parser.setOption("particle_tracking");
         parser.setOption("convergence_test");
+        parser.setOption("iteration_checks");
+        parser.setOption("time_limit_checks");
         parser.setOption("print_initial_costs");
         
         // String Arguments
@@ -146,11 +148,16 @@ bool charToBool(const char* inputString);
         if (parser.getValue("particle_tracking"))
                 particle_tracking = charToBool(parser.getValue("particle_tracking"));
         if (parser.getValue("iteration_checks"))
-                iteration_checks = charToBool(parser.getValue("iteration_checks"));
+            iteration_checks = charToBool(parser.getValue("iteration_checks"));  
+        if (parser.getValue("time_limit_checks"))
+                time_limit_checks = charToBool(parser.getValue("time_limit_checks"));
+
+
         if (parser.getValue("_localSearch"))
                 _localSearch = charToBool(parser.getValue("_localSearch"));
         if (parser.getValue("print_initial_costs"))
                 print_initial_costs = charToBool(parser.getValue("print_initial_costs"));
+        
     }
 
     void ArgParser::parseDoubles(AnyOption& parser){

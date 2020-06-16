@@ -71,6 +71,7 @@ void ED::populate_commodities(string filename)
     ifstream input(filename);
     split_vector_type SplitVec;
     if (input.is_open()) {
+        cout << "pairs file found" << endl;
         string line;
         getline(input, line);
         while (!input.eof()) {
@@ -85,6 +86,7 @@ void ED::populate_commodities(string filename)
             }
         }
     }
+    cout << "finished reading in pairs" << endl;
 }
 
 void ED::populate_graph(string filename)
@@ -93,7 +95,6 @@ void ED::populate_graph(string filename)
     ifstream input(filename);
     split_vector_type SplitVec;
     size_t edge_number = 0;
-    //double weight_init = 0;
     Edge current_edge;
     const int start_node_idx = 0;
     const int end_node_idx = 1;
@@ -143,20 +144,16 @@ void ED::populate_graph(string filename)
                 node_neighbours[start_node].push_back(NodeEdgePair(end_node, edge_number));
                 node_neighbours[end_node].push_back(NodeEdgePair(start_node, edge_number));
                 ++edge_number;
-                // AE: Crude fix for the duplicate edge problem
-                // current_edge = Edge(current_edge.second, current_edge.first);
-                // // same edge number in both directions
-                // EIM[current_edge] = edge_number;
-                // edge_number += 1;
             }
         }
     }
-
     // check for 0/1 indexing...
     if (node_neighbours[num_nodes - 1].empty())
         node_neighbours.resize(--num_nodes);
 
     num_edges = graph_edges.size();
+
+    cout << "finished reading in graph" << endl;
 }
 
 Status ED::reducedCost(const Particle& p, DblVec& redCost)

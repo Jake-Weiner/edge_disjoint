@@ -23,6 +23,6 @@ link_directories("/home/jake/PhD/Edge_Disjoint/c++/boost_1_67_0/Build/lib")
 
 #FILE(GLOB_RECURSE SOURCES RELATIVE MyCppSources src/*.cpp)
 
-add_executable(main_test src/main.cpp src/ED.cpp src/LaPSO.cpp src/CpuTimer.cpp src/ArgParser.cpp src/anyoption.cpp src/VolVolume.cpp src/prep_mip.cpp src/djikstra.cpp)
+add_executable(EJOR_Larger_Graphs src/main.cpp src/ED.cpp src/LaPSO.cpp src/CpuTimer.cpp src/ArgParser.cpp src/anyoption.cpp src/VolVolume.cpp src/prep_mip.cpp src/djikstra.cpp)
 
-target_link_libraries(main_test concert ilocplex cplex m pthread dl)
+target_link_libraries(EJOR_Larger_Graphs concert ilocplex cplex m pthread dl)

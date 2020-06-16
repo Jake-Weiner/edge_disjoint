@@ -105,11 +105,12 @@ void Particle::resize(size_t numVar, size_t numConstr)
     lb = -INF;
     pVel.resize(numVar, 0.0);
 }
+// set UB for all lagrangian multipliers to be 0
 Problem::Problem(int nVar, int nConstr)
     : psize(nVar)
     , dsize(nConstr)
     , dualLB(dsize, -INF)
-    , dualUB(dsize, INF)
+    , dualUB(dsize, 0)
     , nIter(-1)
 {
     _wallTime = omp_get_wtime();
@@ -118,7 +119,28 @@ Problem::Problem(int nVar, int nConstr)
     best.isFeasible = false;
     best.perturb.resize(nVar, 0.0);
     best.dual.resize(nConstr, 0.0);
+}
 
+void Problem::iteration_updates(const int& commodities){
+     double sum_lb = 0;
+    int sum_ub = 0;
+    int sum_viol = 0;
+    int path_saved = 0;
+    for (int idx = 0; idx < param.nParticles; ++idx) {
+        ParticleIter p(swarm, idx);
+        sum_lb += p->lb;
+        sum_ub += p->ub;
+        sum_viol += p->viol_sum;
+        path_saved += p->path_saved;
+    }
+    average_lb_tracking.push_back(commodities - (sum_lb / param.nParticles));
+    average_viol_tracking.push_back(sum_viol / param.nParticles);
+    average_path_saved_tracking.push_back(path_saved / param.nParticles);
+    average_ub_tracking.push_back(commodities - (sum_ub / param.nParticles));
+    dual_euclid.push_back(euclideanDistance(swarm, "dual"));
+    perturb_euclid.push_back(euclideanDistance(swarm, "perturb"));
+    best_lb_tracking.push_back(commodities - best.lb);
+    best_ub_tracking.push_back(commodities - best.ub);
 }
 
 // Main method
@@ -127,10 +149,7 @@ void Problem::solve(UserHooks& hooks)
 
     // commodities size
     double commodities = best.perturb.size() / best.dual.size();
-    vector<double> best_lb;
-    best_lb.push_back(0.0);
-    vector<double> best_ub;
-    best_ub.push_back(INF);
+
     int non_improv = 0;
     int ub_non_improv = 0;
     double improv_thresh = 1.01;
@@ -219,50 +238,34 @@ void Problem::solve(UserHooks& hooks)
         printf("Initial LB=%g UB=%g\n", best.lb, best.ub);
     int noImproveIter = 0, nReset = 0, maxNoImprove = 1000;
 
-    vector<double> lb_time_limits = {90.0, 180.0,  270.0, 360.0, 450.0,  540.0,  630.0,  720.0,  810.0,  900.0};
-
-
+    // lb time limits for CPLEX/Volume algorithm comparisons.
+    vector<double> lb_time_limits = { 90.0, 180.0, 270.0, 360.0, 450.0, 540.0, 630.0, 720.0, 810.0, 900.0 };
     int current_lb_time_limits_idx = 0;
     double last_lb_comparison;
+
     for (nIter = 1; nIter < param.maxIter && cpuTime() < param.maxCPU && wallTime() < param.maxWallTime && status == OK && (best.lb + param.absGap <= best.ub) && fabs(best.ub - best.lb / best.ub) > param.relGap;
          ++nIter) {
 
-
         printf("iter num = %d\n", nIter);
-        printf("best upper bound so far is %f \n" , commodities - best.lb);
+        printf("best upper bound so far is %f \n", commodities - best.lb);
         // cpu time is within the limit
-        if (cpuTime() < lb_time_limits[current_lb_time_limits_idx]){
-               last_lb_comparison = commodities - best.lb;
-        }
-        else{ // update next limit, use the last found best solution that was within the limit
-            printf("Current Limit is %f with bound of %f \n",lb_time_limits[current_lb_time_limits_idx],last_lb_comparison);
+        // if()
+        if (param.time_limit_checks == true) {
+            if (cpuTime() < lb_time_limits[current_lb_time_limits_idx]) {
+                last_lb_comparison = commodities - best.lb;
+            } else { // update next limit, use the last found best solution that was within the limit
+                printf("Current Limit is %f with bound of %f \n", lb_time_limits[current_lb_time_limits_idx], last_lb_comparison);
 
-            current_lb_time_limits_idx++;
-            lb_comparisons.push_back(last_lb_comparison);
-            if (current_lb_time_limits_idx > lb_time_limits.size() -1){
-                break;
+                current_lb_time_limits_idx++;
+                lb_comparisons.push_back(last_lb_comparison);
+                if (current_lb_time_limits_idx > lb_time_limits.size() - 1) {
+                    break;
+                }
             }
         }
+
         if (param.iteration_checks == true) {
-            double sum_lb = 0;
-            int sum_ub = 0;
-            int sum_viol = 0;
-            int path_saved = 0;
-            for (int idx = 0; idx < param.nParticles; ++idx) {
-                ParticleIter p(swarm, idx);
-                sum_lb += p->lb;
-                sum_ub += p->ub;
-                sum_viol += p->viol_sum;
-                path_saved += p->path_saved;
-            }
-            average_lb_tracking.push_back(commodities-(sum_lb / param.nParticles));
-            average_viol_tracking.push_back(sum_viol / param.nParticles);
-            average_path_saved_tracking.push_back(path_saved / param.nParticles);
-            average_ub_tracking.push_back(commodities - (sum_ub / param.nParticles));
-            dual_euclid.push_back(euclideanDistance(swarm, "dual"));
-            perturb_euclid.push_back(euclideanDistance(swarm, "perturb"));
-            best_lb_tracking.push_back(commodities - best.lb);
-            best_ub_tracking.push_back(commodities - best.ub);
+            iteration_updates(commodities);
         }
 
         if (param.printLevel > 1 && nIter % param.printFreq == 0)
@@ -382,7 +385,7 @@ void Problem::solve(UserHooks& hooks)
         }
         for (int idx = 0; idx < param.nParticles; ++idx) {
             ParticleIter p(swarm, idx);
-            for (int x_idx = 0; x_idx < p->x.size(); ++x_idx){
+            for (int x_idx = 0; x_idx < p->x.size(); ++x_idx) {
                 x_total[x_idx] += p->x[x_idx];
             }
         }
@@ -458,46 +461,27 @@ void Problem::solve(UserHooks& hooks)
         if (param.printLevel && nIter % param.printFreq == 0)
             printf("%2d: LB=%.2f UB=%.2f\n", nIter, best.lb, best.ub);
     }
+
+
     if (param.iteration_checks == true) {
-        double sum_lb = 0;
-        int sum_ub = 0;
-        int sum_viol = 0;
-        int path_saved = 0;
-        for (int idx = 0; idx < param.nParticles; ++idx) {
-            ParticleIter p(swarm, idx);
-            sum_lb += p->lb;
-            sum_ub += p->ub;
-            sum_viol += p->viol_sum;
-            path_saved += p->path_saved;
-        }
-        average_lb_tracking.push_back(commodities - (sum_lb / param.nParticles));
-        average_viol_tracking.push_back(sum_viol / param.nParticles);
-        average_path_saved_tracking.push_back(path_saved / param.nParticles);
-        average_ub_tracking.push_back(commodities -( sum_ub / param.nParticles));
-        dual_euclid.push_back(euclideanDistance(swarm, "dual"));
-        perturb_euclid.push_back(euclideanDistance(swarm, "perturb"));
-        best_lb_tracking.push_back(commodities - best.lb);
-        best_ub_tracking.push_back(commodities - best.ub);
-
-        //set duals to 0
-        for (int idx = 0; idx < param.nParticles; ++idx) {
-            ParticleIter p(swarm, idx);
-            p->dual = 0;
-            p->rc = 0;
-            p->perturb = 0;
-            hooks.solveSubproblem(*p);
-        }
-
-        sum_lb = 0;
-        for (int idx = 0; idx < param.nParticles; ++idx) {
-            ParticleIter p(swarm, idx);
-            sum_lb += p->lb;
-            
-        }
-        dual_0_tracking.push_back(commodities -  (sum_lb / param.nParticles));
+        iteration_updates(commodities);
     }
+        // //set duals to 0
+        // for (int idx = 0; idx < param.nParticles; ++idx) {
+        //     ParticleIter p(swarm, idx);
+        //     p->dual = 0;
+        //     p->rc = 0;
+        //     p->perturb = 0;
+        //     hooks.solveSubproblem(*p);
+        // }
 
-    
+        // sum_lb = 0;
+        // for (int idx = 0; idx < param.nParticles; ++idx) {
+        //     ParticleIter p(swarm, idx);
+        //     sum_lb += p->lb;
+        // }
+        // dual_0_tracking.push_back(commodities - (sum_lb / param.nParticles));
+    // }
 }
 
 double Problem::swarmRadius() const
@@ -513,7 +497,7 @@ double Problem::wallTime() const
 void Problem::initialise(UserHooks& hooks)
 {
     nIter = 0;
-    x_total.resize(psize,0);
+    x_total.resize(psize, 0);
     omp_set_num_threads(param.nCPU);
     _wallTime = omp_get_wtime();
     timer.reset();

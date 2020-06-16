@@ -102,6 +102,7 @@ namespace LaPSO {
 		std::string particle_tracking_filename;
 		bool localSearch = false;
 		bool iteration_checks = false;
+		bool time_limit_checks = false;
 		std::string convergence_output;
 		
     };
@@ -382,6 +383,9 @@ namespace LaPSO {
 		 * the solution which give the best lower bound.
 		 */
 		void solve(UserHooks &hooks);
+
+		// update the bound qualitites/data required at the end of each iteration
+		void iteration_updates(const int& commodities);
 	
 		/**@name Methods returning final status information */
 		//@{

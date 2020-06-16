@@ -52,6 +52,7 @@ class ArgParser {
         bool _zeroInitial = false;
         bool particle_tracking = false;
         bool iteration_checks = false;
+        bool time_limit_checks = false;
         bool _localSearch = false;
         bool print_initial_costs = false;
 
