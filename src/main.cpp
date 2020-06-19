@@ -28,6 +28,7 @@ int main(int argc,const char** argv)
     cout << "ap.printing is" << ap.printing << endl;
     cout << "ap.RAEM is" << ap.RAEM << endl;
     cout << "iterations checks is " << ap.iteration_checks << endl;
+    
     std::cout << "Running " << (ap.useVol ? "Volume" : "LaPSO") << " for disjoint paths problem with "
               << ap.graph_filename << " & " << ap.pairs_filename << std::endl;
     ED ed(ap.graph_filename, ap.pairs_filename, ap.printing, ap.randComm, ap.djikstras_naive, ap.RREM, ap.RAEM);
@@ -45,7 +46,7 @@ int main(int argc,const char** argv)
     //TODO - put initLaPSO Parameters as default values in solver.param.parse
     solver.param.parse(argc, argv);
     //encapsulate in function...
-
+    cout << "cpu Time limit is" << solver.param.maxCPU << endl;
     solver.best.lb = 0; // no path left out
     solver.dualUB = 0; // all constraints are <= so lagrange multipliers are <= 0
     Uniform rand;

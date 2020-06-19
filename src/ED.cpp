@@ -148,8 +148,10 @@ void ED::populate_graph(string filename)
         }
     }
     // check for 0/1 indexing...
-    if (node_neighbours[num_nodes - 1].empty())
+    if (node_neighbours[num_nodes - 1].empty()){
         node_neighbours.resize(--num_nodes);
+    }
+        
 
     num_edges = graph_edges.size();
 

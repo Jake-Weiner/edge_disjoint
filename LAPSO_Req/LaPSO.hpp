@@ -70,7 +70,7 @@ namespace LaPSO {
 		/** maximum number of iterations */
 		int maxIter;
 		/** maximum CPU time (not wallclock) */
-		double maxCPU;
+		double maxCPU = 3600;
 		/** maximum wall-clock (elapsed) time  */
 		double maxWallTime;
 		/** swarm size */
